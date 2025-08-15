@@ -4,7 +4,10 @@ import convictFormatWithValidator from 'convict-format-with-validator'
 convict.addFormats(convictFormatWithValidator)
 
 const isProduction = process.env.NODE_ENV === 'production'
+const isDev = process.env.NODE_ENV !== 'production'
 const isTest = process.env.NODE_ENV === 'test'
+
+const DEFAULT_MESSAGE_TIMEOUT = 30
 
 const config = convict({
   serviceVersion: {
@@ -30,6 +33,21 @@ const config = convict({
     doc: 'Api Service Name',
     format: String,
     default: 'forms-notify-listener'
+  },
+  isProduction: {
+    doc: 'If this application running in the production environment',
+    format: Boolean,
+    default: isProduction
+  },
+  isDevelopment: {
+    doc: 'If this application running in the development environment',
+    format: Boolean,
+    default: isDev
+  },
+  isTest: {
+    doc: 'If this application running in the test environment',
+    format: Boolean,
+    default: isTest
   },
   cdpEnvironment: {
     doc: 'The CDP environment the app is running in. With the addition of "local" for local development',
@@ -93,6 +111,42 @@ const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  awsRegion: {
+    doc: 'AWS region',
+    format: String,
+    default: 'eu-west-2',
+    env: 'AWS_REGION'
+  },
+  sqsEndpoint: {
+    doc: 'The SQS endpoint, if required (e.g. a local development dev service)',
+    format: String,
+    default: '',
+    env: 'SQS_ENDPOINT'
+  },
+  sqsEventsQueueUrl: {
+    doc: 'SQS queue URL',
+    format: String,
+    default: '',
+    env: 'EVENTS_SQS_QUEUE_URL'
+  },
+  receiveMessageTimeout: {
+    doc: 'The wait time between each poll in milliseconds',
+    format: Number,
+    default: DEFAULT_MESSAGE_TIMEOUT * 1000,
+    env: 'RECEIVE_MESSAGE_TIMEOUT_MS'
+  },
+  maxNumberOfMessages: {
+    doc: 'The maximum number of messages to be received from queue at a time',
+    format: Number,
+    default: 10,
+    env: 'SQS_MAX_NUMBER_OF_MESSAGES'
+  },
+  visibilityTimeout: {
+    doc: 'The number of seconds that a message is hidden from other consumers after being retrieved from the queue.',
+    format: Number,
+    default: 30,
+    env: 'SQS_VISIBILITY_TIMEOUT'
   }
 })
 
