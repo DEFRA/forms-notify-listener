@@ -1,7 +1,7 @@
 {
-  "name": "cdp-node-backend-template",
-  "version": "0.1.0",
-  "description": "CDP Node.js Backend Template",
+  "name": "forms-notify-listener",
+  "version": "0.0.0",
+  "description": "forms-notify-listener",
   "main": "src/index.js",
   "type": "module",
   "engines": {
