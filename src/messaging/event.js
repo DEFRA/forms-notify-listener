@@ -3,9 +3,10 @@ import {
   ReceiveMessageCommand
 } from '@aws-sdk/client-sqs'
 
-import { config } from '../config.js'
-import { sqsClient } from './sqs.js'
+import { config } from '~/src/config/index.js'
+import { sqsClient } from '~/src/messaging/sqs.js'
 
+export const receiveMessageTimeout = config.get('receiveMessageTimeout')
 const queueUrl = config.get('sqsEventsQueueUrl')
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
 const visibilityTimeout = config.get('visibilityTimeout')

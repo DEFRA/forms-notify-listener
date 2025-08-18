@@ -1,16 +1,17 @@
-import { vi, describe, it, expect } from 'vitest'
 import {
   DeleteMessageCommand,
   ReceiveMessageCommand,
   SQSClient
 } from '@aws-sdk/client-sqs'
 import { mockClient } from 'aws-sdk-client-mock'
-import { toHaveReceivedCommandWith } from 'aws-sdk-client-mock-vitest'
 
-import { deleteEventMessage, receiveEventMessages } from './event.js'
+import 'aws-sdk-client-mock-jest'
+import {
+  deleteEventMessage,
+  receiveEventMessages
+} from '~/src/messaging/event.js'
 
-expect.extend({ toHaveReceivedCommandWith })
-vi.mock('../common/helpers/logging/logger.js')
+jest.mock('~/src/helpers/logging/logger.js')
 
 describe('event', () => {
   const snsMock = mockClient(SQSClient)

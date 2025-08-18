@@ -1,6 +1,6 @@
 import { SQSClient } from '@aws-sdk/client-sqs'
 
-import { config } from '../config.js'
+import { config } from '~/src/config/index.js'
 
 const awsRegion = config.get('awsRegion')
 const sqsEndpoint = config.get('sqsEndpoint')
