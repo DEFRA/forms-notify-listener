@@ -1,4 +1,4 @@
-import { handleEvent } from '~/.server/service/index.js'
+import { handleEvent } from '~/src/service/index.js'
 
 describe('index', () => {
   describe('handleEvent', () => {
