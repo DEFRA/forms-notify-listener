@@ -9,7 +9,6 @@ import { failAction } from '~/src/helpers/fail-action.js'
 import { requestLogger } from '~/src/helpers/logging/request-logger.js'
 import { requestTracing } from '~/src/helpers/request-tracing.js'
 import { router } from '~/src/plugins/router.js'
-import { transformErrors } from '~/src/plugins/transform-errors.js'
 import { prepareSecureContext } from '~/src/secure-context.js'
 import { runTask } from '~/src/tasks/receive-messages.js'
 
@@ -62,7 +61,6 @@ export async function createServer() {
     prepareSecureContext(server)
   }
 
-  await server.register(transformErrors)
   await server.register(router)
 
   await runTask()
