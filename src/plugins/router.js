@@ -1,12 +1,17 @@
-import { health } from '../routes/health.js'
+import routes from '~/src/routes/index.js'
 
-const router = {
+/**
+ * @satisfies {ServerRegisterPluginObject<void>}
+ */
+export const router = {
   plugin: {
     name: 'router',
-    register: (server, _options) => {
-      server.route([health])
+    register(server) {
+      server.route(routes)
     }
   }
 }
 
-export { router }
+/**
+ * @import { ServerRegisterPluginObject } from '@hapi/hapi'
+ */
