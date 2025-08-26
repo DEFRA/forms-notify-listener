@@ -45,7 +45,7 @@ export function buildFormAdapterSubmissionMessageMetaStub(
 
 /**
  * Builds a Form Submission Event Message stub - this is the event received over SQS
- * @param {Partial<FormAdapterSubmissionMessageMetaSerialised>} partialFormAdapterSubmissionMessagePayload
+ * @param {Partial<FormAdapterSubmissionMessageMetaSerialised>} partialFormAdapterSubmissionMessageMetaSerialised
  * @returns {FormAdapterSubmissionMessageMetaSerialised}
  */
 export function buildFormAdapterSubmissionMessageMetaSerialised(
