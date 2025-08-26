@@ -1,7 +1,7 @@
 import Boom from '@hapi/boom'
 import Wreck from '@hapi/wreck'
 
-import { get, getJson, request } from '~/src/lib/fetch.js'
+import { get, getJson, post, postJson, request } from '~/src/lib/fetch.js'
 
 jest.mock('@hapi/wreck')
 
@@ -108,6 +108,17 @@ describe('fetch utilities', () => {
         options
       )
     })
+
+    it('post should call request with correct method', async () => {
+      const result = await post(url, options)
+
+      expect(result).toEqual({ response: mockResponse, body: mockBody })
+      expect(jest.mocked(Wreck.request)).toHaveBeenCalledWith(
+        'post',
+        url.href,
+        options
+      )
+    })
   })
 
   describe('JSON method wrappers', () => {
@@ -136,6 +147,31 @@ describe('fetch utilities', () => {
       expect(jest.mocked(Wreck.request)).toHaveBeenCalledWith('get', url.href, {
         json: true
       })
+    })
+
+    it('postJson should add json: true to options', async () => {
+      await postJson(url, { payload: { test: 'data' } })
+
+      expect(jest.mocked(Wreck.request)).toHaveBeenCalledWith(
+        'post',
+        url.href,
+        {
+          json: true,
+          payload: { test: 'data' }
+        }
+      )
+    })
+
+    it('postJson should work with no options provided', async () => {
+      await postJson(url)
+
+      expect(jest.mocked(Wreck.request)).toHaveBeenCalledWith(
+        'post',
+        url.href,
+        {
+          json: true
+        }
+      )
     })
   })
 })

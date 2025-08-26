@@ -41,6 +41,16 @@ export function get(url, options) {
 }
 
 /**
+ * POST request
+ * @param {URL} url - URL object
+ * @param {object} options - Request options
+ * @returns {Promise<{response: object, body: any}>}
+ */
+export function post(url, options) {
+  return request('post', url, options)
+}
+
+/**
  * GET request with JSON parsing
  * @param {URL} url - URL object
  * @param {object} options - Request options
@@ -48,4 +58,14 @@ export function get(url, options) {
  */
 export function getJson(url, options = {}) {
   return get(url, { json: true, ...options })
+}
+
+/**
+ * POST request with JSON parsing
+ * @param {URL} url - URL object
+ * @param {object} options - Request options
+ * @returns {Promise<{response: object, body: any}>}
+ */
+export function postJson(url, options = {}) {
+  return post(url, { json: true, ...options })
 }
