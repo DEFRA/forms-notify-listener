@@ -105,6 +105,13 @@ export const config = convict({
     default: '',
     env: 'CDP_HTTPS_PROXY'
   },
+  managerUrl: {
+    doc: 'URL to call Forms Manager API',
+    format: String,
+    nullable: false,
+    default: null,
+    env: 'MANAGER_URL'
+  },
   isSecureContextEnabled: {
     doc: 'Enable Secure Context',
     format: Boolean,
