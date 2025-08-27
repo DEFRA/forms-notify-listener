@@ -7,7 +7,7 @@ import {
   buildFormAdapterSubmissionMessageMetaStub,
   buildFormAdapterSubmissionMessagePayloadStub,
   buildMessageStub
-} from '~/src/service/__stubs__/events.js'
+} from '~/src/service/__stubs__/event-builders.js'
 import {
   handleFormSubmissionEvents,
   mapFormAdapterSubmissionEvent

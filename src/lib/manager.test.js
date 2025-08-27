@@ -9,6 +9,7 @@ jest.mock('~/src/config/index.js', () => ({
     get: jest.fn().mockReturnValueOnce('http://forms-manager')
   }
 }))
+
 describe('getDefinition', () => {
   it('should get the current definition', async () => {
     const expectedDefinition = buildDefinition()

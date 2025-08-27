@@ -5,7 +5,7 @@ import {
   buildFormAdapterSubmissionMessageMetaSerialised,
   buildFormAdapterSubmissionMessagePayloadStub,
   buildMessageStub
-} from '~/src/service/__stubs__/events.js'
+} from '~/src/service/__stubs__/event-builders.js'
 import { mapSubmissionEvent } from '~/src/service/mappers/submission.js'
 
 describe('events', () => {

@@ -116,6 +116,21 @@ export function buildFormAdapterSubmissionMessagePayloadStub(
 }
 
 /**
+ * @param {Partial<FormAdapterSubmissionMessage>} partialFormSubmissionMessage
+ * @returns {FormAdapterSubmissionMessage}
+ */
+export function buildFormAdapterSubmissionMessage(
+  partialFormSubmissionMessage = {}
+) {
+  return {
+    ...buildFormAdapterSubmissionMessagePayloadStub(),
+    messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
+    recordCreatedAt: new Date('2025-08-26'),
+    ...partialFormSubmissionMessage
+  }
+}
+
+/**
  * SQS Message stub builder
  * @param {FormAdapterSubmissionMessagePayloadSerialised} messageBody
  * @param {Partial<Message>} message
@@ -135,5 +150,5 @@ export function buildMessageStub(messageBody, message = {}) {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/types'
+ * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/types'
  */
