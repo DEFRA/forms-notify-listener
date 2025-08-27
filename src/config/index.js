@@ -105,6 +105,25 @@ export const config = convict({
     default: '',
     env: 'CDP_HTTPS_PROXY'
   },
+
+  /**
+   * Email outputs
+   * Email outputs will use notify to send an email to a single inbox.
+   */
+  notifyTemplateId: {
+    format: String,
+    default: '',
+    env: 'NOTIFY_TEMPLATE_ID'
+  },
+  notifyAPIKey: {
+    format: String,
+    default: '',
+    env: 'NOTIFY_API_KEY'
+  },
+
+  /**
+   * API integrations
+   */
   managerUrl: {
     doc: 'URL to call Forms Manager API',
     format: String,
@@ -118,6 +137,7 @@ export const config = convict({
     default: isProduction,
     env: 'ENABLE_SECURE_CONTEXT'
   },
+
   isMetricsEnabled: {
     doc: 'Enable metrics reporting',
     format: Boolean,
