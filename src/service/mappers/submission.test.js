@@ -1,4 +1,4 @@
-import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types.js'
+import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import { ValidationError } from 'joi'
 
 import {
