@@ -1,44 +1,16 @@
-import { sendNotification } from '@defra/forms-engine-plugin'
-// import { escapeMarkdown } from '@defra/forms-engine-plugin/components/helpers.js'
+import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers.js'
 
 import { config } from '~/src/config/index.js'
 import { getErrorMessage } from '~/src/helpers/error-message.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
 import { getFormDefinition } from '~/src/lib/manager.js'
+import { sendNotification } from '~/src/lib/notify.js'
+import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 
 const templateId = config.get('notifyTemplateId')
 
 const logger = createLogger()
 
-/**
- * Prevent Markdown formatting
- * @see {@link https://pandoc.org/chunkedhtml-demo/8.11-backslash-escapes.html}
- */
-function escapeMarkdown(answer) {
-  const punctuation = [
-    '`',
-    "'",
-    '*',
-    '_',
-    '{',
-    '}',
-    '[',
-    ']',
-    '(',
-    ')',
-    '#',
-    '+',
-    '-',
-    '.',
-    '!'
-  ]
-
-  for (const character of punctuation) {
-    answer = answer.toString().replaceAll(character, `\\${character}`)
-  }
-
-  return answer
-}
 /**
  * Sends a mail to notify
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -67,20 +39,8 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   const outputAudience = definition.output?.audience ?? 'human'
   const schemaVersion = definition.output?.version ?? '1'
 
-  const machineReadable = {
-    meta: {
-      schemaVersion,
-      timestamp: new Date().toISOString(),
-      referenceNumber,
-      definition
-    },
-    data: formSubmissionMessage.data
-  }
-  let body = JSON.stringify(machineReadable)
-  // TODO - format email
-  // TODO - human readable
-  // TODO - machine readable
-  // TODO - send notification
+  const outputFormatter = getFormatter(outputAudience, schemaVersion)
+  let body = outputFormatter(formSubmissionMessage, definition, schemaVersion)
 
   // GOV.UK Notify transforms quotes into curly quotes, so we can't just send the raw payload
   // This is logic specific to Notify, so we include the logic here rather than in the formatter
@@ -105,7 +65,6 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   } catch (err) {
     const errMsg = getErrorMessage(err)
     logger.error(
-      errMsg,
       `[emailSendFailed] Error sending notification email - templateId: ${templateId} - recipient: ${emailAddress} - ${errMsg}`
     )
 
@@ -113,5 +72,5 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   }
 }
 /**
- * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/types'
+ * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  */

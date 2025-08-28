@@ -1,26 +1,29 @@
-import { sendNotification } from '@defra/forms-engine-plugin'
-import { FormStatus } from '@defra/forms-engine-plugin/types'
-import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
+import {
+  ComponentType,
+  ControllerType,
+  Engine,
+  FormStatus,
+  SchemaVersion
+} from '@defra/forms-model'
+import { buildDefinition } from '@defra/forms-model/stubs'
 
-import { config } from '~/src/config/index.js'
 import { getFormDefinition } from '~/src/lib/manager.js'
+import { sendNotification } from '~/src/lib/notify.js'
 import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageData,
-  buildFormAdapterSubmissionMessageMetaStub,
-  buildMessageStub
+  buildFormAdapterSubmissionMessageMetaStub
 } from '~/src/service/__stubs__/event-builders.js'
 import { sendNotifyEmail } from '~/src/service/notify.js'
+
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   createLogger: () => ({
-    info: jest.fn()
+    info: jest.fn(),
+    error: jest.fn()
   })
 }))
-
+jest.mock('~/src/lib/notify.js')
 jest.mock('~/src/lib/manager.js')
-jest.mock('@defra/forms-engine-plugin', () => ({
-  sendNotification: jest.fn()
-}))
 jest.mock('~/src/config/index.js', () => ({
   config: {
     get: jest.fn((key) => {
@@ -60,8 +63,8 @@ describe('notify', () => {
       audience: 'machine',
       version: '2'
     },
-    engine: 'V2',
-    schema: 2,
+    engine: Engine.V2,
+    schema: SchemaVersion.V2,
     startPage: '/summary',
     pages: [
       {
@@ -69,7 +72,7 @@ describe('notify', () => {
         path: '/what-is-your-name',
         components: [
           {
-            type: 'TextField',
+            type: ComponentType.TextField,
             title: 'What is your name?',
             name: 'JHCHVE',
             shortDescription: 'Your name',
@@ -88,8 +91,7 @@ describe('notify', () => {
         id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
         title: 'Summary',
         path: '/summary',
-        controller: 'SummaryPageController',
-        next: []
+        controller: ControllerType.Summary
       }
     ],
     conditions: [],
@@ -106,7 +108,7 @@ describe('notify', () => {
           version: '1'
         }
       })
-      getFormDefinition.mockResolvedValueOnce(definition)
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
       await sendNotifyEmail(formAdapterSubmissionMessage)
 
       const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
@@ -136,7 +138,7 @@ describe('notify', () => {
     })
 
     it('should send a v2 machine readable email', async () => {
-      getFormDefinition.mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
       await sendNotifyEmail(formAdapterSubmissionMessage)
 
       const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
@@ -154,6 +156,7 @@ describe('notify', () => {
           'base64'
         ).toString('utf-8')
       )
+      expect(new Date(sendNotificationBody.meta.timestamp)).not.toBeNaN()
       expect(sendNotificationBody).toEqual({
         meta: {
           schemaVersion: '2',
@@ -163,13 +166,12 @@ describe('notify', () => {
         },
         data: formSubmissionData
       })
-      expect(new Date(sendNotificationBody.meta.timestamp)).not.toBeNaN()
     })
 
     it('should send a notification email', async () => {
       const definition = buildDefinition({
         name: 'Order a pizza',
-        engine: 'V2',
+        engine: Engine.V2,
         schema: 2,
         startPage: '/summary',
         pages: [
@@ -178,7 +180,7 @@ describe('notify', () => {
             path: '/what-style-of-pizza-would-you-like',
             components: [
               {
-                type: 'RadiosField',
+                type: ComponentType.RadiosField,
                 title: 'What style of pizza would you like?',
                 name: 'QMwMir',
                 shortDescription: 'Style of pizza',
@@ -186,7 +188,6 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 list: '980b45c2-c928-4668-aede-66ee3ab0220a',
                 id: 'bf699f54-a326-4375-bb0b-a597e7442348'
               }
@@ -199,7 +200,7 @@ describe('notify', () => {
             path: '/what-size-of-pizza-would-you-like',
             components: [
               {
-                type: 'RadiosField',
+                type: ComponentType.RadiosField,
                 title: 'What size of pizza would you like?',
                 name: 'duOEvZ',
                 shortDescription: 'Size of pizza',
@@ -207,7 +208,6 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 list: '2c395e86-51ea-4a8f-9f33-a17b825d25ab',
                 id: '75f55a52-4583-4d66-b99b-4cd9ce88c54d'
               }
@@ -220,7 +220,7 @@ describe('notify', () => {
             path: '/what-kind-of-cheeses-would-you-like',
             components: [
               {
-                type: 'CheckboxesField',
+                type: ComponentType.CheckboxesField,
                 title: 'What kind of cheeses would you like?',
                 name: 'DzEODf',
                 shortDescription: 'Type of cheese',
@@ -228,7 +228,6 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 list: 'a5872e58-7b9d-4214-abb0-2f6fc6460430',
                 id: '822c6925-ea67-42f0-95e6-46f5383f0c5d'
               }
@@ -241,7 +240,7 @@ describe('notify', () => {
             path: '/which-toppings-would-you-like',
             components: [
               {
-                type: 'CheckboxesField',
+                type: ComponentType.CheckboxesField,
                 title: 'Which toppings would you like?',
                 name: 'juiCfC',
                 shortDescription: 'Toppings',
@@ -249,7 +248,6 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 list: '16a868c0-c4c2-4638-9fe7-990d192f045d',
                 id: '405e0ed5-e666-4406-ab9a-5f8fb2e9865d'
               }
@@ -262,7 +260,7 @@ describe('notify', () => {
             path: '/would-you-like-to-add-any-special-instructions',
             components: [
               {
-                type: 'MultilineTextField',
+                type: ComponentType.MultilineTextField,
                 title: 'Would you like to add any special instructions?',
                 name: 'YEpypP',
                 shortDescription: 'Special instructions',
@@ -282,7 +280,7 @@ describe('notify', () => {
             path: '/your-delivery-details',
             components: [
               {
-                type: 'TextField',
+                type: ComponentType.TextField,
                 title: 'What is your name?',
                 name: 'JumNVc',
                 shortDescription: 'Your name',
@@ -294,7 +292,7 @@ describe('notify', () => {
                 id: '1c7383aa-1081-4858-851e-126a79b721b4'
               },
               {
-                type: 'TelephoneNumberField',
+                type: ComponentType.TelephoneNumberField,
                 title: 'What is your phone number?',
                 name: 'ALNehP',
                 shortDescription: 'Your phone number',
@@ -302,11 +300,10 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 id: 'f4ddf3af-dfcd-4909-bbbf-a3f98a981280'
               },
               {
-                type: 'UkAddressField',
+                type: ComponentType.UkAddressField,
                 title: 'What is your address?',
                 name: 'vAqTmg',
                 shortDescription: 'Your address',
@@ -314,11 +311,10 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 id: 'e2150dce-4d77-437d-9e8b-95d2c997557a'
               },
               {
-                type: 'DatePartsField',
+                type: ComponentType.DatePartsField,
                 title: 'When would you like your pizza delivered?',
                 name: 'IbXVGY',
                 shortDescription: 'Pizza delivery date',
@@ -326,7 +322,6 @@ describe('notify', () => {
                 options: {
                   required: true
                 },
-                schema: {},
                 id: 'a49e0eb1-0e36-45fe-9459-af3287fea87f'
               }
             ],
@@ -338,7 +333,7 @@ describe('notify', () => {
             path: '/what-sauces-would-you-like',
             components: [
               {
-                type: 'CheckboxesField',
+                type: ComponentType.CheckboxesField,
                 title: 'What sauces would you like?',
                 name: 'HGBWLt',
                 shortDescription: 'Sauces',
@@ -346,7 +341,6 @@ describe('notify', () => {
                 options: {
                   required: false
                 },
-                schema: {},
                 list: '60c73085-feeb-4bc8-b106-4e38eaa19586',
                 id: '5ffca8f4-fa56-4353-865f-0fc93dbb4005'
               }
@@ -358,8 +352,7 @@ describe('notify', () => {
             id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
             title: 'Summary',
             path: '/summary',
-            controller: 'SummaryPageController',
-            next: []
+            controller: ControllerType.Summary
           }
         ],
         conditions: [],
@@ -576,7 +569,7 @@ describe('notify', () => {
         ]
       })
 
-      getFormDefinition.mockResolvedValueOnce(definition)
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
       const formAdapterSubmissionMessage = buildFormAdapterSubmissionMessage({
         meta: buildFormAdapterSubmissionMessageMetaStub({
           formName: 'Order a pizza',
@@ -627,6 +620,7 @@ describe('notify', () => {
 
     it('should handle and throw errors', async () => {
       const err = new Error('Upstream failure')
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(buildDefinition())
       jest.mocked(sendNotification).mockRejectedValueOnce(err)
       await expect(
         sendNotifyEmail(formAdapterSubmissionMessage)
