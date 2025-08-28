@@ -14,7 +14,9 @@ describe('getDefinition', () => {
   it('should get the current definition', async () => {
     const expectedDefinition = buildDefinition()
     const formId = '68a890909ab460290c289409'
-    getJson.mockResolvedValueOnce(expectedDefinition)
+    jest
+      .mocked(getJson)
+      .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
     const definition = await getFormDefinition(formId, FormStatus.Draft)
     expect(getJson).toHaveBeenCalledWith(
       expect.objectContaining({
