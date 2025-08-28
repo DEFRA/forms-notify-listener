@@ -10,7 +10,7 @@ export function formatter(
   _schemaVersion
 ) {
   //
-  return ''
+  return JSON.stringify({})
 }
 
 /**

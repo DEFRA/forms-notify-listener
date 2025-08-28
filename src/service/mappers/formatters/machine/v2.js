@@ -1,16 +1,25 @@
 /**
  * Machine readable notify formatter v2
- * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
- * @param {FormDefinition} _formDefinition
- * @param {string} _schemaVersion
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} formDefinition
+ * @param {string} schemaVersion
  */
 export function formatter(
-  _formSubmissionMessage,
-  _formDefinition,
-  _schemaVersion
+  formSubmissionMessage,
+  formDefinition,
+  schemaVersion
 ) {
-  //
-  return ''
+  const machineReadable = {
+    meta: {
+      schemaVersion,
+      timestamp: new Date().toISOString(),
+      referenceNumber: formSubmissionMessage.meta.referenceNumber,
+      definition: formDefinition
+    },
+    data: formSubmissionMessage.data
+  }
+  // let body = JSON.stringify(machineReadable)
+  return JSON.stringify(machineReadable)
 }
 
 /**
