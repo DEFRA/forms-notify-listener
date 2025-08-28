@@ -1,3 +1,4 @@
+import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types.js'
 import { ValidationError } from 'joi'
 
 import {
@@ -10,7 +11,6 @@ import { mapSubmissionEvent } from '~/src/service/mappers/submission.js'
 
 describe('events', () => {
   const formSubmissionMetaBase = {
-    schemaVersion: 1,
     referenceNumber: '576-225-943',
     formName: 'Order a pizza',
     formId: '68a8b0449ab460290c28940a',
@@ -22,6 +22,7 @@ describe('events', () => {
   const formAdapterSubmission = {
     meta: buildFormAdapterSubmissionMessageMetaSerialised({
       ...formSubmissionMetaBase,
+      schemaVersion: 1,
       timestamp: '2025-08-22T18:15:10.785Z'
     }),
     data: buildFormAdapterSubmissionMessageData({
@@ -62,6 +63,7 @@ describe('events', () => {
         data: formAdapterSubmission.data,
         meta: {
           ...formSubmissionMetaBase,
+          schemaVersion: FormAdapterSubmissionSchemaVersion.V1,
           timestamp: new Date('2025-08-22T18:15:10.785Z')
         }
       })
@@ -118,5 +120,5 @@ describe('events', () => {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessagePayload } from '@defra/forms-engine-plugin/types'
+ * @import { FormAdapterSubmissionMessagePayload } from '@defra/forms-engine-plugin/engine/types.js'
  */

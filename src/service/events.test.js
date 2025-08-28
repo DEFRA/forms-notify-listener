@@ -1,3 +1,4 @@
+import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types.js'
 import { ValidationError } from 'joi'
 
 import { deleteEventMessage } from '~/src/messaging/event.js'
@@ -5,6 +6,7 @@ import {
   buildFormAdapterSubmissionMessageData,
   buildFormAdapterSubmissionMessageMetaSerialised,
   buildFormAdapterSubmissionMessageMetaStub,
+  buildFormAdapterSubmissionMessagePayloadSerialisedStub,
   buildFormAdapterSubmissionMessagePayloadStub,
   buildMessageStub
 } from '~/src/service/__stubs__/event-builders.js'
@@ -25,15 +27,15 @@ jest.mock('~/src/config/index.js', () => ({
 }))
 
 describe('events', () => {
+  const handleFormSubmissionMock = jest.fn()
   /**
-   * @type {FormSubmissionService}
+   * @type {FormAdapterSubmissionService}
    */
   const formSubmissionService = {
-    handleFormSubmission: jest.fn()
+    handleFormSubmission: handleFormSubmissionMock
   }
 
   const formSubmissionMetaBase = {
-    schemaVersion: 1,
     referenceNumber: '576-225-943',
     formName: 'Order a pizza',
     formId: '68a8b0449ab460290c28940a',
@@ -45,6 +47,7 @@ describe('events', () => {
   const formAdapterSubmission = {
     meta: buildFormAdapterSubmissionMessageMetaSerialised({
       ...formSubmissionMetaBase,
+      schemaVersion: 1,
       timestamp: '2025-08-22T18:15:10.785Z'
     }),
     data: buildFormAdapterSubmissionMessageData({
@@ -84,6 +87,7 @@ describe('events', () => {
         data: formAdapterSubmission.data,
         meta: {
           ...formSubmissionMetaBase,
+          schemaVersion: FormAdapterSubmissionSchemaVersion.V1,
           timestamp: new Date('2025-08-22T18:15:10.785Z')
         }
       })
@@ -141,19 +145,19 @@ describe('events', () => {
     const messageId1 = '01267dd5-8cc7-4749-9802-40190f6429eb'
     const messageId2 = '5dd16f40-6118-4797-97c9-60a298c9a898'
     const messageId3 = '70c0155c-e9a9-4b90-a45f-a839924fca65'
+    const { data } = formAdapterSubmission
+    const payload1 = buildFormAdapterSubmissionMessagePayloadSerialisedStub({
+      data,
+      meta: buildFormAdapterSubmissionMessageMetaSerialised(
+        formSubmissionMetaBase
+      )
+    })
 
-    const payload1 = {
-      ...formAdapterSubmission,
-      meta: buildFormAdapterSubmissionMessageMetaStub({
-        ...formAdapterSubmission.meta,
-        timestamp: new Date(formAdapterSubmission.meta.timestamp)
-      })
-    }
-    const payload2 = buildFormAdapterSubmissionMessagePayloadStub()
-    const payload3 = buildFormAdapterSubmissionMessagePayloadStub()
+    const payload2 = buildFormAdapterSubmissionMessagePayloadSerialisedStub()
+    const payload3 = buildFormAdapterSubmissionMessagePayloadSerialisedStub()
 
     const message1 = buildMessageStub(
-      buildFormAdapterSubmissionMessagePayloadStub(payload1),
+      buildFormAdapterSubmissionMessagePayloadSerialisedStub(payload1),
       { MessageId: messageId1 }
     )
     const message2 = buildMessageStub(payload2, { MessageId: messageId2 })
@@ -162,23 +166,24 @@ describe('events', () => {
 
     it('should handle a list of audit events', async () => {
       const expectedMapped1 = {
-        ...payload1,
+        data,
+        meta: buildFormAdapterSubmissionMessageMetaStub(formSubmissionMetaBase),
         recordCreatedAt: expect.any(Date),
         messageId: messageId1
       }
       const expectedMapped2 = {
-        ...payload2,
+        ...buildFormAdapterSubmissionMessagePayloadStub(),
         recordCreatedAt: expect.any(Date),
         messageId: messageId2
       }
       const expectedMapped3 = {
-        ...payload3,
+        ...buildFormAdapterSubmissionMessagePayloadStub(),
         recordCreatedAt: expect.any(Date),
         messageId: messageId3
       }
-      formSubmissionService.handleFormSubmission.mockResolvedValueOnce()
-      formSubmissionService.handleFormSubmission.mockResolvedValueOnce()
-      formSubmissionService.handleFormSubmission.mockResolvedValueOnce()
+      handleFormSubmissionMock.mockResolvedValueOnce(undefined)
+      handleFormSubmissionMock.mockResolvedValueOnce(undefined)
+      handleFormSubmissionMock.mockResolvedValueOnce(undefined)
       const expectedResults = [
         expectedMapped1,
         expectedMapped2,
@@ -188,18 +193,19 @@ describe('events', () => {
         messages,
         formSubmissionService
       )
-      expect(formSubmissionService.handleFormSubmission).toHaveBeenCalledTimes(
-        3
+      expect(handleFormSubmissionMock).toHaveBeenCalledTimes(3)
+      expect(handleFormSubmissionMock).toHaveBeenNthCalledWith(
+        1,
+        expectedMapped1
       )
-      expect(
-        formSubmissionService.handleFormSubmission
-      ).toHaveBeenNthCalledWith(1, expectedMapped1)
-      expect(
-        formSubmissionService.handleFormSubmission
-      ).toHaveBeenNthCalledWith(2, expectedMapped2)
-      expect(
-        formSubmissionService.handleFormSubmission
-      ).toHaveBeenNthCalledWith(3, expectedMapped3)
+      expect(handleFormSubmissionMock).toHaveBeenNthCalledWith(
+        2,
+        expectedMapped2
+      )
+      expect(handleFormSubmissionMock).toHaveBeenNthCalledWith(
+        3,
+        expectedMapped3
+      )
       expect(deleteEventMessage).toHaveBeenCalledTimes(3)
       expect(deleteEventMessage).toHaveBeenNthCalledWith(1, message1)
       expect(deleteEventMessage).toHaveBeenNthCalledWith(2, message2)
@@ -212,11 +218,11 @@ describe('events', () => {
     })
 
     it('should handle errors softly', async () => {
-      formSubmissionService.handleFormSubmission.mockResolvedValueOnce()
-      formSubmissionService.handleFormSubmission.mockRejectedValueOnce(
+      handleFormSubmissionMock.mockResolvedValueOnce(undefined)
+      handleFormSubmissionMock.mockRejectedValueOnce(
         new Error('Upstream error')
       )
-      formSubmissionService.handleFormSubmission.mockResolvedValueOnce()
+      handleFormSubmissionMock.mockResolvedValueOnce(undefined)
 
       const emptyMessage = {}
       const result = await handleFormSubmissionEvents(
@@ -231,5 +237,5 @@ describe('events', () => {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessagePayload, FormSubmissionService } from '@defra/forms-engine-plugin/types'
+ * @import { FormAdapterSubmissionMessagePayload, FormAdapterSubmissionService } from '@defra/forms-engine-plugin/engine/types.js'
  */

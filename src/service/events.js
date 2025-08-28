@@ -1,4 +1,4 @@
-import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-plugin/types'
+import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-plugin/engine/types/schema.js'
 import Joi from 'joi'
 
 import { getErrorMessage } from '~/src/helpers/error-message.js'
@@ -45,8 +45,8 @@ export function mapFormAdapterSubmissionEvent(message) {
  * Create form submission event
  * @template T
  * @param {Message[]} messages
- * @param {T & FormSubmissionService} formSubmissionService
- * @returns {Promise<{ saved: Message[]; failed: any[] }>}
+ * @param {T & FormAdapterSubmissionService} formSubmissionService
+ * @returns {Promise<{ saved: FormAdapterSubmissionMessage[]; failed: any[] }>}
  */
 export async function handleFormSubmissionEvents(
   messages,
@@ -56,7 +56,7 @@ export async function handleFormSubmissionEvents(
 
   /**
    * @param {Message} message
-   * @returns {FormAdapterSubmissionMessage}
+   * @returns {Promise<FormAdapterSubmissionMessage>}
    */
   async function createAuditEvent(message) {
     try {
@@ -103,5 +103,5 @@ export async function handleFormSubmissionEvents(
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload, FormSubmissionService } from '@defra/forms-engine-plugin/types'
+ * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionService } from '@defra/forms-engine-plugin/engine/types.js'
  */

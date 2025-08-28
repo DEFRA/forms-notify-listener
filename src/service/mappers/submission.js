@@ -1,9 +1,9 @@
-import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-plugin/types'
+import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-plugin/engine/types/schema.js'
 import Joi from 'joi'
 
 /**
  * @param {Message} message
- * @returns {AuditRecordInput}
+ * @returns {FormAdapterSubmissionMessagePayload}
  */
 export function mapSubmissionEvent(message) {
   if (!message.MessageId) {
@@ -15,7 +15,7 @@ export function mapSubmissionEvent(message) {
   }
 
   /**
-   * @type {AuditMessage}
+   * @type {FormAdapterSubmissionMessagePayload}
    */
   const messageBody = JSON.parse(message.Body)
 
@@ -37,4 +37,5 @@ export function mapSubmissionEvent(message) {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
+ * @import { FormAdapterSubmissionMessagePayload } from '@defra/forms-engine-plugin/engine/types.js'
  */

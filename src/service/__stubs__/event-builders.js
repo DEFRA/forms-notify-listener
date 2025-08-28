@@ -1,14 +1,11 @@
-import {
-  FormAdapterSubmissionSchemaVersion,
-  FormStatus
-} from '@defra/forms-engine-plugin/types'
-
+import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types.js'
+import { FormStatus } from '@defra/forms-model'
 /**
  * @typedef {Omit<
  *   FormAdapterSubmissionMessageMeta,
  *   'schemaVersion' | 'timestamp' | 'status'
  * > & {
- *   schemaVersion: string
+ *   schemaVersion: number
  *   status: string
  *   timestamp: string
  * }} FormAdapterSubmissionMessageMetaSerialised
@@ -116,6 +113,21 @@ export function buildFormAdapterSubmissionMessagePayloadStub(
 }
 
 /**
+ * Builds a Form Submission Event Message stub
+ * @param {Partial<FormAdapterSubmissionMessagePayloadSerialised>} partialFormAdapterSubmissionMessagePayload
+ * @returns {FormAdapterSubmissionMessagePayloadSerialised}
+ */
+export function buildFormAdapterSubmissionMessagePayloadSerialisedStub(
+  partialFormAdapterSubmissionMessagePayload = {}
+) {
+  return {
+    meta: buildFormAdapterSubmissionMessageMetaSerialised(),
+    data: buildFormAdapterSubmissionMessageData(),
+    ...partialFormAdapterSubmissionMessagePayload
+  }
+}
+
+/**
  * @param {Partial<FormAdapterSubmissionMessage>} partialFormSubmissionMessage
  * @returns {FormAdapterSubmissionMessage}
  */
@@ -150,5 +162,5 @@ export function buildMessageStub(messageBody, message = {}) {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/types'
+ * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/engine/types.js'
  */

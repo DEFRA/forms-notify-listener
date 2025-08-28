@@ -128,7 +128,7 @@ export const config = convict({
     doc: 'URL to call Forms Manager API',
     format: String,
     nullable: false,
-    default: null,
+    default: '',
     env: 'MANAGER_URL'
   },
   isSecureContextEnabled: {
