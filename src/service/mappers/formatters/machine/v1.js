@@ -35,11 +35,7 @@ export function formatter(
  */
 function formatData(formSubmissionMessage, formDefinition) {
   const formModel = new FormModel(formDefinition, { basePath: '' }, {})
-  const {
-    main: mainInput,
-    repeaters: repeatersInput,
-    files: filesInput
-  } = formSubmissionMessage.data
+  const { main: mainInput, repeaters, files } = formSubmissionMessage.data
 
   /**
    * @param {string} key
@@ -60,25 +56,6 @@ function formatData(formSubmissionMessage, formDefinition) {
   }
 
   const main = mapRecord(mainInput)
-  const repeaters = Object.fromEntries(
-    Object.entries(repeatersInput).map(([key, values]) => {
-      return [key, values.map(mapRecord)]
-    })
-  )
-  const files = Object.fromEntries(
-    Object.entries(filesInput).map(([key, value]) => {
-      const component = formModel.componentMap.get(key)
-      const fileUploadState =
-        component.getContextValueFromFormValue(value) ?? []
-
-      return fileUploadState.map((fileId) => {
-        return {
-          fileId,
-          userDownloadLink: `${designerUrl}/file-download/${fileId}`
-        }
-      })
-    })
-  )
 
   return {
     main,

@@ -18,7 +18,7 @@ export function formatter(
     },
     data: formSubmissionMessage.data
   }
-  // let body = JSON.stringify(machineReadable)
+
   return JSON.stringify(machineReadable)
 }
 

@@ -1,4 +1,4 @@
-import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers.js'
+import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 
 import { config } from '~/src/config/index.js'
 import { getErrorMessage } from '~/src/helpers/error-message.js'
@@ -22,8 +22,7 @@ export async function sendNotifyEmail(formSubmissionMessage) {
     formId,
     notificationEmail: emailAddress,
     status,
-    isPreview,
-    referenceNumber
+    isPreview
   } = formSubmissionMessage.meta
   const logTags = ['submit', 'email']
 
