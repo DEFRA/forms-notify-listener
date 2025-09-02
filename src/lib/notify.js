@@ -5,14 +5,24 @@ import { postJson } from '~/src/lib/fetch.js'
 
 const notifyAPIKey = config.get('notifyAPIKey')
 
+const API_KEY_SUBSTRING_REDUCTION = 36
+const SERVICE_ID_SUBSTRING_REDUCTION = 73
+const SERVICE_ID_SUBSTRING_REDUCTION_2 = 37
+
 // Extract the two uuids from the notifyApiKey
 // See https://github.com/alphagov/notifications-node-client/blob/main/client/api_client.js#L17
 // Needed until `https://github.com/alphagov/notifications-node-client/pull/200` is published
 const apiKeyId = /** @type {string} */ (
-  notifyAPIKey.substring(notifyAPIKey.length - 36, notifyAPIKey.length)
+  notifyAPIKey.substring(
+    notifyAPIKey.length - API_KEY_SUBSTRING_REDUCTION,
+    notifyAPIKey.length
+  )
 )
 const serviceId = /** @type {string} */ (
-  notifyAPIKey.substring(notifyAPIKey.length - 73, notifyAPIKey.length - 37)
+  notifyAPIKey.substring(
+    notifyAPIKey.length - SERVICE_ID_SUBSTRING_REDUCTION,
+    notifyAPIKey.length - SERVICE_ID_SUBSTRING_REDUCTION_2
+  )
 )
 
 /**
