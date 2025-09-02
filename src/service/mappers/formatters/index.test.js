@@ -169,8 +169,7 @@ describe('Page controller helpers', () => {
       buildSummaryPage({
         id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
         title: 'Summary',
-        path: '/summary',
-        controller: 'SummaryPageController'
+        path: '/summary'
       })
     ],
     conditions: [],

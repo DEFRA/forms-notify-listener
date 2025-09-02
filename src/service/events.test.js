@@ -8,6 +8,7 @@ import {
   buildFormAdapterSubmissionMessageMetaStub,
   buildFormAdapterSubmissionMessagePayloadSerialisedStub,
   buildFormAdapterSubmissionMessagePayloadStub,
+  buildFormAdapterSubmissionMessageResult,
   buildMessageStub
 } from '~/src/service/__stubs__/event-builders.js'
 import {
@@ -73,6 +74,14 @@ describe('events', () => {
       },
       repeaters: {},
       files: {}
+    }),
+    result: buildFormAdapterSubmissionMessageResult({
+      files: {
+        main: '818d567d-ee05-4a7a-8c49-d5c54fb09b16',
+        repeaters: {
+          FqQrLz: 'e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9'
+        }
+      }
     })
   }
   /**
@@ -132,7 +141,8 @@ describe('events', () => {
         meta: buildFormAdapterSubmissionMessageMetaSerialised({
           formId: undefined
         }),
-        data: buildFormAdapterSubmissionMessageData()
+        data: buildFormAdapterSubmissionMessageData(),
+        result: buildFormAdapterSubmissionMessageResult()
       })
 
       expect(() => mapFormAdapterSubmissionEvent(auditEventMessage)).toThrow(
@@ -150,7 +160,8 @@ describe('events', () => {
       data,
       meta: buildFormAdapterSubmissionMessageMetaSerialised(
         formSubmissionMetaBase
-      )
+      ),
+      result: buildFormAdapterSubmissionMessageResult()
     })
 
     const payload2 = buildFormAdapterSubmissionMessagePayloadSerialisedStub()
@@ -169,7 +180,8 @@ describe('events', () => {
         data,
         meta: buildFormAdapterSubmissionMessageMetaStub(formSubmissionMetaBase),
         recordCreatedAt: expect.any(Date),
-        messageId: messageId1
+        messageId: messageId1,
+        result: buildFormAdapterSubmissionMessageResult()
       }
       const expectedMapped2 = {
         ...buildFormAdapterSubmissionMessagePayloadStub(),

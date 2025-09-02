@@ -15,6 +15,7 @@ import { FormStatus } from '@defra/forms-model'
  * @typedef {{
  *   meta: FormAdapterSubmissionMessageMetaSerialised
  *   data: FormAdapterSubmissionMessageData
+ *   result: FormAdapterSubmissionMessageResult
  * }} FormAdapterSubmissionMessagePayloadSerialised
  */
 
@@ -98,6 +99,25 @@ export function buildFormAdapterSubmissionMessageData(
 }
 
 /**
+ *
+ * @param {Partial<FormAdapterSubmissionMessageResult>} partialFormAdapterSubmissionMessageResult
+ * @returns {FormAdapterSubmissionMessageResult}
+ */
+export function buildFormAdapterSubmissionMessageResult(
+  partialFormAdapterSubmissionMessageResult = {}
+) {
+  return {
+    files: {
+      main: '818d567d-ee05-4a7a-8c49-d5c54fb09b16',
+      repeaters: {
+        FqQrLz: 'e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9'
+      }
+    },
+    ...partialFormAdapterSubmissionMessageResult
+  }
+}
+
+/**
  * Builds a Form Submission Event Message stub
  * @param {Partial<FormAdapterSubmissionMessagePayload>} partialFormAdapterSubmissionMessagePayload
  * @returns {FormAdapterSubmissionMessagePayload}
@@ -108,6 +128,7 @@ export function buildFormAdapterSubmissionMessagePayloadStub(
   return {
     meta: buildFormAdapterSubmissionMessageMetaStub(),
     data: buildFormAdapterSubmissionMessageData(),
+    result: buildFormAdapterSubmissionMessageResult(),
     ...partialFormAdapterSubmissionMessagePayload
   }
 }
@@ -123,6 +144,7 @@ export function buildFormAdapterSubmissionMessagePayloadSerialisedStub(
   return {
     meta: buildFormAdapterSubmissionMessageMetaSerialised(),
     data: buildFormAdapterSubmissionMessageData(),
+    result: buildFormAdapterSubmissionMessageResult(),
     ...partialFormAdapterSubmissionMessagePayload
   }
 }
@@ -162,5 +184,5 @@ export function buildMessageStub(messageBody, message = {}) {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessageResult, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/engine/types.js'
  */

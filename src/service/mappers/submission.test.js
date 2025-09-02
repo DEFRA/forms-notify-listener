@@ -5,6 +5,7 @@ import {
   buildFormAdapterSubmissionMessageData,
   buildFormAdapterSubmissionMessageMetaSerialised,
   buildFormAdapterSubmissionMessagePayloadStub,
+  buildFormAdapterSubmissionMessageResult,
   buildMessageStub
 } from '~/src/service/__stubs__/event-builders.js'
 import { mapSubmissionEvent } from '~/src/service/mappers/submission.js'
@@ -48,7 +49,8 @@ describe('events', () => {
       },
       repeaters: {},
       files: {}
-    })
+    }),
+    result: buildFormAdapterSubmissionMessageResult()
   }
 
   describe('mapSubmissionEvents', () => {
@@ -108,7 +110,8 @@ describe('events', () => {
         meta: buildFormAdapterSubmissionMessageMetaSerialised({
           formId: undefined
         }),
-        data: buildFormAdapterSubmissionMessageData()
+        data: buildFormAdapterSubmissionMessageData(),
+        result: buildFormAdapterSubmissionMessageResult()
       })
 
       expect(() => mapSubmissionEvent(auditEventMessage)).toThrow(

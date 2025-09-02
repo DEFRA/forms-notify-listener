@@ -1,8 +1,9 @@
+import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-import { ControllerType } from '@defra/forms-model'
+import { hasComponents } from '@defra/forms-model'
 import { addDays, format as dateFormat } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -12,7 +13,7 @@ const designerUrl = config.get('designerUrl')
  * Human readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
- * @param {string} schemaVersion
+ * @param {string} _schemaVersion
  */
 export function formatter(
   formSubmissionMessage,
@@ -37,7 +38,10 @@ export function formatter(
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
   const order = formDefinition.pages.flatMap((page) => {
-    return page.components?.map((component) => component.name) ?? []
+    if (hasComponents(page)) {
+      return page.components.map((component) => component.name)
+    }
+    return []
   })
 
   const componentMap = new Map()
@@ -73,6 +77,9 @@ export function formatter(
 
     const answerLine = (() => {
       // Use escaped display text
+      /**
+       * @type {string}
+       */
       let answerEscaped = `${escapeMarkdown(answer)}\n`
 
       if (field instanceof Components.FileUploadField) {
@@ -80,17 +87,26 @@ export function formatter(
         if (!richFormValue?.length) {
           return answerEscaped
         }
+        const formAdapterFile = /** @type {FormAdapterFile[]} */ (richFormValue)
 
         answerEscaped = `${escapeMarkdown(answer)}:\n\n`
 
-        // Append bullet points
-        answerEscaped += richFormValue
+        /**
+         * @type {string}
+         */
+        const fileUploadString = formAdapterFile
           .map((file) => {
             const filename = escapeMarkdown(file.fileName)
             return `* [${filename}](${designerUrl}/file-download/${file.fileId})\n`
           })
           .join('')
-      } else if (field instanceof ListFormComponent) {
+
+        // Append bullet points
+        answerEscaped += fileUploadString
+      } else if (
+        field instanceof ListFormComponent &&
+        field instanceof FormComponent
+      ) {
         const values = [
           field.getContextValueFromFormValue(richFormValue)
         ].flat()
@@ -138,7 +154,7 @@ export function formatter(
     componentMap.set(key, questionLines)
   })
 
-  Object.entries(formSubmissionMessage.result?.files?.repeaters ?? []).forEach(
+  Object.entries(formSubmissionMessage.result.files.repeaters).forEach(
     ([key, fileId]) => {
       /**
        * @type {string[]}
@@ -172,6 +188,6 @@ export function formatter(
 }
 
 /**
- * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */

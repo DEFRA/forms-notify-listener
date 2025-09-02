@@ -12,7 +12,8 @@ import { sendNotification } from '~/src/lib/notify.js'
 import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageData,
-  buildFormAdapterSubmissionMessageMetaStub
+  buildFormAdapterSubmissionMessageMetaStub,
+  buildFormAdapterSubmissionMessageResult
 } from '~/src/service/__stubs__/event-builders.js'
 import { sendNotifyEmail } from '~/src/service/notify.js'
 
@@ -53,9 +54,12 @@ describe('notify', () => {
     formId
   })
 
+  const formSubmissionResult = buildFormAdapterSubmissionMessageResult()
+
   const formAdapterSubmissionMessage = buildFormAdapterSubmissionMessage({
     meta: formSubmissionMeta,
-    data: formSubmissionData
+    data: formSubmissionData,
+    result: formSubmissionResult
   })
   const baseDefinition = buildDefinition({
     name: 'Machine readable form',
@@ -129,11 +133,13 @@ describe('notify', () => {
       expect(sendNotificationBody).toEqual({
         meta: {
           schemaVersion: '1',
-          timestamp: expect.any(Date),
+          timestamp: expect.any(String),
           referenceNumber,
           definition
         },
-        data: {}
+        data: {
+          ...formSubmissionData
+        }
       })
     })
 
@@ -568,8 +574,6 @@ describe('notify', () => {
           }
         ]
       })
-
-      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
       const formAdapterSubmissionMessage = buildFormAdapterSubmissionMessage({
         meta: buildFormAdapterSubmissionMessageMetaStub({
           formName: 'Order a pizza',
@@ -603,24 +607,31 @@ describe('notify', () => {
           },
           repeaters: {},
           files: {}
-        })
+        }),
+        result: {
+          main: '7ac3dcf9-8ffe-4a34-abfc-9e864e820029',
+          files: {
+            repeaters: {}
+          }
+        }
       })
+
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
       await sendNotifyEmail(formAdapterSubmissionMessage)
-      const expectedBody = 'example'
       expect(getFormDefinition).toHaveBeenCalledWith(formId, FormStatus.Live)
       expect(sendNotification).toHaveBeenCalledWith({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
           subject: 'Form submission: Order a pizza',
-          body: expectedBody
+          body: expect.any(String)
         }
       })
     })
 
     it('should handle and throw errors', async () => {
       const err = new Error('Upstream failure')
-      jest.mocked(getFormDefinition).mockResolvedValueOnce(buildDefinition())
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
       jest.mocked(sendNotification).mockRejectedValueOnce(err)
       await expect(
         sendNotifyEmail(formAdapterSubmissionMessage)

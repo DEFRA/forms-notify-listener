@@ -1,9 +1,5 @@
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 
-import { config } from '~/src/config/index.js'
-
-const designerUrl = config.get('designerUrl')
-
 /**
  * Machine readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -38,8 +34,7 @@ function formatData(formSubmissionMessage, formDefinition) {
   const { main: mainInput, repeaters, files } = formSubmissionMessage.data
 
   /**
-   * @param {string} key
-   * @param {RichFormValue} value
+   * @param {[string,RichFormValue]} entry
    */
   function mapField([key, value]) {
     const component = formModel.componentMap.get(key)
@@ -65,7 +60,6 @@ function formatData(formSubmissionMessage, formDefinition) {
 }
 
 /**
- * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
- * @import { RichFormValue } from '@defra/forms-engine-plugin/engine/outputFormatters/machine/v2.js'
+ * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
