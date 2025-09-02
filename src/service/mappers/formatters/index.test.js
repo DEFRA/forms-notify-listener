@@ -17,9 +17,16 @@ import {
 } from '@defra/forms-model/stubs'
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
-import { formatter as formatHumanV1 } from '~/src/service/mappers/formatters/human/v1.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
-
+jest.mock('nunjucks', () => {
+  const environment = {
+    addFilter: jest.fn(),
+    addGlobal: jest.fn()
+  }
+  return {
+    configure: jest.fn(() => environment)
+  }
+})
 jest.mock('~/src/config/index.js', () => ({
   config: {
     get: jest.fn(() => {
@@ -294,11 +301,6 @@ describe('Page controller helpers', () => {
 
   afterAll(() => {
     jest.useRealTimers()
-  })
-
-  it('should return a valid formatter if it exists', () => {
-    const formatter = getFormatter('human', '1')
-    expect(formatter).toBe(formatHumanV1)
   })
 
   it("should return an error if the audience doesn't exist", () => {

@@ -23,6 +23,15 @@ jest.mock('~/src/helpers/logging/logger.js', () => ({
     error: jest.fn()
   })
 }))
+jest.mock('nunjucks', () => {
+  const environment = {
+    addFilter: jest.fn(),
+    addGlobal: jest.fn()
+  }
+  return {
+    configure: jest.fn(() => environment)
+  }
+})
 jest.mock('~/src/lib/notify.js')
 jest.mock('~/src/lib/manager.js')
 jest.mock('~/src/config/index.js', () => ({
