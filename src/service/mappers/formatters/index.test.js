@@ -18,6 +18,7 @@ import {
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
+
 jest.mock('nunjucks', () => {
   const environment = {
     addFilter: jest.fn(),
@@ -428,10 +429,10 @@ describe('Page controller helpers', () => {
     const output = formatter(message, definition, '1')
 
     expect(output).toContain(
-      '^ For security reasons, the links in this email expire at 1:00am on Sunday 30 November 2025'
+      '^ For security reasons, the links in this email expire at 12:00am on Sunday 30 November 2025'
     )
     expect(output).toContain(
-      'Example notify form form received at 1:00am on 1 September 2025.'
+      'Example notify form form received at 12:00am on 1 September 2025.'
     )
     expect(output).toContain('## What is your name?')
     expect(output).toContain('Someone')
