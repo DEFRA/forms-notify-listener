@@ -94,9 +94,9 @@ export function formatter(
       const label = escapeMarkdown(field.title)
       questionLines.push(`## ${label}\n`)
 
-      const filename = escapeMarkdown(`Download ${label} (CSV)`)
+      const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
       questionLines.push(
-        `[${filename}](${designerUrl}/file-download/${fileId})\n`
+        `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
       )
       questionLines.push('---\n')
       componentMap.set(key, questionLines)
@@ -111,8 +111,10 @@ export function formatter(
     }
   })
 
-  const filename = escapeMarkdown('Download main form (CSV)')
-  lines.push(`[${filename}](${designerUrl}/file-download/${files.main})\n`)
+  const mainResultFilename = escapeMarkdown('Download main form (CSV)')
+  lines.push(
+    `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
+  )
 
   return lines.join('\n')
 }
@@ -145,8 +147,8 @@ function generateFieldLine(answer, field, richFormValue) {
      */
     const fileUploadString = formAdapterFile
       .map((file) => {
-        const filename = escapeMarkdown(file.fileName)
-        return `* [${filename}](${designerUrl}/file-download/${file.fileId})\n`
+        const fileUploadFilename = escapeMarkdown(file.fileName)
+        return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
       })
       .join('')
 
