@@ -618,8 +618,8 @@ describe('notify', () => {
           files: {}
         }),
         result: {
-          main: '7ac3dcf9-8ffe-4a34-abfc-9e864e820029',
           files: {
+            main: '9a2c50db-cbd5-4fba-ae5f-58dbfdd176d2',
             repeaters: {}
           }
         }
