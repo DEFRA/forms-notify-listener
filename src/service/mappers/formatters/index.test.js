@@ -117,7 +117,7 @@ describe('Page controller helpers', () => {
         components: [
           buildTextFieldComponent({
             title: "What is the team member's name?",
-            name: 'FqQrLz',
+            name: 'biMrWQ',
             shortDescription: "Team member's name",
             hint: '',
             options: {
@@ -129,7 +129,7 @@ describe('Page controller helpers', () => {
         id: 'f227fb10-dcc8-4d49-9340-2fb138c642d9',
         repeat: {
           options: {
-            name: 'biMrWQ',
+            name: 'FqQrLz',
             title: 'Team Member'
           },
           schema: {

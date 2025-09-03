@@ -3,7 +3,7 @@ import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-import { hasComponents } from '@defra/forms-model'
+import { ControllerType, hasComponents } from '@defra/forms-model'
 import { addDays, format as dateFormat } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -90,16 +90,27 @@ export function formatter(
        * @type {string[]}
        */
       const questionLines = []
-      const field = formModel.componentMap.get(key)
-      const label = escapeMarkdown(field.title)
-      questionLines.push(`## ${label}\n`)
-
-      const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
-      questionLines.push(
-        `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
+      const page = formDefinition.pages.find(
+        (page) =>
+          page.controller === ControllerType.Repeat &&
+          page.repeat.options.name === key
       )
-      questionLines.push('---\n')
-      componentMap.set(key, questionLines)
+
+      if (hasComponents(page)) {
+        const [component] = page.components
+        const componentKey = component.name
+        const field = formModel.componentMap.get(componentKey)
+        const label = escapeMarkdown(field.title)
+
+        questionLines.push(`## ${label}\n`)
+
+        const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
+        questionLines.push(
+          `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
+        )
+        questionLines.push('---\n')
+        componentMap.set(componentKey, questionLines)
+      }
     }
   )
 

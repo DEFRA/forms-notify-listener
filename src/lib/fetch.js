@@ -16,7 +16,7 @@ export async function request(method, url, options) {
   const body = await Wreck.read(response, options)
   const statusCode = response.statusCode
 
-  if (statusCode < MIN_OK_STATUS || statusCode > MAX_OK_STATUS) {
+  if (!statusCode || statusCode < MIN_OK_STATUS || statusCode > MAX_OK_STATUS) {
     let err
 
     if ('message' in body && typeof body.message === 'string' && body.message) {

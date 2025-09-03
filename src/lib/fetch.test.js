@@ -13,7 +13,7 @@ describe('fetch utilities', () => {
   describe('request', () => {
     it('should return response and body for successful request', async () => {
       /** @type {any} */
-      const mockResponse = { statusCode: 200, headers: {} }
+      const mockResponse = { statusCode: 201, headers: {} }
       const mockBody = { data: 'test' }
 
       jest.mocked(Wreck.request).mockResolvedValue(mockResponse)
