@@ -52,6 +52,7 @@ export async function createServer() {
       stripTrailingSlash: true
     }
   })
+
   await server.register(requestLogger)
 
   if (isProduction) {
