@@ -24,7 +24,7 @@ export const config = convict({
   port: {
     doc: 'The port to bind.',
     format: 'port',
-    default: 3003,
+    default: 3006,
     env: 'PORT'
   },
   serviceName: {
@@ -105,12 +105,44 @@ export const config = convict({
     default: '',
     env: 'CDP_HTTPS_PROXY'
   },
+
+  /**
+   * Email outputs
+   * Email outputs will use notify to send an email to a single inbox.
+   */
+  notifyTemplateId: {
+    format: String,
+    default: null,
+    env: 'NOTIFY_TEMPLATE_ID'
+  },
+  notifyAPIKey: {
+    format: String,
+    default: null,
+    env: 'NOTIFY_API_KEY'
+  },
+
+  /**
+   * API integrations
+   */
+  designerUrl: {
+    doc: 'URL to call Forms Designer',
+    format: String,
+    default: null,
+    env: 'DESIGNER_URL'
+  },
+  managerUrl: {
+    doc: 'URL to call Forms Manager API',
+    format: String,
+    default: null,
+    env: 'MANAGER_URL'
+  },
   isSecureContextEnabled: {
     doc: 'Enable Secure Context',
     format: Boolean,
     default: isProduction,
     env: 'ENABLE_SECURE_CONTEXT'
   },
+
   isMetricsEnabled: {
     doc: 'Enable metrics reporting',
     format: Boolean,
