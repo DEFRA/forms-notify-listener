@@ -4,7 +4,6 @@ import { config } from '~/src/config/index.js'
 import { getJson } from '~/src/lib/fetch.js'
 
 const managerUrl = config.get('managerUrl')
-
 /**
  * Gets the form definition from the Forms Manager API∂
  * @param {string} formId
@@ -18,7 +17,7 @@ export async function getFormDefinition(formId, formStatus) {
     throw new Error('Missing MANAGER_URL')
   }
   const formUrl = new URL(
-    `/forms/${formId}/definition/${formStatus === FormStatus.Draft ? FormStatus.Draft : FormStatus.Live}`,
+    `/forms/${formId}/definition/${formStatus === FormStatus.Draft ? FormStatus.Draft : ''}`,
     managerUrl
   )
   const { body } = await getJson(formUrl)
