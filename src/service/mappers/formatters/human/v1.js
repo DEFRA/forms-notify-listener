@@ -3,7 +3,7 @@ import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-import { ControllerType, hasComponents } from '@defra/forms-model'
+import { hasComponents, hasRepeater } from '@defra/forms-model'
 import { addDays, format as dateFormat } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -12,6 +12,16 @@ const designerUrl = config.get('designerUrl')
 
 const FILE_EXPIRY_OFFSET = 90
 
+/**
+ *
+ * @param {string} key
+ * @param {FormDefinition} formDefinition
+ */
+function findRepeaterPageByKey(key, formDefinition) {
+  return formDefinition.pages.find((page) => {
+    return hasRepeater(page) && page.repeat.options.name === key
+  })
+}
 /**
  * Human readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -68,10 +78,7 @@ export function formatter(
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
   }).forEach(([key, richFormValue]) => {
-    /**
-     * @type {string[]}
-     */
-    const questionLines = []
+    const questionLines = /** @type {string[]} */ ([])
     const field = formModel.componentMap.get(key)
     const answer = field.getDisplayStringFromFormValue(richFormValue)
 
@@ -86,18 +93,11 @@ export function formatter(
 
   Object.entries(formSubmissionMessage.result.files.repeaters).forEach(
     ([key, fileId]) => {
-      /**
-       * @type {string[]}
-       */
-      const questionLines = []
-      const page = formDefinition.pages.find(
-        (page) =>
-          page.controller === ControllerType.Repeat &&
-          page.repeat.options.name === key
-      )
+      const repeaterPage = findRepeaterPageByKey(key, formDefinition)
 
-      if (hasComponents(page)) {
-        const [component] = page.components
+      const questionLines = /**  @type {string[]}  */ ([])
+      if (hasComponents(repeaterPage)) {
+        const [component] = repeaterPage.components
         const componentKey = component.name
         const field = formModel.componentMap.get(componentKey)
         const label = escapeMarkdown(field.title)
@@ -211,5 +211,5 @@ function generateFieldLine(answer, field, richFormValue) {
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
- * @import { FormDefinition } from '@defra/forms-model'
+ * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
