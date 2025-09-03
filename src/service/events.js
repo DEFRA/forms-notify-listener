@@ -52,13 +52,12 @@ export async function handleFormSubmissionEvents(
   messages,
   formSubmissionService
 ) {
-  logger.info('Inserting form submission events')
-
+  logger.info('Handling form submission events')
   /**
    * @param {Message} message
    * @returns {Promise<FormAdapterSubmissionMessage>}
    */
-  async function createAuditEvent(message) {
+  async function handleSingleSubmissionEvent(message) {
     try {
       const submissionBody = mapFormAdapterSubmissionEvent(message)
 
@@ -79,7 +78,9 @@ export async function handleFormSubmissionEvents(
     }
   }
 
-  const results = await Promise.allSettled(messages.map(createAuditEvent))
+  const results = await Promise.allSettled(
+    messages.map(handleSingleSubmissionEvent)
+  )
 
   const saved = results
     .filter((result) => result.status === 'fulfilled')
