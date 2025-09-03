@@ -53,8 +53,6 @@ export async function createServer() {
     }
   })
 
-  await server.register(requestLogger)
-
   if (isProduction) {
     prepareSecureContext(server)
   }
