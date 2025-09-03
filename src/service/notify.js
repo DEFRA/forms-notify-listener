@@ -7,7 +7,8 @@ import { getFormDefinition } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 
-const templateId = config.get('notifyTemplateId')
+// @ts-expect-error - incorrect typings in convict
+const templateId = /** @type {string} */ (config.get('notifyTemplateId'))
 
 const logger = createLogger()
 

@@ -3,7 +3,8 @@ import { token } from '@hapi/jwt'
 import { config } from '~/src/config/index.js'
 import { postJson } from '~/src/lib/fetch.js'
 
-const notifyAPIKey = config.get('notifyAPIKey')
+// @ts-expect-error - incorrect typings in convict
+const notifyAPIKey = /** @type {string} */ (config.get('notifyAPIKey'))
 
 const API_KEY_SUBSTRING_REDUCTION = 36
 const SERVICE_ID_SUBSTRING_REDUCTION = 73

@@ -72,7 +72,7 @@ export async function handleFormSubmissionEvents(
       return submissionBody
     } catch (err) {
       logger.error(
-        `[handleAuditEvents] Failed to handle message - ${getErrorMessage(err)}`
+        `[handleFormSubmissionEvents] Failed to handle message - ${getErrorMessage(err)}`
       )
       throw err
     }

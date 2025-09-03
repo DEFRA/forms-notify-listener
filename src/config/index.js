@@ -112,12 +112,12 @@ export const config = convict({
    */
   notifyTemplateId: {
     format: String,
-    default: '',
+    default: null,
     env: 'NOTIFY_TEMPLATE_ID'
   },
   notifyAPIKey: {
     format: String,
-    default: '',
+    default: null,
     env: 'NOTIFY_API_KEY'
   },
 
