@@ -49,12 +49,18 @@ export function formatter(
 
   const fileExpiryDate = addDays(now, FILE_EXPIRY_OFFSET)
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
+  const sections = [
+    undefined,
+    ...formDefinition.sections.map((section) => section.name)
+  ]
 
-  const order = formDefinition.pages.flatMap((page) => {
-    if (hasComponents(page)) {
-      return page.components.map((component) => component.name)
-    }
-    return []
+  const order = sections.flatMap((section) => {
+    return formDefinition.pages.flatMap((page) => {
+      if (page.section === section && hasComponents(page)) {
+        return page.components.map((component) => component.name)
+      }
+      return []
+    })
   })
 
   const componentMap = new Map()

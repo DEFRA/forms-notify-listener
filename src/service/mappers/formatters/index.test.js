@@ -4,11 +4,13 @@ import {
   buildCheckboxComponent,
   buildDateComponent,
   buildDefinition,
+  buildEmailAddressFieldComponent,
   buildFileUploadComponent,
   buildFileUploadPage,
   buildList,
   buildListItem,
   buildMonthYearFieldComponent,
+  buildNumberFieldComponent,
   buildQuestionPage,
   buildRepeaterPage,
   buildSummaryPage,
@@ -458,6 +460,181 @@ describe('Page controller helpers', () => {
     expect(output).toContain(
       '[Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
     )
+    output = output.replace(/(12|1):00am/g, '12:00am')
+    expect(output).toMatchSnapshot()
+  })
+
+  it('should return a valid human readable v1 response from a v1 form with sections', () => {
+    const message2 = buildFormAdapterSubmissionMessage({
+      meta: {
+        schemaVersion: 1,
+        timestamp: '2025-09-03T15:33:21.001Z',
+        referenceNumber: 'E8B-1E8-B96',
+        formName: 'Human Readable v1 form',
+        formId: '68b84b0f705711d6bfc54df8',
+        formSlug: 'human-readable-v1-form',
+        status: 'live',
+        isPreview: false,
+        notificationEmail: 'legolas@example.uk'
+      },
+      data: {
+        main: {
+          DuYROh: 'Legolas',
+          GLoHEK: {
+            addressLine1: '1 Anywhere Street',
+            town: 'Anywhereville',
+            postcode: 'AN1 2WH'
+          },
+          NBQrUO: { day: 1, month: 1, year: 2000 },
+          zMxeLg: ['Gandalf', 'Frodo'],
+          wXqxQk: 'Frodo',
+          WCPtes: 'Lorem ipsum dolar sit amet',
+          BxSuUF: { month: 9, year: 2025 },
+          SmkXDu: 5,
+          mKnOwa: 'legolas@example.com'
+        },
+        repeaters: {},
+        files: {}
+      },
+      result: {
+        files: { main: 'b9b53f01-174b-462e-98ec-0996b6531513', repeaters: {} }
+      }
+    })
+    const v1FormDefinition = buildDefinition({
+      name: 'Human Readable v1 form',
+      engine: Engine.V2,
+      schema: SchemaVersion.V1,
+      pages: [
+        buildQuestionPage({
+          title: 'What is your name?',
+          path: '/what-is-your-name',
+          components: [
+            buildTextFieldComponent({
+              name: 'DuYROh',
+              title: 'What is your name?'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'What is your address?',
+          path: '/what-is-your-address',
+          components: [
+            buildUkAddressFieldComponent({
+              name: 'GLoHEK',
+              title: 'What is your address?'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'What is your date of birth',
+          path: '/what-is-your-date-of-birth',
+          components: [
+            buildDateComponent({
+              name: 'NBQrUO',
+              title: 'What is your date of birth?'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'Who are your favourite LotR characters?',
+          path: '/who-are-your-favourite-lotr-characters',
+          section: 'BNlqoh',
+          components: [
+            buildCheckboxComponent({
+              name: 'zMxeLg',
+              title: 'Who are your favourite LotR characters?',
+              list: 'LSMpFk'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: "What is the team member's name?",
+          path: '/what-is-the-team-members-name',
+          components: [
+            buildTextFieldComponent({
+              name: 'wXqxQk',
+              title: "What is the team member's name?"
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'Describe your quest',
+          path: '/describe-your-quest',
+          section: 'BNlqoh',
+          components: [
+            buildTextFieldComponent({
+              name: 'WCPtes',
+              title: 'Describe your quest'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'What month is it?',
+          path: '/what-month-is-it',
+          components: [
+            buildMonthYearFieldComponent({
+              name: 'BxSuUF',
+              title: 'What month is it?'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'Pick a number from 1-10',
+          path: '/pick-a-number-from-1-10',
+          components: [
+            buildNumberFieldComponent({
+              name: 'SmkXDu',
+              title: 'Pick a number from 1 - 10'
+            })
+          ]
+        }),
+        buildQuestionPage({
+          title: 'What is your email address?',
+          path: '/what-is-your-email-address',
+          components: [
+            buildEmailAddressFieldComponent({
+              name: 'mKnOwa',
+              title: 'What is your email address?'
+            })
+          ]
+        }),
+        buildSummaryPage({
+          id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
+          title: 'Summary',
+          path: '/summary'
+        })
+      ],
+      conditions: [],
+      sections: [
+        {
+          title: 'Lord of the Rings',
+          name: 'BNlqoh',
+          hideTitle: false
+        }
+      ],
+      lists: [
+        {
+          title: 'LotR Characters',
+          name: 'LSMpFk',
+          type: 'string',
+          items: [
+            {
+              text: 'Gandalf',
+              value: 'Gandalf',
+              id: '21b55c1f-aae4-4968-af36-18a72364148d'
+            },
+            {
+              text: 'Frodo',
+              value: 'Frodo',
+              id: '007cb8d3-2a4e-4e9a-85a2-a31fc068d4a8'
+            }
+          ]
+        }
+      ]
+    })
+
+    const formatter = getFormatter('human', '1')
+    let output = formatter(message2, v1FormDefinition, '1')
     output = output.replace(/(12|1):00am/g, '12:00am')
     expect(output).toMatchSnapshot()
   })
