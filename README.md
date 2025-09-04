@@ -54,7 +54,6 @@ docker compose up
 3. Create a `.env` file with the following mandatory environment variables populated at root level:
 
 ```text
-MONGO_URI='mongodb://localhost:27017/?replicaSet=rs0&directConnection=true'
 FORMS_AUDIT_QUEUE='forms_notify_listener_events'
 LOG_LEVEL=debug
 SQS_ENDPOINT=http://localhost:4566
@@ -63,6 +62,11 @@ EVENTS_SQS_QUEUE_URL=http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_noti
 AWS_ACCESS_KEY_ID=dummy
 AWS_SECRET_ACCESS_KEY=dummy
 RECEIVE_MESSAGE_TIMEOUT_MS=5000
+NOTIFY_TEMPLATE_ID=3d448938-8a8b-40c2-a3de-414597f976e1
+NOTIFY_API_KEY=[your api key]
+RECEIVE_MESSAGE_TIMEOUT_MS=5000
+MANAGER_URL=http://localhost:3001
+DESIGNER_URL=http://localhost:3000
 ```
 
 For proxy options, see https://www.npmjs.com/package/proxy-from-env which is used by https://github.com/TooTallNate/proxy-agents/tree/main/packages/proxy-agent. It's currently supports Hapi Wreck only, e.g. in the JWKS lookup.
