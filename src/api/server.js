@@ -53,11 +53,13 @@ export async function createServer() {
     }
   })
 
+  await server.register(requestLogger)
+
   if (isProduction) {
     prepareSecureContext(server)
   }
 
-  await server.register([router, requestLogger])
+  await server.register(router)
 
   await runTask()
 
