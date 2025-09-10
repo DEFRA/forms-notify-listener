@@ -31,9 +31,11 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   // Get submission email personalisation
   logger.info(logTags, 'Getting personalisation data')
 
-  const definition = versionMetadata?.versionNumber
-    ? await getFormDefinition(formId, status, versionMetadata.versionNumber)
-    : await getFormDefinition(formId, status)
+  const definition = await getFormDefinition(
+    formId,
+    status,
+    versionMetadata?.versionNumber
+  )
 
   const formName = escapeMarkdown(formNameInput)
   const subject = isPreview

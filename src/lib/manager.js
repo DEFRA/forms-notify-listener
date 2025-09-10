@@ -8,7 +8,7 @@ const managerUrl = config.get('managerUrl')
  * Gets the form definition from the Forms Manager API∂
  * @param {string} formId
  * @param {FormStatus} formStatus
- * @param {number} [versionNumber] - Optional specific version to fetch
+ * @param {number|undefined} versionNumber - Optional specific version to fetch
  * @returns {Promise<FormDefinition>}
  */
 export async function getFormDefinition(formId, formStatus, versionNumber) {

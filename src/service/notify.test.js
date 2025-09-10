@@ -627,7 +627,11 @@ describe('notify', () => {
 
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
       await sendNotifyEmail(formAdapterSubmissionMessage)
-      expect(getFormDefinition).toHaveBeenCalledWith(formId, FormStatus.Live)
+      expect(getFormDefinition).toHaveBeenCalledWith(
+        formId,
+        FormStatus.Live,
+        undefined
+      )
       expect(sendNotification).toHaveBeenCalledWith({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
@@ -685,7 +689,11 @@ describe('notify', () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
       await sendNotifyEmail(formAdapterSubmissionMessage)
 
-      expect(getFormDefinition).toHaveBeenCalledWith(formId, FormStatus.Live)
+      expect(getFormDefinition).toHaveBeenCalledWith(
+        formId,
+        FormStatus.Live,
+        undefined
+      )
     })
   })
 })
