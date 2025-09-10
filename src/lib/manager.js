@@ -8,18 +8,26 @@ const managerUrl = config.get('managerUrl')
  * Gets the form definition from the Forms Manager API∂
  * @param {string} formId
  * @param {FormStatus} formStatus
+ * @param {number} [versionNumber] - Optional specific version to fetch
  * @returns {Promise<FormDefinition>}
  */
-export async function getFormDefinition(formId, formStatus) {
+export async function getFormDefinition(formId, formStatus, versionNumber) {
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!managerUrl) {
     //  TS / eslint conflict
     throw new Error('Missing MANAGER_URL')
   }
-  const formUrl = new URL(
-    `/forms/${formId}/definition/${formStatus === FormStatus.Draft ? FormStatus.Draft : ''}`,
-    managerUrl
-  )
+
+  const formUrl = versionNumber
+    ? new URL(
+        `/forms/${formId}/versions/${versionNumber}/definition`,
+        managerUrl
+      )
+    : new URL(
+        `/forms/${formId}/definition/${formStatus === FormStatus.Draft ? FormStatus.Draft : ''}`,
+        managerUrl
+      )
+
   const { body } = await getJson(formUrl)
 
   return body

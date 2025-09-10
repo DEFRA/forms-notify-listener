@@ -23,14 +23,18 @@ export async function sendNotifyEmail(formSubmissionMessage) {
     formId,
     notificationEmail: emailAddress,
     status,
-    isPreview
+    isPreview,
+    versionMetadata
   } = formSubmissionMessage.meta
   const logTags = ['submit', 'email']
 
   // Get submission email personalisation
   logger.info(logTags, 'Getting personalisation data')
 
-  const definition = await getFormDefinition(formId, status)
+  const definition = versionMetadata?.versionNumber
+    ? await getFormDefinition(formId, status, versionMetadata.versionNumber)
+    : await getFormDefinition(formId, status)
+
   const formName = escapeMarkdown(formNameInput)
   const subject = isPreview
     ? `TEST FORM SUBMISSION: ${formName}`
