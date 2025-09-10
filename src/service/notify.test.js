@@ -646,5 +646,46 @@ describe('notify', () => {
         sendNotifyEmail(formAdapterSubmissionMessage)
       ).rejects.toThrow(err)
     })
+
+    it('should use versionMetadata when present', async () => {
+      const versionNumber = 9
+      const versionedFormSubmissionMeta =
+        buildFormAdapterSubmissionMessageMetaStub({
+          formName: 'Versioned form',
+          formSlug: 'versioned-form',
+          isPreview: false,
+          status: FormStatus.Live,
+          notificationEmail: 'notificationEmail@example.uk',
+          referenceNumber,
+          formId,
+          versionMetadata: {
+            versionNumber,
+            createdAt: new Date('2025-09-10T12:03:05.042Z')
+          }
+        })
+
+      const versionedFormAdapterSubmissionMessage =
+        buildFormAdapterSubmissionMessage({
+          meta: versionedFormSubmissionMeta,
+          data: formSubmissionData,
+          result: formSubmissionResult
+        })
+
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      await sendNotifyEmail(versionedFormAdapterSubmissionMessage)
+
+      expect(getFormDefinition).toHaveBeenCalledWith(
+        formId,
+        FormStatus.Live,
+        versionNumber
+      )
+    })
+
+    it('should use default form definition when versionMetadata is not present', async () => {
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      await sendNotifyEmail(formAdapterSubmissionMessage)
+
+      expect(getFormDefinition).toHaveBeenCalledWith(formId, FormStatus.Live)
+    })
   })
 })
