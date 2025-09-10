@@ -18,15 +18,14 @@ export async function getFormDefinition(formId, formStatus, versionNumber) {
     throw new Error('Missing MANAGER_URL')
   }
 
-  const formUrl = versionNumber
-    ? new URL(
-        `/forms/${formId}/versions/${versionNumber}/definition`,
-        managerUrl
-      )
-    : new URL(
-        `/forms/${formId}/definition/${formStatus === FormStatus.Draft ? FormStatus.Draft : ''}`,
-        managerUrl
-      )
+  const statusPath = formStatus === FormStatus.Draft ? FormStatus.Draft : ''
+  const formUrl =
+    versionNumber !== undefined
+      ? new URL(
+          `/forms/${formId}/versions/${versionNumber}/definition`,
+          managerUrl
+        )
+      : new URL(`/forms/${formId}/definition/${statusPath}`, managerUrl)
 
   const { body } = await getJson(formUrl)
 

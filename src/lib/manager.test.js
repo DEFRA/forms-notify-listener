@@ -60,4 +60,44 @@ describe('getDefinition', () => {
     )
     expect(definition).toEqual(expectedDefinition)
   })
+
+  it('should get a specific version with draft status if version number is provided', async () => {
+    const expectedDefinition = buildDefinition()
+    const formId = '68a890909ab460290c289409'
+    const versionNumber = 1
+    jest
+      .mocked(getJson)
+      .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
+    const definition = await getFormDefinition(
+      formId,
+      FormStatus.Draft,
+      versionNumber
+    )
+    expect(getJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: 'http://forms-manager/forms/68a890909ab460290c289409/versions/1/definition'
+      })
+    )
+    expect(definition).toEqual(expectedDefinition)
+  })
+
+  it('should handle version number 0 correctly', async () => {
+    const expectedDefinition = buildDefinition()
+    const formId = '68a890909ab460290c289409'
+    const versionNumber = 0
+    jest
+      .mocked(getJson)
+      .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
+    const definition = await getFormDefinition(
+      formId,
+      FormStatus.Live,
+      versionNumber
+    )
+    expect(getJson).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: 'http://forms-manager/forms/68a890909ab460290c289409/versions/0/definition'
+      })
+    )
+    expect(definition).toEqual(expectedDefinition)
+  })
 })
