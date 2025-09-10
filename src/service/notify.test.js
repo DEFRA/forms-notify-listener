@@ -20,7 +20,8 @@ import { sendNotifyEmail } from '~/src/service/notify.js'
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   createLogger: () => ({
     info: jest.fn(),
-    error: jest.fn()
+    error: jest.fn(),
+    debug: jest.fn()
   })
 }))
 jest.mock('nunjucks', () => {
