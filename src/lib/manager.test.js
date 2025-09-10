@@ -17,7 +17,11 @@ describe('getDefinition', () => {
     jest
       .mocked(getJson)
       .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
-    const definition = await getFormDefinition(formId, FormStatus.Draft)
+    const definition = await getFormDefinition(
+      formId,
+      FormStatus.Draft,
+      undefined
+    )
     expect(getJson).toHaveBeenCalledWith(
       expect.objectContaining({
         href: 'http://forms-manager/forms/68a890909ab460290c289409/definition/draft'
@@ -32,7 +36,11 @@ describe('getDefinition', () => {
     jest
       .mocked(getJson)
       .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
-    const definition = await getFormDefinition(formId, FormStatus.Live)
+    const definition = await getFormDefinition(
+      formId,
+      FormStatus.Live,
+      undefined
+    )
     expect(getJson).toHaveBeenCalledWith(
       expect.objectContaining({
         href: 'http://forms-manager/forms/68a890909ab460290c289409/definition/'
