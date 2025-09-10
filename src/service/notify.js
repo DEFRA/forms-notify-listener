@@ -31,6 +31,10 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   // Get submission email personalisation
   logger.info(logTags, 'Getting personalisation data')
 
+  logger.debug(
+    `Getting form definition: ${formId} version: ${versionMetadata?.versionNumber}`
+  )
+
   const definition = await getFormDefinition(
     formId,
     status,
