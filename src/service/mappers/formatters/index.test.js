@@ -445,9 +445,9 @@ describe('Page controller helpers', () => {
     expect(output).toContain('## Who are your favourite LotR characters?')
     expect(output).toContain('* Gandalf')
     expect(output).toContain('* Frodo')
-    expect(output).toContain("## What is the team member\\'s name?")
+    expect(output).toContain('## Team Member')
     expect(output).toContain(
-      "[Download What is the team member\\\\'s name? \\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)"
+      '[Download Team Member \\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
     )
     expect(output).toContain('## Please add supporting evidence')
     expect(output).toContain('Uploaded 1 file:')

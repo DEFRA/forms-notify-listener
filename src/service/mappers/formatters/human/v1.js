@@ -3,7 +3,7 @@ import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-import { ComponentType, hasComponents, hasRepeater } from '@defra/forms-model'
+import { hasComponents, hasRepeater } from '@defra/forms-model'
 import { addDays, format as dateFormat } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -53,14 +53,6 @@ export function formatter(
   const order = formDefinition.pages.flatMap((page) => {
     if (hasComponents(page)) {
       if (hasRepeater(page)) {
-        for (const component of page.components) {
-          if (component.type === ComponentType.Markdown) continue
-
-          if (component.name) {
-            return [component.name]
-          }
-        }
-
         return [page.repeat.options.name]
       }
       return page.components.map((component) => component.name)
@@ -107,38 +99,18 @@ export function formatter(
       const repeaterPage = findRepeaterPageByKey(key, formDefinition)
 
       const questionLines = /**  @type {string[]}  */ ([])
-      if (hasComponents(repeaterPage)) {
-        let label = null
-        let componentKey = null
+      if (hasRepeater(repeaterPage)) {
+        const label = escapeMarkdown(repeaterPage.repeat.options.title)
+        const componentKey = repeaterPage.repeat.options.name
 
-        for (const component of repeaterPage.components) {
-          if (component.type === ComponentType.Markdown) continue
+        questionLines.push(`## ${label}\n`)
 
-          if (component.name) {
-            const field = formModel.componentMap.get(component.name)
-            if (field) {
-              label = escapeMarkdown(field.title)
-              componentKey = component.name
-              break
-            }
-          }
-        }
-
-        if (!label && hasRepeater(repeaterPage)) {
-          label = escapeMarkdown(repeaterPage.repeat.options.title)
-          componentKey = repeaterPage.repeat.options.name
-        }
-
-        if (label && componentKey) {
-          questionLines.push(`## ${label}\n`)
-
-          const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
-          questionLines.push(
-            `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
-          )
-          questionLines.push('---\n')
-          componentMap.set(componentKey, questionLines)
-        }
+        const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
+        questionLines.push(
+          `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
+        )
+        questionLines.push('---\n')
+        componentMap.set(componentKey, questionLines)
       }
     }
   )
