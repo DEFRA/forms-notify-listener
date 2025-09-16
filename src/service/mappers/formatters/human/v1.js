@@ -52,6 +52,9 @@ export function formatter(
 
   const order = formDefinition.pages.flatMap((page) => {
     if (hasComponents(page)) {
+      if (hasRepeater(page)) {
+        return [page.repeat.options.name]
+      }
       return page.components.map((component) => component.name)
     }
     return []
@@ -96,11 +99,9 @@ export function formatter(
       const repeaterPage = findRepeaterPageByKey(key, formDefinition)
 
       const questionLines = /**  @type {string[]}  */ ([])
-      if (hasComponents(repeaterPage)) {
-        const [component] = repeaterPage.components
-        const componentKey = component.name
-        const field = formModel.componentMap.get(componentKey)
-        const label = escapeMarkdown(field.title)
+      if (hasRepeater(repeaterPage)) {
+        const label = escapeMarkdown(repeaterPage.repeat.options.title)
+        const componentKey = repeaterPage.repeat.options.name
 
         questionLines.push(`## ${label}\n`)
 
