@@ -195,7 +195,9 @@ function generateFieldLine(answer, field, richFormValue) {
 
         // Append raw values in parentheses
         // e.g. `* None of the above (false)`
-        return `${line} ${value}\n`
+        return `${item.value}`.toLowerCase() !== item.text.toLowerCase()
+          ? `${line} ${value}\n`
+          : `${line}\n`
       })
       .join('')
   } else if (field instanceof Components.UkAddressField) {
