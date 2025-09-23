@@ -4,7 +4,7 @@ import { buildDefinition } from '@defra/forms-model/stubs'
 import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageMetaStub
-} from '~/.server/service/__stubs__/event-builders.js'
+} from '~/src/service/__stubs__/event-builders.js'
 import {
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
