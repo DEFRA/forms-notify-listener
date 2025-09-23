@@ -75,6 +75,7 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   } catch (err) {
     const errMsg = getErrorMessage(err)
     logger.error(
+      err,
       `[emailSendFailed] Error sending notification email - templateId: ${templateId} - ${errMsg}`
     )
 
