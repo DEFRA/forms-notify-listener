@@ -55,6 +55,7 @@ describe('Page controller helpers', () => {
       },
       data: {
         main: {
+          ADDDTS: '',
           JHCHVE: 'Someone',
           hTFiWF: '1 Anywhere Street,Anywhereville,Anywhereshire,AN1 2WH',
           zznFWF: '2000-01-01',
