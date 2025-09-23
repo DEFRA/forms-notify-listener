@@ -44,6 +44,15 @@ export const exampleNotifyFormDefinition = buildDefinition({
             required: true
           },
           id: 'b2e4a0f5-eb78-4faf-a56d-cfe2462405e9'
+        }),
+        buildTextFieldComponent({
+          title: 'Additional details',
+          name: 'ADDDTS',
+          shortDescription: 'Additional details',
+          options: {
+            required: false
+          },
+          id: '3d62312b-3d54-4654-9b4a-5c0feab47852'
         })
       ],
       id: '3b6baff0-e694-428b-9823-63799c5f730a'
@@ -252,7 +261,8 @@ export const exampleNotifyFormMessage = buildFormAdapterSubmissionMessage({
       zznFWF: { day: 1, month: 1, year: 2000 },
       KGSRJU: { month: 8, year: 2025 },
       hVcHQv: ['Gandalf', 'Frodo'],
-      JHCHVE: 'Someone' // moved from first position to test ordering
+      JHCHVE: 'Someone', // moved from first position to test ordering,
+      ADDDTS: null
     },
     repeaters: {
       repeaterOptionName: [
