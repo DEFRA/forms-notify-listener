@@ -51,7 +51,6 @@ describe('Page controller helpers', () => {
       },
       data: {
         main: {
-          ADDDTS: null,
           JHCHVE: 'Someone',
           hTFiWF: {
             addressLine1: '1 Anywhere Street',
