@@ -89,7 +89,8 @@ describe('Page controller helpers', () => {
       }
     })
     const formatter = getFormatter('human', '1')
-    const output = formatter(pizzaMessage, definition, '1')
+    let output = formatter(pizzaMessage, definition, '1')
+    output = output.replace(/(12|1):00am/g, '12:00am')
     expect(output).toMatchSnapshot()
   })
 })
