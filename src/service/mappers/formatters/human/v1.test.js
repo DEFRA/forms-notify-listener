@@ -50,6 +50,7 @@ describe('Page controller helpers', () => {
     expect(output).toContain('Example notify form form received at')
     expect(output).toContain('## What is your name?')
     expect(output).toContain('Someone')
+    expect(output).toContain('## Additional details')
     expect(output).toContain('## What is your address?')
     expect(output).toContain('1 Anywhere Street')
     expect(output).toContain('Anywhereville')

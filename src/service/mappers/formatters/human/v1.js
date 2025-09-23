@@ -88,8 +88,11 @@ export function formatter(
     const label = escapeMarkdown(field.title)
     questionLines.push(`## ${label}\n`)
 
-    const answerLine = generateFieldLine(answer, field, richFormValue)
-    questionLines.push(answerLine)
+    if (richFormValue !== null) {
+      const answerLine = generateFieldLine(answer, field, richFormValue)
+      questionLines.push(answerLine)
+    }
+
     questionLines.push('---\n')
     componentMap.set(key, questionLines)
   })
