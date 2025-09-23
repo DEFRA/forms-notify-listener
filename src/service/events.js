@@ -1,7 +1,7 @@
 import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-plugin/engine/types/schema.js'
+import { getErrorMessage } from '@defra/forms-model'
 import Joi from 'joi'
 
-import { getErrorMessage } from '~/src/helpers/error-message.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
 import { deleteEventMessage } from '~/src/messaging/event.js'
 

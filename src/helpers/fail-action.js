@@ -1,19 +1,18 @@
-import { getErrorMessage } from '~/src/helpers/error-message.js'
-import { createLogger } from '~/src/helpers/logging/logger.js'
-
-const logger = createLogger()
+import { getErrorMessage } from '@defra/forms-model'
 
 /**
  * Log and throw an error
  * @type {Lifecycle.Method}
  */
-export const failAction = (_request, _h, err) => {
-  logger.error(
+export const failAction = (request, _h, err) => {
+  const message = getErrorMessage(err)
+
+  request.logger.error(
     err,
-    `[validationFailed] Request validation failed - ${getErrorMessage(err)}`
+    `[validationFailed] Request validation failed - ${message}`
   )
 
-  throw err instanceof Error ? err : new Error(String(err))
+  throw err instanceof Error ? err : new Error(message)
 }
 
 /**
