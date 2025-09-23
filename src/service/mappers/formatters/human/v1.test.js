@@ -1,5 +1,10 @@
+import { FormStatus } from '@defra/forms-model'
 import { buildDefinition } from '@defra/forms-model/stubs'
 
+import {
+  buildFormAdapterSubmissionMessage,
+  buildFormAdapterSubmissionMessageMetaStub
+} from '~/.server/service/__stubs__/event-builders.js'
 import {
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
@@ -76,6 +81,56 @@ describe('Page controller helpers', () => {
     expect(output).toContain(
       '[Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
     )
+    output = output.replace(/(12|1):00am/g, '12:00am')
+    expect(output).toMatchSnapshot()
+  })
+
+  it('should return a valid human readable v1 response in preview mode', () => {
+    const definition = buildDefinition({
+      ...exampleNotifyFormDefinition,
+      output: {
+        audience: 'human',
+        version: '1'
+      }
+    })
+    const formatter = getFormatter('human', '1')
+    let output = formatter(
+      buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        meta: buildFormAdapterSubmissionMessageMetaStub({
+          ...exampleNotifyFormMessage.meta,
+          isPreview: true
+        })
+      }),
+      definition,
+      '1'
+    )
+
+    output = output.replace(/(12|1):00am/g, '12:00am')
+    expect(output).toMatchSnapshot()
+  })
+
+  it('should return a valid human readable v1 response in Draft mode', () => {
+    const definition = buildDefinition({
+      ...exampleNotifyFormDefinition,
+      output: {
+        audience: 'human',
+        version: '1'
+      }
+    })
+    const formatter = getFormatter('human', '1')
+    let output = formatter(
+      buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        meta: buildFormAdapterSubmissionMessageMetaStub({
+          ...exampleNotifyFormMessage.meta,
+          status: FormStatus.Draft
+        })
+      }),
+      definition,
+      '1'
+    )
+
     output = output.replace(/(12|1):00am/g, '12:00am')
     expect(output).toMatchSnapshot()
   })
