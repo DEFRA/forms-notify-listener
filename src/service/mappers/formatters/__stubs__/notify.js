@@ -9,6 +9,7 @@ import {
   buildList,
   buildListItem,
   buildMonthYearFieldComponent,
+  buildMultilineTextFieldComponent,
   buildNumberFieldComponent,
   buildQuestionPage,
   buildRadioComponent,
@@ -346,6 +347,16 @@ export const pizzaFormDefinition = buildDefinition({
         }
       ]
     }),
+    buildQuestionPage({
+      title: 'Multiline Text field',
+      path: '/multiline-text-field',
+      components: [
+        buildMultilineTextFieldComponent({
+          title: 'Multiline Text field',
+          name: 'multilineTextField'
+        })
+      ]
+    }),
     buildSummaryPage({
       title: 'Check your answers'
     })
@@ -391,7 +402,8 @@ export const pizzaMessage = buildFormAdapterSubmissionMessage({
   },
   data: {
     main: {
-      orderTypeQuestionComponentName: 'delivery'
+      orderTypeQuestionComponentName: 'delivery',
+      multilineTextField: 'Line 1\r\n\r\nLine 2\r\n\r\n\r\nLine 3'
     },
     repeaters: {
       // quantityRepeaterComponentName: [

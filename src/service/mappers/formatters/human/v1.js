@@ -203,6 +203,13 @@ function generateFieldLine(answer, field, richFormValue) {
           : `${line}\n`
       })
       .join('')
+  } else if (field instanceof Components.MultilineTextField) {
+    // Preserve Multiline text new lines
+    answerEscaped = answer
+      .split(/(?:\r?\n)+/)
+      .map(escapeMarkdown)
+      .join('\n')
+      .concat('\n')
   } else if (field instanceof Components.UkAddressField) {
     // Format UK addresses into new lines
     answerEscaped = (field.getContextValueFromFormValue(richFormValue) ?? [])
