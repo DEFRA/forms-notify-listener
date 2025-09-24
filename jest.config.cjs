@@ -22,6 +22,7 @@ module.exports = {
     '<rootDir>/src/__fixtures__',
     '<rootDir>/test'
   ],
+  modulePathIgnorePatterns: ['<rootDir>/coverage/', '<rootDir>/.server/'],
   coverageDirectory: '<rootDir>/coverage',
   setupFiles: ['<rootDir>/jest.setup.js'],
   transform: {
@@ -41,7 +42,8 @@ module.exports = {
       '@defra/forms-model/.*',
       'nanoid', // Supports ESM only
       'slug', // Supports ESM only
-      '@defra/hapi-tracing' // Supports ESM only
+      '@defra/hapi-tracing', // Supports ESM only
+      '@defra/forms-engine-plugin'
     ].join('|')}/)`
   ]
 }

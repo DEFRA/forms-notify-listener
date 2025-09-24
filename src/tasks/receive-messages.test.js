@@ -2,6 +2,7 @@ import {
   receiveEventMessages,
   receiveMessageTimeout
 } from '~/src/messaging/event.js'
+import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { handleEvent } from '~/src/service/index.js'
 import { runTask, runTaskOnce } from '~/src/tasks/receive-messages.js'
 jest.mock('~/src/messaging/event.js')
@@ -30,7 +31,7 @@ describe('receive-messages', () => {
       })
       const submissionEventResult = {
         failed: [],
-        saved: [message]
+        saved: [buildFormAdapterSubmissionMessage()]
       }
       jest
         .mocked(receiveEventMessages)

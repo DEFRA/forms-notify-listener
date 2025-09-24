@@ -6,6 +6,7 @@ import { ProxyAgent } from 'proxy-agent'
 
 import { config } from '~/src/config/index.js'
 import { failAction } from '~/src/helpers/fail-action.js'
+import { requestLogger } from '~/src/helpers/logging/request-logger.js'
 import { router } from '~/src/plugins/router.js'
 import { prepareSecureContext } from '~/src/secure-context.js'
 import { runTask } from '~/src/tasks/receive-messages.js'
@@ -51,6 +52,8 @@ export async function createServer() {
       stripTrailingSlash: true
     }
   })
+
+  await server.register(requestLogger)
 
   if (isProduction) {
     prepareSecureContext(server)
