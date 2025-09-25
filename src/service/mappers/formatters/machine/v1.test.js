@@ -65,10 +65,12 @@ describe('Page controller helpers', () => {
         repeaters: {
           repeaterOptionName: [
             {
-              repeaterComponentName: 'Frodo'
+              repeaterComponentName: 'Frodo',
+              repeaterComponentDate: '2000-01-01'
             },
             {
-              repeaterComponentName: 'Gandalf'
+              repeaterComponentName: 'Gandalf',
+              repeaterComponentDate: '2020-01-01'
             }
           ]
         },
