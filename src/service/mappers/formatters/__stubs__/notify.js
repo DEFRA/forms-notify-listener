@@ -122,6 +122,16 @@ export const exampleNotifyFormDefinition = buildDefinition({
             required: true
           },
           id: '32d6f10b-9a9e-4703-8452-dcb554ebf515'
+        }),
+        buildDateComponent({
+          title: "What is the team member's date of birth?",
+          name: 'repeaterComponentDate',
+          shortDescription: "Team member's date of birth",
+          hint: '',
+          options: {
+            required: true
+          },
+          id: 'f4e2a1b3-2d0e-4e2f-8f3a-2c3e1c9b5e5c'
         })
       ],
       id: 'f227fb10-dcc8-4d49-9340-2fb138c642d9',
@@ -268,10 +278,12 @@ export const exampleNotifyFormMessage = buildFormAdapterSubmissionMessage({
     repeaters: {
       repeaterOptionName: [
         {
-          repeaterComponentName: 'Frodo'
+          repeaterComponentName: 'Frodo',
+          repeaterComponentDate: { day: 1, month: 1, year: 2000 }
         },
         {
-          repeaterComponentName: 'Gandalf'
+          repeaterComponentName: 'Gandalf',
+          repeaterComponentDate: { day: 1, month: 1, year: 2020 }
         }
       ]
     },
