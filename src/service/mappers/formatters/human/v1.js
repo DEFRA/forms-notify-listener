@@ -4,9 +4,10 @@ import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/hel
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import { hasComponents, hasRepeater } from '@defra/forms-model'
-import { addDays, format as dateFormat } from 'date-fns'
+import { addDays } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
+import { format as dateFormat } from '~/src/helpers/date.js'
 
 const designerUrl = config.get('designerUrl')
 
