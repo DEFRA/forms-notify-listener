@@ -2,3 +2,5 @@
 *.test.*
 __fixtures__
 test-helpers
+
+testing
