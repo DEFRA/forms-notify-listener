@@ -9,6 +9,19 @@ export function formatter(
   formDefinition,
   schemaVersion
 ) {
+  const { main: machineV1Main, ...machineV1Data } = formSubmissionMessage.data
+
+  const main = Object.fromEntries(
+    Object.entries(machineV1Main).filter(([, value]) => {
+      return value !== null
+    })
+  )
+
+  const data = {
+    ...machineV1Data,
+    main
+  }
+
   const machineReadable = {
     meta: {
       schemaVersion,
@@ -16,7 +29,7 @@ export function formatter(
       referenceNumber: formSubmissionMessage.meta.referenceNumber,
       definition: formDefinition
     },
-    data: formSubmissionMessage.data
+    data
   }
 
   return JSON.stringify(machineReadable)

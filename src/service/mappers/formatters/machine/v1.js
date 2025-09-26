@@ -31,7 +31,11 @@ export function formatter(
  */
 function formatData(formSubmissionMessage, formDefinition) {
   const formModel = new FormModel(formDefinition, { basePath: '' }, {})
-  const { main: mainInput, repeaters, files } = formSubmissionMessage.data
+  const {
+    main: mainInput,
+    repeaters: repeatersInput,
+    files
+  } = formSubmissionMessage.data
 
   /**
    * @param {[string,RichFormValue]} entry
@@ -51,6 +55,13 @@ function formatData(formSubmissionMessage, formDefinition) {
   }
 
   const main = mapRecord(mainInput)
+  const repeaters = Object.entries(repeatersInput).reduce(
+    (acc, [name, repeater]) => {
+      acc[name] = repeater.map(mapRecord)
+      return acc
+    },
+    /** @type {Record<string, any>} */ ({})
+  )
 
   return {
     main,

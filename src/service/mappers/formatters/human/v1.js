@@ -52,6 +52,9 @@ export function formatter(
 
   const order = formDefinition.pages.flatMap((page) => {
     if (hasComponents(page)) {
+      if (hasRepeater(page)) {
+        return [page.repeat.options.name]
+      }
       return page.components.map((component) => component.name)
     }
     return []
@@ -85,8 +88,11 @@ export function formatter(
     const label = escapeMarkdown(field.title)
     questionLines.push(`## ${label}\n`)
 
-    const answerLine = generateFieldLine(answer, field, richFormValue)
-    questionLines.push(answerLine)
+    if (richFormValue !== null) {
+      const answerLine = generateFieldLine(answer, field, richFormValue)
+      questionLines.push(answerLine)
+    }
+
     questionLines.push('---\n')
     componentMap.set(key, questionLines)
   })
@@ -96,11 +102,9 @@ export function formatter(
       const repeaterPage = findRepeaterPageByKey(key, formDefinition)
 
       const questionLines = /**  @type {string[]}  */ ([])
-      if (hasComponents(repeaterPage)) {
-        const [component] = repeaterPage.components
-        const componentKey = component.name
-        const field = formModel.componentMap.get(componentKey)
-        const label = escapeMarkdown(field.title)
+      if (hasRepeater(repeaterPage)) {
+        const label = escapeMarkdown(repeaterPage.repeat.options.title)
+        const componentKey = repeaterPage.repeat.options.name
 
         questionLines.push(`## ${label}\n`)
 
@@ -194,9 +198,18 @@ function generateFieldLine(answer, field, richFormValue) {
 
         // Append raw values in parentheses
         // e.g. `* None of the above (false)`
-        return `${line} ${value}\n`
+        return `${item.value}`.toLowerCase() !== item.text.toLowerCase()
+          ? `${line} ${value}\n`
+          : `${line}\n`
       })
       .join('')
+  } else if (field instanceof Components.MultilineTextField) {
+    // Preserve Multiline text new lines
+    answerEscaped = answer
+      .split(/(?:\r?\n)+/)
+      .map(escapeMarkdown)
+      .join('\n')
+      .concat('\n')
   } else if (field instanceof Components.UkAddressField) {
     // Format UK addresses into new lines
     answerEscaped = (field.getContextValueFromFormValue(richFormValue) ?? [])
