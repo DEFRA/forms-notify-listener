@@ -248,10 +248,31 @@ export function getRelevantPagesForLegacy(
   const model = new FormModel(formDefinition, { basePath: '' })
   const state = {
     $$__referenceNumber: 'FOOBAR',
+    // TODO convert "main" and "repeaters" which are component-level, to state which is input-level
+    // e.g. data.main will have one entry for
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.repeaters
     // TODO figure out files
   }
+
+  /*
+  main: {
+    dateComponent: {
+      day: 1,
+      month: 1,
+      year: 2020
+    }
+  }
+
+  would need to change to:
+
+  {
+    dateComponent__day: 1,
+    dateComponent__month: 1,
+    dateComponent__year: 2020
+  }
+
+  */
 
   const context = model.getFormContext(
     {
