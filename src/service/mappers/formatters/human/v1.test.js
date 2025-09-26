@@ -2,6 +2,12 @@ import { FormStatus } from '@defra/forms-model'
 import { buildDefinition } from '@defra/forms-model/stubs'
 
 import {
+  legacyGraphForm,
+  legacyGraphFormDefinition,
+  legacyGraphFormMessage
+} from '../__stubs__/legacy-form.js'
+
+import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageMetaStub
 } from '~/src/service/__stubs__/event-builders.js'
@@ -145,6 +151,21 @@ describe('Page controller helpers', () => {
     })
     const formatter = getFormatter('human', '1')
     let output = formatter(pizzaMessage, definition, '1')
+    output = output.replace(/(12|1):00am/g, '12:00am')
+    expect(output).toMatchSnapshot()
+  })
+
+  it('should return a valid human readable v1 response for legacy graph-based forms', () => {
+    const definition = buildDefinition({
+      ...legacyGraphFormDefinition,
+      output: {
+        audience: 'human',
+        version: '1'
+      }
+    })
+    const formatter = getFormatter('human', '1')
+    let output = formatter(legacyGraphFormMessage, definition, '1')
+
     output = output.replace(/(12|1):00am/g, '12:00am')
     expect(output).toMatchSnapshot()
   })
