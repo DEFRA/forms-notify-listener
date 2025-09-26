@@ -1,7 +1,7 @@
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
+import { getErrorMessage } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
-import { getErrorMessage } from '~/src/helpers/error-message.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
 import { getFormDefinition } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
@@ -75,7 +75,8 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   } catch (err) {
     const errMsg = getErrorMessage(err)
     logger.error(
-      `[emailSendFailed] Error sending notification email - templateId: ${templateId} - recipient: ${emailAddress} - ${errMsg}`
+      err,
+      `[emailSendFailed] Error sending notification email - templateId: ${templateId} - ${errMsg}`
     )
 
     throw err

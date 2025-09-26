@@ -1,4 +1,5 @@
-import { getErrorMessage } from '~/src/helpers/error-message.js'
+import { getErrorMessage } from '@defra/forms-model'
+
 import { createLogger } from '~/src/helpers/logging/logger.js'
 import {
   receiveEventMessages,
@@ -30,6 +31,7 @@ export async function runTaskOnce() {
     }
   } catch (err) {
     logger.error(
+      err,
       `[runTaskOnce] Receive messages task failed - ${getErrorMessage(err)}`
     )
   }
