@@ -2,7 +2,6 @@ import { FormStatus } from '@defra/forms-model'
 import { buildDefinition } from '@defra/forms-model/stubs'
 
 import {
-  legacyGraphForm,
   legacyGraphFormDefinition,
   legacyGraphFormMessage
 } from '../__stubs__/legacy-form.js'

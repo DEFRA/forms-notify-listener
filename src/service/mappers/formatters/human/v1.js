@@ -1,9 +1,10 @@
+import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-import { hasComponents, hasRepeater } from '@defra/forms-model'
+import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 import { addDays, format as dateFormat } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -50,15 +51,7 @@ export function formatter(
   const fileExpiryDate = addDays(now, FILE_EXPIRY_OFFSET)
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
-  const order = formDefinition.pages.flatMap((page) => {
-    if (hasComponents(page)) {
-      if (hasRepeater(page)) {
-        return [page.repeat.options.name]
-      }
-      return page.components.map((component) => component.name)
-    }
-    return []
-  })
+  const order = calculateOrder(formDefinition, formSubmissionMessage)
 
   const componentMap = new Map()
   /**
@@ -219,6 +212,93 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   return answerEscaped
+}
+
+/**
+ * Calculate the order of components for human readable output
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {string[]}
+ */
+function calculateOrder(formDefinition, formSubmissionMessage) {
+  if (formDefinition.engine === Engine.V1) {
+    return getRelevantPagesForLegacy(formDefinition, formSubmissionMessage)
+  }
+
+  return formDefinition.pages.flatMap((page) => {
+    if (hasComponents(page)) {
+      if (hasRepeater(page)) {
+        return [page.repeat.options.name]
+      }
+      return page.components.map((component) => component.name)
+    }
+    return []
+  })
+}
+
+/**
+ *
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ */
+export function getRelevantPagesForLegacy(
+  formDefinition,
+  formSubmissionMessage
+) {
+  const model = new FormModel(formDefinition, { basePath: '' })
+  const state = {
+    $$__referenceNumber: 'FOOBAR',
+    ...formSubmissionMessage.data.main,
+    ...formSubmissionMessage.data.repeaters
+    // TODO figure out files
+  }
+
+  const context = model.getFormContext(
+    {
+      query: {
+        force: true
+      },
+      params: {
+        path: 'summary'
+      }
+    },
+    state
+  )
+
+  const { relevantPages } = context
+  const { sections } = formDefinition
+
+  /**
+   * @type {string[][][]}
+   */
+  const order = []
+
+  ;[undefined, ...sections].forEach((section) => {
+    const sectionPages = relevantPages.filter(
+      (page) => page.section === section
+    )
+
+    /**
+     * @type {string[][]}
+     */
+    const items = []
+
+    sectionPages.forEach((page) => {
+      const { collection } = page
+
+      if (page instanceof RepeatPageController) {
+        items.push([page.repeat.options.name])
+      } else {
+        items.push(collection.fields.map((f) => f.name))
+      }
+    })
+
+    if (items.length) {
+      order.push(items)
+    }
+  })
+
+  return order.flat()
 }
 
 /**
