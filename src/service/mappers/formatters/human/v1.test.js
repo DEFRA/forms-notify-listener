@@ -2,20 +2,23 @@ import { FormStatus } from '@defra/forms-model'
 import { buildDefinition } from '@defra/forms-model/stubs'
 
 import {
-  legacyGraphFormDefinition,
-  legacyGraphFormMessage
-} from '../__stubs__/legacy-form.js'
-
-import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageMetaStub
 } from '~/src/service/__stubs__/event-builders.js'
+import {
+  legacyGraphFormDefinition,
+  legacyGraphFormMessage
+} from '~/src/service/mappers/formatters/__stubs__/legacy-form.js'
 import {
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
   pizzaFormDefinition,
   pizzaMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
+import {
+  getRelevantPagesForLegacy,
+  mapValueToState
+} from '~/src/service/mappers/formatters/human/v1.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 
 jest.mock('nunjucks', () => {
@@ -43,129 +46,191 @@ describe('Page controller helpers', () => {
     jest.useRealTimers()
   })
 
-  it('should return a valid human readable v1 response', () => {
-    const definition = buildDefinition({
-      ...exampleNotifyFormDefinition,
-      output: {
-        audience: 'human',
-        version: '1'
+  describe('mapValueToState', () => {
+    it('should map adaptor v2 message to state', () => {
+      const message = {
+        ...legacyGraphFormMessage,
+        data: {
+          ...legacyGraphFormMessage.data,
+          main: {
+            ...legacyGraphFormMessage.data.main,
+            dateComponent: {
+              day: 1,
+              month: 1,
+              year: 2020
+            }
+          }
+        }
       }
+      expect(mapValueToState(message)).toEqual({
+        $$__referenceNumber: 'FOOBAR',
+        BuYlIg: 'John',
+        zFwSsz: 'Doe',
+        RRApmV: 'GB-ENG',
+        CsWVsY: 4,
+        VFhEJu: '23423',
+        wqTVdv: 543,
+        wGNLPw: [
+          { IrwAyV: 'Jane', MWVjbY: 'Doe' },
+          { IrwAyV: 'Janet', MWVjbY: 'Doe' }
+        ],
+        dateComponent__day: 1,
+        dateComponent__month: 1,
+        dateComponent__year: 2020
+      })
     })
-    const formatter = getFormatter('human', '1')
-    let output = formatter(exampleNotifyFormMessage, definition, '1')
+  })
+  describe('format', () => {
+    it('should return a valid human readable v1 response', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+      const formatter = getFormatter('human', '1')
+      let output = formatter(exampleNotifyFormMessage, definition, '1')
 
-    expect(output).toContain(
-      '^ For security reasons, the links in this email expire at'
-    )
-    expect(output).toContain('Example notify form form received at')
-    expect(output).toContain('## What is your name?')
-    expect(output).toContain('Someone')
-    expect(output).toContain('## Additional details')
-    expect(output).toContain('## What is your address?')
-    expect(output).toContain('1 Anywhere Street')
-    expect(output).toContain('Anywhereville')
-    expect(output).toContain('Anywhereshire')
-    expect(output).toContain('AN1 2WH')
-    expect(output).toContain('## What is your date of birth?')
-    expect(output).toContain('1 January 2000')
-    expect(output).toContain('## What month is it?')
-    expect(output).toContain('August 2025')
-    expect(output).toContain('## Who are your favourite LotR characters?')
-    expect(output).toContain('* Gandalf')
-    expect(output).toContain('* Frodo')
-    expect(output).toContain('## Team Member')
-    expect(output).toContain(
-      '[Download Team Member \\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
-    )
-    expect(output).toContain('## Please add supporting evidence')
-    expect(output).toContain('Uploaded 1 file:')
-    expect(output).toContain(
-      '* [supporting\\_evidence\\.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)'
-    )
+      expect(output).toContain(
+        '^ For security reasons, the links in this email expire at'
+      )
+      expect(output).toContain('Example notify form form received at')
+      expect(output).toContain('## What is your name?')
+      expect(output).toContain('Someone')
+      expect(output).toContain('## Additional details')
+      expect(output).toContain('## What is your address?')
+      expect(output).toContain('1 Anywhere Street')
+      expect(output).toContain('Anywhereville')
+      expect(output).toContain('Anywhereshire')
+      expect(output).toContain('AN1 2WH')
+      expect(output).toContain('## What is your date of birth?')
+      expect(output).toContain('1 January 2000')
+      expect(output).toContain('## What month is it?')
+      expect(output).toContain('August 2025')
+      expect(output).toContain('## Who are your favourite LotR characters?')
+      expect(output).toContain('* Gandalf')
+      expect(output).toContain('* Frodo')
+      expect(output).toContain('## Team Member')
+      expect(output).toContain(
+        '[Download Team Member \\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
+      )
+      expect(output).toContain('## Please add supporting evidence')
+      expect(output).toContain('Uploaded 1 file:')
+      expect(output).toContain(
+        '* [supporting\\_evidence\\.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)'
+      )
 
-    expect(output).toContain(
-      '[Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
-    )
-    output = output.replace(/(12|1):00am/g, '12:00am')
-    expect(output).toMatchSnapshot()
+      expect(output).toContain(
+        '[Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
+      )
+      output = output.replace(/(12|1):00am/g, '12:00am')
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should return a valid human readable v1 response in preview mode', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+      const formatter = getFormatter('human', '1')
+      let output = formatter(
+        buildFormAdapterSubmissionMessage({
+          ...exampleNotifyFormMessage,
+          meta: buildFormAdapterSubmissionMessageMetaStub({
+            ...exampleNotifyFormMessage.meta,
+            isPreview: true
+          })
+        }),
+        definition,
+        '1'
+      )
+
+      output = output.replace(/(12|1):00am/g, '12:00am')
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should return a valid human readable v1 response in Draft mode', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+      const formatter = getFormatter('human', '1')
+      let output = formatter(
+        buildFormAdapterSubmissionMessage({
+          ...exampleNotifyFormMessage,
+          meta: buildFormAdapterSubmissionMessageMetaStub({
+            ...exampleNotifyFormMessage.meta,
+            status: FormStatus.Draft
+          })
+        }),
+        definition,
+        '1'
+      )
+
+      output = output.replace(/(12|1):00am/g, '12:00am')
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should return a valid human readable v1 response 2', () => {
+      const definition = buildDefinition({
+        ...pizzaFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+      const formatter = getFormatter('human', '1')
+      let output = formatter(pizzaMessage, definition, '1')
+      output = output.replace(/(12|1):00am/g, '12:00am')
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should return a valid human readable v1 response for legacy graph-based forms', () => {
+      const definition = buildDefinition({
+        ...legacyGraphFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+      const formatter = getFormatter('human', '1')
+      let output = formatter(legacyGraphFormMessage, definition, '1')
+
+      output = output.replace(/(12|1):00am/g, '12:00am')
+      expect(output).toMatchSnapshot()
+    })
   })
 
-  it('should return a valid human readable v1 response in preview mode', () => {
-    const definition = buildDefinition({
-      ...exampleNotifyFormDefinition,
-      output: {
-        audience: 'human',
-        version: '1'
-      }
+  describe('getRelevantPagesForLegacy', () => {
+    it('should get Relevant Pages For Legacy', () => {
+      const pages = getRelevantPagesForLegacy(
+        legacyGraphFormDefinition,
+        legacyGraphFormMessage
+      )
+      const yourAge = 'CsWVsY'
+      const countryOfBirth = 'RRApmV'
+      const passportNumber = 'VFhEJu'
+      const numberOfPeople = 'wqTVdv'
+      const firstName = 'IrwAyV'
+      const lastName = 'MWVjbY'
+      const person = 'wGNLPw'
+
+      expect(pages).toEqual([
+        yourAge,
+        countryOfBirth,
+        passportNumber,
+        numberOfPeople,
+        firstName,
+        lastName,
+        person
+      ])
     })
-    const formatter = getFormatter('human', '1')
-    let output = formatter(
-      buildFormAdapterSubmissionMessage({
-        ...exampleNotifyFormMessage,
-        meta: buildFormAdapterSubmissionMessageMetaStub({
-          ...exampleNotifyFormMessage.meta,
-          isPreview: true
-        })
-      }),
-      definition,
-      '1'
-    )
-
-    output = output.replace(/(12|1):00am/g, '12:00am')
-    expect(output).toMatchSnapshot()
-  })
-
-  it('should return a valid human readable v1 response in Draft mode', () => {
-    const definition = buildDefinition({
-      ...exampleNotifyFormDefinition,
-      output: {
-        audience: 'human',
-        version: '1'
-      }
-    })
-    const formatter = getFormatter('human', '1')
-    let output = formatter(
-      buildFormAdapterSubmissionMessage({
-        ...exampleNotifyFormMessage,
-        meta: buildFormAdapterSubmissionMessageMetaStub({
-          ...exampleNotifyFormMessage.meta,
-          status: FormStatus.Draft
-        })
-      }),
-      definition,
-      '1'
-    )
-
-    output = output.replace(/(12|1):00am/g, '12:00am')
-    expect(output).toMatchSnapshot()
-  })
-
-  it('should return a valid human readable v1 response 2', () => {
-    const definition = buildDefinition({
-      ...pizzaFormDefinition,
-      output: {
-        audience: 'human',
-        version: '1'
-      }
-    })
-    const formatter = getFormatter('human', '1')
-    let output = formatter(pizzaMessage, definition, '1')
-    output = output.replace(/(12|1):00am/g, '12:00am')
-    expect(output).toMatchSnapshot()
-  })
-
-  it('should return a valid human readable v1 response for legacy graph-based forms', () => {
-    const definition = buildDefinition({
-      ...legacyGraphFormDefinition,
-      output: {
-        audience: 'human',
-        version: '1'
-      }
-    })
-    const formatter = getFormatter('human', '1')
-    let output = formatter(legacyGraphFormMessage, definition, '1')
-
-    output = output.replace(/(12|1):00am/g, '12:00am')
-    expect(output).toMatchSnapshot()
   })
 })

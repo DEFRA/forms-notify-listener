@@ -5,16 +5,17 @@ import {
   Engine,
   FormStatus
 } from '@defra/forms-model'
+import { buildDefinition, buildRepeaterPage } from '@defra/forms-model/stubs'
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 
 /**
  * @type {import('@defra/forms-model').FormDefinition}
  */
-export const legacyGraphFormDefinition = {
+export const legacyGraphFormDefinition = buildDefinition({
   metadata: {},
   pages: [
-    {
+    buildRepeaterPage({
       title: 'Who else lives in your household?',
       path: '/who-else-lives-in-your-household',
       controller: ControllerType.Repeat,
@@ -52,7 +53,7 @@ export const legacyGraphFormDefinition = {
           schema: {}
         }
       ]
-    },
+    }),
     {
       title: 'What is your name?',
       path: '/what-is-your-name',
@@ -217,7 +218,7 @@ export const legacyGraphFormDefinition = {
   engine: Engine.V1,
   schema: 1,
   startPage: '/what-is-your-age'
-}
+})
 
 export const legacyGraphFormMessage = buildFormAdapterSubmissionMessage({
   messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',

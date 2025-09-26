@@ -237,6 +237,38 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
 }
 
 /**
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ */
+export function mapValueToState(formSubmissionMessage) {
+  const mainEntries = Object.entries(formSubmissionMessage.data.main)
+  const main = mainEntries.reduce((acc, [key, value]) => {
+    if (typeof value === 'object' && value !== null) {
+      const subValues = Object.entries(value).reduce((acc2, [key2, value2]) => {
+        return {
+          ...acc2,
+          [`${key}__${key2}`]: value2
+        }
+      }, {})
+      return {
+        ...acc,
+        ...subValues
+      }
+    }
+    return {
+      ...acc,
+      [key]: value
+    }
+  }, {})
+
+  return {
+    $$__referenceNumber: 'FOOBAR',
+    ...main,
+    ...formSubmissionMessage.data.repeaters
+    // TODO: still needs to handle files
+  }
+}
+
+/**
  *
  * @param {FormDefinition} formDefinition
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -246,33 +278,7 @@ export function getRelevantPagesForLegacy(
   formSubmissionMessage
 ) {
   const model = new FormModel(formDefinition, { basePath: '' })
-  const state = {
-    $$__referenceNumber: 'FOOBAR',
-    // TODO convert "main" and "repeaters" which are component-level, to state which is input-level
-    // e.g. data.main will have one entry for
-    ...formSubmissionMessage.data.main,
-    ...formSubmissionMessage.data.repeaters
-    // TODO figure out files
-  }
-
-  /*
-  main: {
-    dateComponent: {
-      day: 1,
-      month: 1,
-      year: 2020
-    }
-  }
-
-  would need to change to:
-
-  {
-    dateComponent__day: 1,
-    dateComponent__month: 1,
-    dateComponent__year: 2020
-  }
-
-  */
+  const state = mapValueToState(formSubmissionMessage)
 
   const context = model.getFormContext(
     {
