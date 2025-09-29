@@ -68,13 +68,17 @@ export function formatter(
     lines.push(`This is a test of the ${formName} ${status} form.\n`)
   }
 
-  lines.push(`${formName} form received at ${escapeMarkdown(formattedNow)}.\n`)
-  lines.push('---\n')
+  lines.push(
+    `${formName} form received at ${escapeMarkdown(formattedNow)}.\n`,
+    '---\n'
+  )
 
-  Object.entries({
+  const fileAndMainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
-  }).forEach(([key, richFormValue]) => {
+  })
+
+  for (const [key, richFormValue] of fileAndMainEntries) {
     const questionLines = /** @type {string[]} */ ([])
     const field = formModel.componentMap.get(key)
     const answer = field.getDisplayStringFromFormValue(richFormValue)
@@ -89,36 +93,39 @@ export function formatter(
 
     questionLines.push('---\n')
     componentMap.set(key, questionLines)
-  })
+  }
 
-  Object.entries(formSubmissionMessage.result.files.repeaters).forEach(
-    ([key, fileId]) => {
-      const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-      const questionLines = /**  @type {string[]}  */ ([])
-      if (hasRepeater(repeaterPage)) {
-        const label = escapeMarkdown(repeaterPage.repeat.options.title)
-        const componentKey = repeaterPage.repeat.options.name
-
-        questionLines.push(`## ${label}\n`)
-
-        const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
-        questionLines.push(
-          `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
-        )
-        questionLines.push('---\n')
-        componentMap.set(componentKey, questionLines)
-      }
-    }
+  const repeaterEntries = Object.entries(
+    formSubmissionMessage.result.files.repeaters
   )
 
-  order.forEach((key) => {
+  for (const [key, fileId] of repeaterEntries) {
+    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
+
+    const questionLines = /**  @type {string[]}  */ ([])
+
+    if (hasRepeater(repeaterPage)) {
+      const label = escapeMarkdown(repeaterPage.repeat.options.title)
+      const componentKey = repeaterPage.repeat.options.name
+
+      questionLines.push(`## ${label}\n`)
+
+      const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
+      questionLines.push(
+        `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
+        '---\n'
+      )
+      componentMap.set(componentKey, questionLines)
+    }
+  }
+
+  for (const key of order) {
     const componentLines = componentMap.get(key)
 
     if (componentLines) {
       lines.push(...componentLines)
     }
-  })
+  }
 
   const mainResultFilename = escapeMarkdown('Download main form (CSV)')
   lines.push(
@@ -167,8 +174,10 @@ function generateFieldLine(answer, field, richFormValue) {
     field instanceof ListFormComponent &&
     field instanceof FormComponent
   ) {
-    const values = [field.getContextValueFromFormValue(richFormValue)].flat()
-    const items = field.items.filter(({ value }) => values.includes(value))
+    const values = new Set(
+      [field.getContextValueFromFormValue(richFormValue)].flat()
+    )
+    const items = field.items.filter(({ value }) => values.has(value))
 
     // Skip empty values
     if (!items.length) {
