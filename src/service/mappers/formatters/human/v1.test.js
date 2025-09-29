@@ -40,7 +40,7 @@ jest.mock('~/src/config/index.js', () => ({
 
 describe('Page controller helpers', () => {
   beforeAll(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-08-31T23:00:00Z')) // UTC should map to BST
+    jest.useFakeTimers().setSystemTime(new Date('2025-04-01T23:00:00Z')) // UTC should map to BST
   })
   afterAll(() => {
     jest.useRealTimers()
@@ -63,7 +63,7 @@ describe('Page controller helpers', () => {
         }
       }
       expect(mapValueToState(message)).toEqual({
-        $$__referenceNumber: 'FOOBAR',
+        $$__referenceNumber: 'REFERENCE_NUMBER',
         BuYlIg: 'John',
         zFwSsz: 'Doe',
         RRApmV: 'GB-ENG',

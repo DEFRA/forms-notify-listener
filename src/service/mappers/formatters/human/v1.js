@@ -288,7 +288,7 @@ export function mapValueToState(formSubmissionMessage) {
   }, {})
 
   return {
-    $$__referenceNumber: 'FOOBAR',
+    $$__referenceNumber: 'REFERENCE_NUMBER',
     ...main,
     ...formSubmissionMessage.data.repeaters,
     ...files
