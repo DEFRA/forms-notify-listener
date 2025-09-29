@@ -201,9 +201,9 @@ function generateFieldLine(answer, field, richFormValue) {
 
         // Append raw values in parentheses
         // e.g. `* None of the above (false)`
-        return `${item.value}`.toLowerCase() !== item.text.toLowerCase()
-          ? `${line} ${value}\n`
-          : `${line}\n`
+        return `${item.value}`.toLowerCase() === item.text.toLowerCase()
+          ? `${line}\n`
+          : `${line} ${value}\n`
       })
       .join('')
   } else if (field instanceof Components.MultilineTextField) {
@@ -348,23 +348,19 @@ export function getRelevantPagesForLegacy(
      */
     const items = []
 
-    sectionPages.forEach(
-      /** @type {(page: PageController) => string[][]} */ (
-        (page) => {
-          const { collection } = page
+    for (const page of sectionPages) {
+      const { collection } = page
 
-          if (page instanceof RepeatPageController) {
-            items.push([page.repeat.options.name])
-          } else {
-            items.push(
-              collection.fields.map(
-                /** @type {(f: Component) => string} */ ((f) => f.name)
-              )
-            )
-          }
-        }
-      )
-    )
+      if (page instanceof RepeatPageController) {
+        items.push([page.repeat.options.name])
+      } else {
+        items.push(
+          collection.fields.map(
+            /** @type {(f: Component) => string} */ ((f) => f.name)
+          )
+        )
+      }
+    }
 
     if (items.length) {
       order.push(...items)
