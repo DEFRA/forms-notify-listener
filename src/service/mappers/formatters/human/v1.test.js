@@ -40,7 +40,7 @@ jest.mock('~/src/config/index.js', () => ({
 
 describe('Page controller helpers', () => {
   beforeAll(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-09-01T00:00:00Z'))
+    jest.useFakeTimers().setSystemTime(new Date('2025-08-31T23:00:00Z')) // UTC should map to BST
   })
   afterAll(() => {
     jest.useRealTimers()
@@ -76,7 +76,27 @@ describe('Page controller helpers', () => {
         ],
         dateComponent__day: 1,
         dateComponent__month: 1,
-        dateComponent__year: 2020
+        dateComponent__year: 2020,
+        fileUploadComponent: [
+          {
+            uploadId: 'f1ee2837-7581-4cb0-8113-134527250fee',
+            status: {
+              uploadStatus: 'ready',
+              metadata: {
+                retrievalKey: ''
+              },
+              form: {
+                file: {
+                  fileId: '2c39f4bf-2ccc-4b73-8e0e-c91549b56989',
+                  filename: 'bank_statement.pdf',
+                  fileStatus: 'complete',
+                  contentLength: 0
+                }
+              },
+              numberOfRejectedFiles: 0
+            }
+          }
+        ]
       })
     })
   })
@@ -90,7 +110,7 @@ describe('Page controller helpers', () => {
         }
       })
       const formatter = getFormatter('human', '1')
-      let output = formatter(exampleNotifyFormMessage, definition, '1')
+      const output = formatter(exampleNotifyFormMessage, definition, '1')
 
       expect(output).toContain(
         '^ For security reasons, the links in this email expire at'
@@ -124,7 +144,6 @@ describe('Page controller helpers', () => {
       expect(output).toContain(
         '[Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
       )
-      output = output.replace(/(12|1):00am/g, '12:00am')
       expect(output).toMatchSnapshot()
     })
 
@@ -137,7 +156,7 @@ describe('Page controller helpers', () => {
         }
       })
       const formatter = getFormatter('human', '1')
-      let output = formatter(
+      const output = formatter(
         buildFormAdapterSubmissionMessage({
           ...exampleNotifyFormMessage,
           meta: buildFormAdapterSubmissionMessageMetaStub({
@@ -149,7 +168,6 @@ describe('Page controller helpers', () => {
         '1'
       )
 
-      output = output.replace(/(12|1):00am/g, '12:00am')
       expect(output).toMatchSnapshot()
     })
 
@@ -162,7 +180,7 @@ describe('Page controller helpers', () => {
         }
       })
       const formatter = getFormatter('human', '1')
-      let output = formatter(
+      const output = formatter(
         buildFormAdapterSubmissionMessage({
           ...exampleNotifyFormMessage,
           meta: buildFormAdapterSubmissionMessageMetaStub({
@@ -174,7 +192,6 @@ describe('Page controller helpers', () => {
         '1'
       )
 
-      output = output.replace(/(12|1):00am/g, '12:00am')
       expect(output).toMatchSnapshot()
     })
 
@@ -187,8 +204,7 @@ describe('Page controller helpers', () => {
         }
       })
       const formatter = getFormatter('human', '1')
-      let output = formatter(pizzaMessage, definition, '1')
-      output = output.replace(/(12|1):00am/g, '12:00am')
+      const output = formatter(pizzaMessage, definition, '1')
       expect(output).toMatchSnapshot()
     })
 
@@ -201,9 +217,8 @@ describe('Page controller helpers', () => {
         }
       })
       const formatter = getFormatter('human', '1')
-      let output = formatter(legacyGraphFormMessage, definition, '1')
+      const output = formatter(legacyGraphFormMessage, definition, '1')
 
-      output = output.replace(/(12|1):00am/g, '12:00am')
       expect(output).toMatchSnapshot()
     })
   })
@@ -214,22 +229,16 @@ describe('Page controller helpers', () => {
         legacyGraphFormDefinition,
         legacyGraphFormMessage
       )
+      const proofOfAddress = 'fileUploadComponent'
       const yourAge = 'CsWVsY'
       const countryOfBirth = 'RRApmV'
       const passportNumber = 'VFhEJu'
-      const numberOfPeople = 'wqTVdv'
-      const firstName = 'IrwAyV'
-      const lastName = 'MWVjbY'
-      const person = 'wGNLPw'
 
       expect(pages).toEqual([
         yourAge,
         countryOfBirth,
         passportNumber,
-        numberOfPeople,
-        firstName,
-        lastName,
-        person
+        proofOfAddress
       ])
     })
   })

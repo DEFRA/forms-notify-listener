@@ -5,9 +5,10 @@ import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/hel
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
-import { addDays, format as dateFormat } from 'date-fns'
+import { addDays } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
+import { format as dateFormat } from '~/src/helpers/date.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -260,11 +261,37 @@ export function mapValueToState(formSubmissionMessage) {
     }
   }, {})
 
+  const fileEntries = Object.entries(formSubmissionMessage.data.files)
+  const files = fileEntries.reduce((fileObject, [key, value]) => {
+    const componentFiles = value.map((file) => ({
+      status: {
+        form: {
+          file: {
+            contentLength: 0,
+            fileStatus: 'complete',
+            fileId: file.fileId,
+            filename: file.fileName
+          }
+        },
+        uploadStatus: 'ready',
+        numberOfRejectedFiles: 0,
+        metadata: {
+          retrievalKey: ''
+        }
+      },
+      uploadId: 'f1ee2837-7581-4cb0-8113-134527250fee'
+    }))
+    return {
+      ...fileObject,
+      [key]: componentFiles
+    }
+  }, {})
+
   return {
     $$__referenceNumber: 'FOOBAR',
     ...main,
-    ...formSubmissionMessage.data.repeaters
-    // TODO: still needs to handle files
+    ...formSubmissionMessage.data.repeaters,
+    ...files
   }
 }
 
@@ -296,13 +323,15 @@ export function getRelevantPagesForLegacy(
   const { sections } = formDefinition
 
   /**
-   * @type {string[][][]}
+   * @type {string[][]}
    */
   const order = []
 
   ;[undefined, ...sections].forEach((section) => {
     const sectionPages = relevantPages.filter(
-      (page) => page.section === section
+      /** @type {(page: PageController) => boolean} */ (
+        (page) => page.section === section
+      )
     )
 
     /**
@@ -310,18 +339,26 @@ export function getRelevantPagesForLegacy(
      */
     const items = []
 
-    sectionPages.forEach((page) => {
-      const { collection } = page
+    sectionPages.forEach(
+      /** @type {(page: PageController) => string[][]} */ (
+        (page) => {
+          const { collection } = page
 
-      if (page instanceof RepeatPageController) {
-        items.push([page.repeat.options.name])
-      } else {
-        items.push(collection.fields.map((f) => f.name))
-      }
-    })
+          if (page instanceof RepeatPageController) {
+            items.push([page.repeat.options.name])
+          } else {
+            items.push(
+              collection.fields.map(
+                /** @type {(f: Component) => string} */ ((f) => f.name)
+              )
+            )
+          }
+        }
+      )
+    )
 
     if (items.length) {
-      order.push(items)
+      order.push(...items)
     }
   })
 
@@ -330,6 +367,7 @@ export function getRelevantPagesForLegacy(
 
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
+ * @import { PageController } from '@defra/forms-engine-plugin/engine/pageControllers/PageController.js';
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
