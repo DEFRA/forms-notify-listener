@@ -270,6 +270,42 @@ export function mapValueToState(formSubmissionMessage) {
     }
   }, {})
 
+  const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
+  const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
+    const values = value.map((repeater) => {
+      return Object.entries(repeater).reduce(
+        (subValues, [key2, currentValue]) => {
+          if (typeof currentValue === 'object' && currentValue !== null) {
+            const subValues2 = Object.entries(currentValue).reduce(
+              (acc2, [key3, value2]) => {
+                return {
+                  ...acc2,
+                  [`${key2}__${key3}`]: value2
+                }
+              },
+              {}
+            )
+
+            return {
+              ...subValues,
+              ...subValues2
+            }
+          }
+          return {
+            ...subValues,
+            [key2]: currentValue
+          }
+        },
+        {}
+      )
+    })
+
+    return {
+      ...repeaterObject,
+      [key]: values
+    }
+  }, {})
+
   const fileEntries = Object.entries(formSubmissionMessage.data.files)
   const files = fileEntries.reduce((fileObject, [key, value]) => {
     const componentFiles = value.map((file) => ({
@@ -299,7 +335,7 @@ export function mapValueToState(formSubmissionMessage) {
   return {
     $$__referenceNumber: 'REFERENCE_NUMBER',
     ...main,
-    ...formSubmissionMessage.data.repeaters,
+    ...repeaters,
     ...files
   }
 }

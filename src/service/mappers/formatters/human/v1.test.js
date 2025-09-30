@@ -71,8 +71,18 @@ describe('Page controller helpers', () => {
         VFhEJu: '23423',
         wqTVdv: 543,
         wGNLPw: [
-          { IrwAyV: 'Jane', MWVjbY: 'Doe' },
-          { IrwAyV: 'Janet', MWVjbY: 'Doe' }
+          {
+            IrwAyV: 'Jane',
+            MWVjbY: 'Doe',
+            dImeLi__month: 1,
+            dImeLi__year: 2000
+          },
+          {
+            IrwAyV: 'Janet',
+            MWVjbY: 'Doe',
+            dImeLi__month: 1,
+            dImeLi__year: 2000
+          }
         ],
         dateComponent__day: 1,
         dateComponent__month: 1,

@@ -11,9 +11,11 @@ import {
   buildFileUploadPage,
   buildList,
   buildListItem,
+  buildMonthYearFieldComponent,
   buildQuestionPage,
   buildRepeaterPage,
-  buildSummaryPage
+  buildSummaryPage,
+  buildTextFieldComponent
 } from '@defra/forms-model/stubs'
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
@@ -43,22 +45,18 @@ export const legacyGraphFormDefinition = buildDefinition({
         }
       ],
       components: [
-        {
+        buildTextFieldComponent({
           name: 'IrwAyV',
-          title: 'First name',
-          type: ComponentType.TextField,
-          hint: '',
-          options: {},
-          schema: {}
-        },
-        {
+          title: 'First name'
+        }),
+        buildTextFieldComponent({
           name: 'MWVjbY',
-          title: 'Last name',
-          type: ComponentType.TextField,
-          hint: '',
-          options: {},
-          schema: {}
-        }
+          title: 'Last name'
+        }),
+        buildMonthYearFieldComponent({
+          name: 'dImeLi',
+          title: 'When did they leave the UK?'
+        })
       ]
     }),
     buildQuestionPage({
@@ -71,22 +69,14 @@ export const legacyGraphFormDefinition = buildDefinition({
         }
       ],
       components: [
-        {
+        buildTextFieldComponent({
           name: 'BuYlIg',
-          title: 'First name',
-          type: ComponentType.TextField,
-          hint: '',
-          options: {},
-          schema: {}
-        },
-        {
+          title: 'First name'
+        }),
+        buildTextFieldComponent({
           name: 'zFwSsz',
-          title: 'Last name',
-          type: ComponentType.TextField,
-          hint: '',
-          options: {},
-          schema: {}
-        }
+          title: 'Last name'
+        })
       ]
     }),
     buildQuestionPage({
@@ -158,7 +148,7 @@ export const legacyGraphFormDefinition = buildDefinition({
       section: 'KTXLMB',
       next: [
         {
-          path: '/proof-of-address'
+          path: '/name-your-family-members-abroad'
         }
       ],
       components: [
@@ -170,6 +160,40 @@ export const legacyGraphFormDefinition = buildDefinition({
           options: {},
           schema: {}
         }
+      ]
+    }),
+    buildRepeaterPage({
+      title: 'Name your family members abroad?',
+      path: '/name-your-family-members-abroad',
+      section: 'KTXLMB',
+      next: [
+        {
+          path: '/proof-of-address'
+        }
+      ],
+      repeat: {
+        options: {
+          name: 'kIneZe',
+          title: 'Your family members abroad'
+        },
+        schema: {
+          min: 1,
+          max: 25
+        }
+      },
+      components: [
+        buildTextFieldComponent({
+          name: 'fImezO',
+          title: 'First name'
+        }),
+        buildTextFieldComponent({
+          name: 'lAsNmeo',
+          title: 'Last name'
+        }),
+        buildTextFieldComponent({
+          name: 'CokUmaY',
+          title: 'Country'
+        })
       ]
     }),
     buildFileUploadPage({
@@ -265,8 +289,8 @@ export const legacyGraphFormMessage = buildFormAdapterSubmissionMessage({
     },
     repeaters: {
       wGNLPw: [
-        { IrwAyV: 'Jane', MWVjbY: 'Doe' },
-        { IrwAyV: 'Janet', MWVjbY: 'Doe' }
+        { IrwAyV: 'Jane', MWVjbY: 'Doe', dImeLi: { month: 1, year: 2000 } },
+        { IrwAyV: 'Janet', MWVjbY: 'Doe', dImeLi: { month: 1, year: 2000 } }
       ]
     },
     files: {
