@@ -75,13 +75,15 @@ describe('Page controller helpers', () => {
             IrwAyV: 'Jane',
             MWVjbY: 'Doe',
             dImeLi__month: 1,
-            dImeLi__year: 2000
+            dImeLi__year: 2000,
+            itemId: 'a581accd-e989-4500-87da-f3929c192db0'
           },
           {
             IrwAyV: 'Janet',
             MWVjbY: 'Doe',
             dImeLi__month: 1,
-            dImeLi__year: 2000
+            dImeLi__year: 2000,
+            itemId: 'a581accd-e989-4500-87da-f3929c192db1'
           }
         ],
         dateComponent__day: 1,

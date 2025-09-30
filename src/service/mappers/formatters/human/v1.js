@@ -289,8 +289,11 @@ export function mapValueToState(formSubmissionMessage) {
 
   const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
   const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
-    const values = value.map((repeater) => {
-      return Object.entries(repeater).reduce(handleSubfields, {})
+    const values = value.map((repeater, idx) => {
+      return {
+        ...Object.entries(repeater).reduce(handleSubfields, {}),
+        itemId: `a581accd-e989-4500-87da-f3929c192db${idx}`
+      }
     })
 
     return {
