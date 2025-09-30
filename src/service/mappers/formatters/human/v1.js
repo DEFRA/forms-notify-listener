@@ -247,57 +247,50 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
 }
 
 /**
+ *
+ * @param {Record<string, FormStateValue>} subfieldObject
+ * @param {[string, FormValue|null]} entry
+ * @returns {Record<string, FormStateValue>}
+ */
+function handleSubfields(subfieldObject, [key, value]) {
+  if (typeof value === 'object' && value !== null) {
+    const subValues = Object.entries(value).reduce((acc2, [key2, value2]) => {
+      if (value2 === undefined) {
+        return acc2
+      }
+      return {
+        ...acc2,
+        [`${key}__${key2}`]: value2
+      }
+    }, {})
+
+    return {
+      ...subfieldObject,
+      ...subValues
+    }
+  }
+
+  if (value === undefined) {
+    return subfieldObject
+  }
+
+  return {
+    ...subfieldObject,
+    [key]: value
+  }
+}
+
+/**
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  */
 export function mapValueToState(formSubmissionMessage) {
   const mainEntries = Object.entries(formSubmissionMessage.data.main)
-  const main = mainEntries.reduce((acc, [key, value]) => {
-    if (typeof value === 'object' && value !== null) {
-      const subValues = Object.entries(value).reduce((acc2, [key2, value2]) => {
-        return {
-          ...acc2,
-          [`${key}__${key2}`]: value2
-        }
-      }, {})
-      return {
-        ...acc,
-        ...subValues
-      }
-    }
-    return {
-      ...acc,
-      [key]: value
-    }
-  }, {})
+  const main = mainEntries.reduce(handleSubfields, {})
 
   const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
   const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
     const values = value.map((repeater) => {
-      return Object.entries(repeater).reduce(
-        (subValues, [key2, currentValue]) => {
-          if (typeof currentValue === 'object' && currentValue !== null) {
-            const subValues2 = Object.entries(currentValue).reduce(
-              (acc2, [key3, value2]) => {
-                return {
-                  ...acc2,
-                  [`${key2}__${key3}`]: value2
-                }
-              },
-              {}
-            )
-
-            return {
-              ...subValues,
-              ...subValues2
-            }
-          }
-          return {
-            ...subValues,
-            [key2]: currentValue
-          }
-        },
-        {}
-      )
+      return Object.entries(repeater).reduce(handleSubfields, {})
     })
 
     return {
@@ -409,6 +402,6 @@ export function getRelevantPagesForLegacy(
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
  * @import { PageController } from '@defra/forms-engine-plugin/engine/pageControllers/PageController.js';
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
