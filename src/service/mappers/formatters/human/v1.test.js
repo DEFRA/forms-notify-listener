@@ -104,8 +104,7 @@ describe('Page controller helpers', () => {
                   fileStatus: 'complete',
                   contentLength: 0
                 }
-              },
-              numberOfRejectedFiles: 0
+              }
             }
           }
         ]

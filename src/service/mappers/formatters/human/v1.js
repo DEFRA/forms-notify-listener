@@ -1,9 +1,14 @@
 import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
+import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
+import {
+  FileStatus,
+  UploadStatus
+} from '@defra/forms-engine-plugin/engine/types/enums.js'
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 import { addDays } from 'date-fns'
 
@@ -73,15 +78,22 @@ export function formatter(
     '---\n'
   )
 
-  const fileAndMainEntries = Object.entries({
+  const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
   })
 
-  for (const [key, richFormValue] of fileAndMainEntries) {
+  for (const [key, richFormValue] of mainEntries) {
     const questionLines = /** @type {string[]} */ ([])
     const field = formModel.componentMap.get(key)
-    const answer = field.getDisplayStringFromFormValue(richFormValue)
+
+    let mappedRichFormValue = richFormValue
+
+    if (field instanceof FileUploadField) {
+      mappedRichFormValue = richFormValue.map(mapFormAdapterFileToFileState)
+    }
+
+    const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
 
     const label = escapeMarkdown(field.title)
     questionLines.push(`## ${label}\n`)
@@ -281,6 +293,33 @@ function handleSubfields(subfieldObject, [key, value]) {
 }
 
 /**
+ *
+ * @param {FormAdapterFile} file
+ * @returns {FileState}
+ */
+function mapFormAdapterFileToFileState(file) {
+  const status = /** @type {UploadStatusFileResponse} */ ({
+    form: {
+      file: {
+        contentLength: 0,
+        fileStatus: FileStatus.complete,
+        fileId: file.fileId,
+        filename: file.fileName
+      }
+    },
+    uploadStatus: UploadStatus.ready,
+    metadata: {
+      retrievalKey: ''
+    }
+  })
+
+  return {
+    status,
+    uploadId: 'f1ee2837-7581-4cb0-8113-134527250fee'
+  }
+}
+
+/**
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  */
 export function mapValueToState(formSubmissionMessage) {
@@ -307,24 +346,7 @@ export function mapValueToState(formSubmissionMessage) {
 
   const fileEntries = Object.entries(formSubmissionMessage.data.files)
   const files = fileEntries.reduce((fileObject, [key, value]) => {
-    const componentFiles = value.map((file) => ({
-      status: {
-        form: {
-          file: {
-            contentLength: 0,
-            fileStatus: 'complete',
-            fileId: file.fileId,
-            filename: file.fileName
-          }
-        },
-        uploadStatus: 'ready',
-        numberOfRejectedFiles: 0,
-        metadata: {
-          retrievalKey: ''
-        }
-      },
-      uploadId: 'f1ee2837-7581-4cb0-8113-134527250fee'
-    }))
+    const componentFiles = value.map(mapFormAdapterFileToFileState)
     return {
       ...fileObject,
       [key]: componentFiles
@@ -408,6 +430,6 @@ export function getRelevantPagesForLegacy(
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
  * @import { PageController } from '@defra/forms-engine-plugin/engine/pageControllers/PageController.js';
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
