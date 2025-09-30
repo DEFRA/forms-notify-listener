@@ -148,7 +148,7 @@ export const legacyGraphFormDefinition = buildDefinition({
       section: 'KTXLMB',
       next: [
         {
-          path: '/name-your-family-members-abroad'
+          path: '/proof-of-address'
         }
       ],
       components: [
@@ -160,40 +160,6 @@ export const legacyGraphFormDefinition = buildDefinition({
           options: {},
           schema: {}
         }
-      ]
-    }),
-    buildRepeaterPage({
-      title: 'Name your family members abroad?',
-      path: '/name-your-family-members-abroad',
-      section: 'KTXLMB',
-      next: [
-        {
-          path: '/proof-of-address'
-        }
-      ],
-      repeat: {
-        options: {
-          name: 'kIneZe',
-          title: 'Your family members abroad'
-        },
-        schema: {
-          min: 1,
-          max: 25
-        }
-      },
-      components: [
-        buildTextFieldComponent({
-          name: 'fImezO',
-          title: 'First name'
-        }),
-        buildTextFieldComponent({
-          name: 'lAsNmeo',
-          title: 'Last name'
-        }),
-        buildTextFieldComponent({
-          name: 'CokUmaY',
-          title: 'Country'
-        })
       ]
     }),
     buildFileUploadPage({
