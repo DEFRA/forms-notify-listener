@@ -1,9 +1,15 @@
+import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
+import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-import { hasComponents, hasRepeater } from '@defra/forms-model'
+import {
+  FileStatus,
+  UploadStatus
+} from '@defra/forms-engine-plugin/engine/types/enums.js'
+import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 import { addDays } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -51,15 +57,7 @@ export function formatter(
   const fileExpiryDate = addDays(now, FILE_EXPIRY_OFFSET)
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
-  const order = formDefinition.pages.flatMap((page) => {
-    if (hasComponents(page)) {
-      if (hasRepeater(page)) {
-        return [page.repeat.options.name]
-      }
-      return page.components.map((component) => component.name)
-    }
-    return []
-  })
+  const order = calculateOrder(formDefinition, formSubmissionMessage)
 
   const componentMap = new Map()
   /**
@@ -75,16 +73,27 @@ export function formatter(
     lines.push(`This is a test of the ${formName} ${status} form.\n`)
   }
 
-  lines.push(`${formName} form received at ${escapeMarkdown(formattedNow)}.\n`)
-  lines.push('---\n')
+  lines.push(
+    `${formName} form received at ${escapeMarkdown(formattedNow)}.\n`,
+    '---\n'
+  )
 
-  Object.entries({
+  const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
-  }).forEach(([key, richFormValue]) => {
+  })
+
+  for (const [key, richFormValue] of mainEntries) {
     const questionLines = /** @type {string[]} */ ([])
     const field = formModel.componentMap.get(key)
-    const answer = field.getDisplayStringFromFormValue(richFormValue)
+
+    let mappedRichFormValue = richFormValue
+
+    if (field instanceof FileUploadField) {
+      mappedRichFormValue = richFormValue.map(mapFormAdapterFileToFileState)
+    }
+
+    const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
 
     const label = escapeMarkdown(field.title)
     questionLines.push(`## ${label}\n`)
@@ -96,36 +105,39 @@ export function formatter(
 
     questionLines.push('---\n')
     componentMap.set(key, questionLines)
-  })
+  }
 
-  Object.entries(formSubmissionMessage.result.files.repeaters).forEach(
-    ([key, fileId]) => {
-      const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-      const questionLines = /**  @type {string[]}  */ ([])
-      if (hasRepeater(repeaterPage)) {
-        const label = escapeMarkdown(repeaterPage.repeat.options.title)
-        const componentKey = repeaterPage.repeat.options.name
-
-        questionLines.push(`## ${label}\n`)
-
-        const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
-        questionLines.push(
-          `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
-        )
-        questionLines.push('---\n')
-        componentMap.set(componentKey, questionLines)
-      }
-    }
+  const repeaterEntries = Object.entries(
+    formSubmissionMessage.result.files.repeaters
   )
 
-  order.forEach((key) => {
+  for (const [key, fileId] of repeaterEntries) {
+    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
+
+    const questionLines = /**  @type {string[]}  */ ([])
+
+    if (hasRepeater(repeaterPage)) {
+      const label = escapeMarkdown(repeaterPage.repeat.options.title)
+      const componentKey = repeaterPage.repeat.options.name
+
+      questionLines.push(`## ${label}\n`)
+
+      const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
+      questionLines.push(
+        `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
+        '---\n'
+      )
+      componentMap.set(componentKey, questionLines)
+    }
+  }
+
+  for (const key of order) {
     const componentLines = componentMap.get(key)
 
     if (componentLines) {
       lines.push(...componentLines)
     }
-  })
+  }
 
   const mainResultFilename = escapeMarkdown('Download main form (CSV)')
   lines.push(
@@ -174,8 +186,10 @@ function generateFieldLine(answer, field, richFormValue) {
     field instanceof ListFormComponent &&
     field instanceof FormComponent
   ) {
-    const values = [field.getContextValueFromFormValue(richFormValue)].flat()
-    const items = field.items.filter(({ value }) => values.includes(value))
+    const values = new Set(
+      [field.getContextValueFromFormValue(richFormValue)].flat()
+    )
+    const items = field.items.filter(({ value }) => values.has(value))
 
     // Skip empty values
     if (!items.length) {
@@ -199,9 +213,9 @@ function generateFieldLine(answer, field, richFormValue) {
 
         // Append raw values in parentheses
         // e.g. `* None of the above (false)`
-        return `${item.value}`.toLowerCase() !== item.text.toLowerCase()
-          ? `${line} ${value}\n`
-          : `${line}\n`
+        return `${item.value}`.toLowerCase() === item.text.toLowerCase()
+          ? `${line}\n`
+          : `${line} ${value}\n`
       })
       .join('')
   } else if (field instanceof Components.MultilineTextField) {
@@ -223,7 +237,199 @@ function generateFieldLine(answer, field, richFormValue) {
 }
 
 /**
+ * Calculate the order of components for human readable output
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {string[]}
+ */
+function calculateOrder(formDefinition, formSubmissionMessage) {
+  if (formDefinition.engine === Engine.V1) {
+    return getRelevantPagesForLegacy(formDefinition, formSubmissionMessage)
+  }
+
+  return formDefinition.pages.flatMap((page) => {
+    if (hasComponents(page)) {
+      if (hasRepeater(page)) {
+        return [page.repeat.options.name]
+      }
+      return page.components.map((component) => component.name)
+    }
+    return []
+  })
+}
+
+/**
+ *
+ * @param {Record<string, FormStateValue>} subfieldObject
+ * @param {[string, FormValue|null]} entry
+ * @returns {Record<string, FormStateValue>}
+ */
+function handleSubfields(subfieldObject, [key, value]) {
+  if (typeof value === 'object' && value !== null) {
+    const subValues = Object.entries(value).reduce((acc2, [key2, value2]) => {
+      if (value2 === undefined) {
+        return acc2
+      }
+      return {
+        ...acc2,
+        [`${key}__${key2}`]: value2
+      }
+    }, {})
+
+    return {
+      ...subfieldObject,
+      ...subValues
+    }
+  }
+
+  if (value === undefined) {
+    return subfieldObject
+  }
+
+  return {
+    ...subfieldObject,
+    [key]: value
+  }
+}
+
+/**
+ *
+ * @param {FormAdapterFile} file
+ * @returns {FileState}
+ */
+function mapFormAdapterFileToFileState(file) {
+  const status = /** @type {UploadStatusFileResponse} */ ({
+    form: {
+      file: {
+        contentLength: 0,
+        fileStatus: FileStatus.complete,
+        fileId: file.fileId,
+        filename: file.fileName
+      }
+    },
+    uploadStatus: UploadStatus.ready,
+    metadata: {
+      retrievalKey: ''
+    }
+  })
+
+  return {
+    status,
+    uploadId: 'f1ee2837-7581-4cb0-8113-134527250fee'
+  }
+}
+
+/**
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ */
+export function mapValueToState(formSubmissionMessage) {
+  const mainEntries = Object.entries(formSubmissionMessage.data.main)
+  const main = mainEntries.reduce(handleSubfields, {})
+
+  const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
+  const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
+    const values = value.map((repeater, idx) => {
+      const idxStr = `${idx}`
+      return {
+        ...Object.entries(repeater).reduce(handleSubfields, {}),
+        itemId:
+          `a581accd-e989-4500-87da-f3929c192dba`.slice(0, 0 - idxStr.length) +
+          idxStr
+      }
+    })
+
+    return {
+      ...repeaterObject,
+      [key]: values
+    }
+  }, {})
+
+  const fileEntries = Object.entries(formSubmissionMessage.data.files)
+  const files = fileEntries.reduce((fileObject, [key, value]) => {
+    const componentFiles = value.map(mapFormAdapterFileToFileState)
+    return {
+      ...fileObject,
+      [key]: componentFiles
+    }
+  }, {})
+
+  return {
+    $$__referenceNumber: 'REFERENCE_NUMBER',
+    ...main,
+    ...repeaters,
+    ...files
+  }
+}
+
+/**
+ *
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ */
+export function getRelevantPagesForLegacy(
+  formDefinition,
+  formSubmissionMessage
+) {
+  const model = new FormModel(formDefinition, { basePath: '' })
+  const state = mapValueToState(formSubmissionMessage)
+
+  const context = model.getFormContext(
+    {
+      query: {
+        force: true
+      },
+      params: {
+        path: 'summary'
+      }
+    },
+    state
+  )
+
+  const { relevantPages } = context
+  const { sections } = formDefinition
+
+  /**
+   * @type {string[][]}
+   */
+  const order = []
+
+  ;[undefined, ...sections].forEach((section) => {
+    const sectionPages = relevantPages.filter(
+      /** @type {(page: PageController) => boolean} */ (
+        (page) => page.section === section
+      )
+    )
+
+    /**
+     * @type {string[][]}
+     */
+    const items = []
+
+    for (const page of sectionPages) {
+      const { collection } = page
+
+      if (page instanceof RepeatPageController) {
+        items.push([page.repeat.options.name])
+      } else {
+        items.push(
+          collection.fields.map(
+            /** @type {(f: Component) => string} */ ((f) => f.name)
+          )
+        )
+      }
+    }
+
+    if (items.length) {
+      order.push(...items)
+    }
+  })
+
+  return order.flat()
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { PageController } from '@defra/forms-engine-plugin/engine/pageControllers/PageController.js';
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
