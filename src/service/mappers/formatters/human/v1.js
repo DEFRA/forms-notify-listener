@@ -58,7 +58,6 @@ export function formatter(
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
   const order = calculateOrder(formDefinition, formSubmissionMessage)
-
   const componentMap = new Map()
   /**
    * @type {string[]}
@@ -396,7 +395,7 @@ export function getRelevantPagesForLegacy(
   ;[undefined, ...sections].forEach((section) => {
     const sectionPages = relevantPages.filter(
       /** @type {(page: PageController) => boolean} */ (
-        (page) => page.section === section
+        (page) => page.section?.name === section?.name
       )
     )
 

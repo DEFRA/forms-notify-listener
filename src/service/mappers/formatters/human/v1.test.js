@@ -245,11 +245,20 @@ describe('Page controller helpers', () => {
       const countryOfBirth = 'RRApmV'
       const passportNumber = 'VFhEJu'
 
+      const numberOfPeople = 'wqTVdv'
+      const firstName = 'BuYlIg'
+      const lastName = 'zFwSsz'
+      const person = 'wGNLPw'
+
       expect(pages).toEqual([
         yourAge,
         countryOfBirth,
         passportNumber,
-        proofOfAddress
+        proofOfAddress,
+        numberOfPeople,
+        firstName,
+        lastName,
+        person
       ])
     })
   })
