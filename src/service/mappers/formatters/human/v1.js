@@ -385,37 +385,28 @@ export function getRelevantPagesForLegacy(
   )
 
   const { relevantPages } = context
-  const { sections } = formDefinition
-
+  const typedRelevantPages = /** @type {PageControllerClass[]} */ (
+    relevantPages
+  )
   /**
    * @type {string[][]}
    */
   const order = []
-
-  ;[undefined, ...sections].forEach((section) => {
-    const sectionPages = relevantPages.filter(
-      /** @type {(page: PageController) => boolean} */ (
-        (page) => page.section?.name === section?.name
-      )
-    )
-
+  typedRelevantPages.forEach((page) => {
+    const { collection } = page
     /**
      * @type {string[][]}
      */
     const items = []
 
-    for (const page of sectionPages) {
-      const { collection } = page
-
-      if (page instanceof RepeatPageController) {
-        items.push([page.repeat.options.name])
-      } else {
-        items.push(
-          collection.fields.map(
-            /** @type {(f: Component) => string} */ ((f) => f.name)
-          )
+    if (page instanceof RepeatPageController) {
+      items.push([page.repeat.options.name])
+    } else {
+      items.push(
+        collection.fields.map(
+          /** @type {(f: Component) => string} */ ((f) => f.name)
         )
-      }
+      )
     }
 
     if (items.length) {
@@ -429,6 +420,7 @@ export function getRelevantPagesForLegacy(
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
  * @import { PageController } from '@defra/forms-engine-plugin/engine/pageControllers/PageController.js';
+ * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js';
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
