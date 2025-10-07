@@ -388,33 +388,21 @@ export function getRelevantPagesForLegacy(
   const typedRelevantPages = /** @type {PageControllerClass[]} */ (
     relevantPages
   )
-  /**
-   * @type {string[][]}
-   */
-  const order = []
-  typedRelevantPages.forEach((page) => {
+
+  return typedRelevantPages.reduce((order, page) => {
     const { collection } = page
-    /**
-     * @type {string[][]}
-     */
-    const items = []
 
     if (page instanceof RepeatPageController) {
-      items.push([page.repeat.options.name])
+      return [...order, page.repeat.options.name]
     } else {
-      items.push(
-        collection.fields.map(
+      return [
+        ...order,
+        ...collection.fields.map(
           /** @type {(f: Component) => string} */ ((f) => f.name)
         )
-      )
+      ]
     }
-
-    if (items.length) {
-      order.push(...items)
-    }
-  })
-
-  return order.flat()
+  }, [])
 }
 
 /**
