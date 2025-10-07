@@ -253,12 +253,12 @@ describe('Page controller helpers', () => {
       expect(pages).toEqual([
         yourAge,
         countryOfBirth,
-        passportNumber,
-        proofOfAddress,
-        numberOfPeople,
         firstName,
         lastName,
-        person
+        person,
+        passportNumber,
+        numberOfPeople,
+        proofOfAddress
       ])
     })
   })
