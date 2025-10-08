@@ -33,8 +33,7 @@ We received your form submission for &ldquo;${formName}&rsquo; on ${formattedSub
 ${submissionGuidance}
 
 ## Get help
-${contactDetails}
-Do not reply to this emall. We do not monitor reples to this email address.
+${contactDetails}Do not reply to this emall. We do not monitor reples to this email address.
 
 From ${escapeMarkdown(organisation)}
 `
