@@ -1,7 +1,4 @@
-import {
-  formAdapterSubmissionMessageMetaSchema,
-  formAdapterSubmissionMessagePayloadSchema
-} from '@defra/forms-engine-plugin/engine/types/schema.js'
+import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-plugin/engine/types/schema.js'
 import { getErrorMessage } from '@defra/forms-model'
 import Joi from 'joi'
 
@@ -36,17 +33,6 @@ export function mapFormAdapterSubmissionEvent(message) {
       stripUnknown: true
     }
   )
-
-  // To allow custom properties in 'meta', ensure they don't get stripped
-  const metaOnlyValue = Joi.attempt(
-    messageBody.meta,
-    formAdapterSubmissionMessageMetaSchema,
-    {
-      abortEarly: false,
-      stripUnknown: false
-    }
-  )
-  value.meta = metaOnlyValue
 
   return {
     messageId: message.MessageId,
