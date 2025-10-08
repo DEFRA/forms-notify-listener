@@ -5,9 +5,9 @@ import {
   FormStatus,
   SchemaVersion
 } from '@defra/forms-model'
-import { buildDefinition } from '@defra/forms-model/stubs'
+import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 
-import { getFormDefinition } from '~/src/lib/manager.js'
+import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import {
   buildFormAdapterSubmissionMessage,
@@ -640,6 +640,58 @@ describe('notify', () => {
           subject: 'Form submission: Order a pizza',
           body: expect.any(String)
         }
+      })
+    })
+
+    it('should send a user confirmation email', async () => {
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(
+        buildMetaData({
+          submissionGuidance: 'Some guidance text'
+        })
+      )
+      const formAdapterMessageWithUserEmail = structuredClone(
+        formAdapterSubmissionMessage
+      )
+      formAdapterMessageWithUserEmail.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com'
+      }
+      await sendNotifyEmails(formAdapterMessageWithUserEmail)
+
+      expect(jest.mocked(sendNotification)).toHaveBeenCalledTimes(2)
+      const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
+      expect(sendNotificationCall).toEqual({
+        templateId: 'notify-template-id-1',
+        emailAddress: 'notificationEmail@example.uk',
+        personalisation: {
+          subject: 'Form submission: Machine readable form',
+          body: expect.any(String)
+        }
+      })
+      const [sendConfirmationCall] = jest.mocked(sendNotification).mock.calls[1]
+      expect(sendConfirmationCall).toEqual({
+        templateId: 'notify-template-id-1',
+        emailAddress: 'my-email@test.com',
+        personalisation: {
+          subject: 'Form submitted to Defra',
+          body: expect.any(String)
+        }
+      })
+      const sendNotificationBody = JSON.parse(
+        Buffer.from(
+          sendNotificationCall.personalisation.body,
+          'base64'
+        ).toString('utf-8')
+      )
+      expect(new Date(sendNotificationBody.meta.timestamp)).not.toBeNaN()
+      expect(sendNotificationBody).toEqual({
+        meta: {
+          schemaVersion: '2',
+          timestamp: expect.any(String),
+          referenceNumber,
+          definition: baseDefinition
+        },
+        data: formSubmissionData
       })
     })
 

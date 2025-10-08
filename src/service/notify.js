@@ -135,8 +135,10 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
     formId,
     formName: formNameInput,
     isPreview,
-    userConfirmationEmail
+    custom
   } = formSubmissionMessage.meta
+
+  const userConfirmationEmail = custom?.userConfirmationEmail
 
   if (!userConfirmationEmail) {
     return
