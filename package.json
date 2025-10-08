@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "3.894.0",
-    "@defra/forms-engine-plugin": "3.0.4",
-    "@defra/forms-model": "3.0.552",
+    "@defra/forms-engine-plugin": "3.0.7",
+    "@defra/forms-model": "3.0.559",
     "@defra/hapi-tracing": "^1.28.0",
     "@elastic/ecs-pino-format": "^1.5.0",
     "@hapi/hapi": "^21.4.2",

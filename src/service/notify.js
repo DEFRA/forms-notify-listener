@@ -1,10 +1,9 @@
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
-import { getFormMetadata } from '@defra/forms-engine-plugin/services/formsService.js'
-import { getErrorMessage } from '@defra/forms-model'
+import { ControllerType, getErrorMessage } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
-import { getFormDefinition } from '~/src/lib/manager.js'
+import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
@@ -14,13 +13,38 @@ const templateId = /** @type {string} */ (config.get('notifyTemplateId'))
 
 const logger = createLogger()
 
+// TODO - need a better way to handle custom controllers in the output formatters
+/**
+ * Revert any custom controllers to their parent/base class since engine-plugin has no knowledge of them
+ * @param {FormDefinition} definition
+ * @returns {FormDefinition}
+ */
+export function removeCustomControllers(definition) {
+  return {
+    ...definition,
+    pages: definition.pages.map((page) => {
+      if (page.controller) {
+        const controller = [
+          'SummaryPageWithConfirmationEmailController'
+        ].includes(page.controller)
+          ? ControllerType.Summary
+          : page.controller
+        return /** @type {Page} */ ({
+          ...page,
+          controller
+        })
+      }
+      return page
+    })
+  }
+}
+
 /**
  * Sends a mail to notify
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {Promise<void>}
  */
 export async function sendNotifyEmails(formSubmissionMessage) {
-  // TODO - decide how to handle if first email throws
   await sendInternalEmail(formSubmissionMessage)
   await sendUserConfirmationEmail(formSubmissionMessage)
 }
@@ -51,11 +75,13 @@ export async function sendInternalEmail(formSubmissionMessage) {
     `Getting form definition: ${formId} version: ${versionMetadata?.versionNumber} - internal submission email`
   )
 
-  const definition = await getFormDefinition(
+  const origDefinition = await getFormDefinition(
     formId,
     status,
     versionMetadata?.versionNumber
   )
+
+  const definition = removeCustomControllers(origDefinition)
 
   const formName = escapeMarkdown(formNameInput)
   const subject = isPreview
@@ -105,22 +131,23 @@ export async function sendInternalEmail(formSubmissionMessage) {
  * @returns {Promise<void>}
  */
 export async function sendUserConfirmationEmail(formSubmissionMessage) {
-  if (!formSubmissionMessage.meta.userConfirmationEmail) {
-    return
-  }
-
   const {
     formId,
     formName: formNameInput,
-    isPreview
+    isPreview,
+    userConfirmationEmail
   } = formSubmissionMessage.meta
+
+  if (!userConfirmationEmail) {
+    return
+  }
+
   const logTags = ['submit', 'email']
 
   // Get submission email personalisation
   logger.info(logTags, 'Getting personalisation data - user confirmation email')
 
   const formName = escapeMarkdown(formNameInput)
-  const emailAddress = formSubmissionMessage.meta.userConfirmationEmail
 
   const metadata = await getFormMetadata(formId)
 
@@ -138,7 +165,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
     // Send confirmation email
     await sendNotification({
       templateId,
-      emailAddress,
+      emailAddress: /** @type {string} */ (userConfirmationEmail),
       personalisation: {
         subject,
         body: getUserConfirmationEmailBody(formName, new Date(), metadata)
@@ -158,5 +185,6 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 }
 
 /**
+ * @import { FormDefinition, Page } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  */

@@ -18,16 +18,16 @@ export function getUserConfirmationEmailBody(
 
   const phoneDetails = contact?.phone ? `${contact.phone}\n\n` : ''
   const emailDetails = contact?.email
-    ? `${contact.email.address} ${contact.email.responseTime}\n\n`
+    ? `[${contact.email.address}](mailto:${contact.email.address})\n${contact.email.responseTime}\n\n`
     : ''
   const onlineDetails = contact?.online
-    ? `${contact.online.url} ${contact.online.text}\n\n`
+    ? `[${contact.online.text}](${contact.online.url})\n\n`
     : ''
   const contactDetails = `${phoneDetails}${emailDetails}${onlineDetails}`
 
   return `
 # We have your form
-We received your form submission for &ldquo;${formName}&rsquo; on ${formattedSubmissionDate}.
+We received your form submission for &lsquo;${formName}&rsquo; on ${formattedSubmissionDate}.
 
 ## What happens next
 ${submissionGuidance}

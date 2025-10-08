@@ -14,7 +14,7 @@ describe('user-confirmation', () => {
     ).toBe(
       `
 # We have your form
-We received your form submission for &ldquo;My Form Name&rsquo; on 2:21pm on Wednesday 4 June 2025.
+We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Wednesday 4 June 2025.
 
 ## What happens next
 Some submission guidance
@@ -49,7 +49,7 @@ From Defra
     ).toBe(
       `
 # We have your form
-We received your form submission for &ldquo;My Form Name&rsquo; on 2:21pm on Wednesday 4 June 2025.
+We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Wednesday 4 June 2025.
 
 ## What happens next
 Some submission guidance
@@ -57,9 +57,10 @@ Some submission guidance
 ## Get help
 0121 123456789
 
-our-email@test.com We will respond within 5 working days
+[our-email@test.com](mailto:our-email@test.com)
+We will respond within 5 working days
 
-https://some-online-help.com This is our online url
+[This is our online url](https://some-online-help.com)
 
 Do not reply to this emall. We do not monitor reples to this email address.
 
