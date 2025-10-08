@@ -33,5 +33,24 @@ export async function getFormDefinition(formId, formStatus, versionNumber) {
 }
 
 /**
- * @import { FormDefinition } from '@defra/forms-model'
+ * Gets the form metadata from the Forms Manager API
+ * @param {string} formId
+ * @returns {Promise<FormMetadata>}
+ */
+export async function getFormMetadata(formId) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (!managerUrl) {
+    //  TS / eslint conflict
+    throw new Error('Missing MANAGER_URL')
+  }
+
+  const formUrl = new URL(`/forms/${formId}`, managerUrl)
+
+  const { body } = await getJson(formUrl)
+
+  return body
+}
+
+/**
+ * @import { FormDefinition, FormMetadata } from '@defra/forms-model'
  */

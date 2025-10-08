@@ -1,5 +1,5 @@
 import { handleFormSubmissionEvents } from '~/src/service/events.js'
-import { sendNotifyEmail } from '~/src/service/notify.js'
+import { sendNotifyEmails } from '~/src/service/notify.js'
 
 /**
  * @param {Message[]} messages
@@ -7,7 +7,7 @@ import { sendNotifyEmail } from '~/src/service/notify.js'
  */
 export async function handleEvent(messages) {
   const service = {
-    handleFormSubmission: sendNotifyEmail
+    handleFormSubmission: sendNotifyEmails
   }
   return handleFormSubmissionEvents(messages, service)
 }

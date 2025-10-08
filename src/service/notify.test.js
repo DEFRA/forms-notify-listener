@@ -15,7 +15,7 @@ import {
   buildFormAdapterSubmissionMessageMetaStub,
   buildFormAdapterSubmissionMessageResult
 } from '~/src/service/__stubs__/event-builders.js'
-import { sendNotifyEmail } from '~/src/service/notify.js'
+import { sendNotifyEmails } from '~/src/service/notify.js'
 
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   createLogger: () => ({
@@ -113,7 +113,7 @@ describe('notify', () => {
     lists: []
   })
 
-  describe('sendNotifyEmail', () => {
+  describe('sendNotifyEmails', () => {
     it('should send a v1 machine readable email', async () => {
       const definition = buildDefinition({
         ...baseDefinition,
@@ -123,7 +123,7 @@ describe('notify', () => {
         }
       })
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
 
       const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
       expect(sendNotificationCall).toEqual({
@@ -155,7 +155,7 @@ describe('notify', () => {
 
     it('should send a v2 machine readable email', async () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
 
       const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
       expect(sendNotificationCall).toEqual({
@@ -627,7 +627,7 @@ describe('notify', () => {
       })
 
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
         FormStatus.Live,
@@ -648,7 +648,7 @@ describe('notify', () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
       jest.mocked(sendNotification).mockRejectedValueOnce(err)
       await expect(
-        sendNotifyEmail(formAdapterSubmissionMessage)
+        sendNotifyEmails(formAdapterSubmissionMessage)
       ).rejects.toThrow(err)
     })
 
@@ -677,7 +677,7 @@ describe('notify', () => {
         })
 
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      await sendNotifyEmail(versionedFormAdapterSubmissionMessage)
+      await sendNotifyEmails(versionedFormAdapterSubmissionMessage)
 
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
@@ -688,7 +688,7 @@ describe('notify', () => {
 
     it('should use default form definition when versionMetadata is not present', async () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
 
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
