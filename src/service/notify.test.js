@@ -15,7 +15,10 @@ import {
   buildFormAdapterSubmissionMessageMetaStub,
   buildFormAdapterSubmissionMessageResult
 } from '~/src/service/__stubs__/event-builders.js'
-import { sendNotifyEmails } from '~/src/service/notify.js'
+import {
+  sendNotifyEmails,
+  sendUserConfirmationEmail
+} from '~/src/service/notify.js'
 
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   createLogger: () => ({
@@ -693,6 +696,46 @@ describe('notify', () => {
         },
         data: formSubmissionData
       })
+    })
+
+    it('should throw if confirmation email has no submission guidance set', async () => {
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(
+        buildMetaData({
+          submissionGuidance: undefined
+        })
+      )
+      const formAdapterMessageWithUserEmail = structuredClone(
+        formAdapterSubmissionMessage
+      )
+      formAdapterMessageWithUserEmail.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com'
+      }
+      await expect(() =>
+        sendNotifyEmails(formAdapterMessageWithUserEmail)
+      ).rejects.toThrow(
+        'Missing submission guidance for form id 68a8b0449ab460290c28940a'
+      )
+    })
+
+    it('confirmation email should handle and throw errors', async () => {
+      const err = new Error('Upstream failure')
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(
+        buildMetaData({
+          submissionGuidance: 'Some guidance text'
+        })
+      )
+      const formAdapterMessageWithUserEmail = structuredClone(
+        formAdapterSubmissionMessage
+      )
+      formAdapterMessageWithUserEmail.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com'
+      }
+      jest.mocked(sendNotification).mockRejectedValueOnce(err)
+      await expect(
+        sendUserConfirmationEmail(formAdapterMessageWithUserEmail)
+      ).rejects.toThrow(err)
     })
 
     it('should handle and throw errors', async () => {
