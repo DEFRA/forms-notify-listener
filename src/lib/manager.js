@@ -3,7 +3,7 @@ import { FormStatus } from '@defra/forms-model'
 import { config } from '~/src/config/index.js'
 import { getJson } from '~/src/lib/fetch.js'
 
-const managerUrl = /** @type { string | null } */ (config.get('managerUrl'))
+const managerUrl = config.get('managerUrl')
 /**
  * Gets the form definition from the Forms Manager API∂
  * @param {string} formId
