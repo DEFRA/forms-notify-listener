@@ -141,6 +141,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
   const userConfirmationEmail = custom?.userConfirmationEmail
 
   if (!userConfirmationEmail) {
+    // Don't send confirmation email if no email address passed in the message
     return
   }
 

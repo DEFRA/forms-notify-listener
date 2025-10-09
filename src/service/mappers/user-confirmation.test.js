@@ -5,7 +5,7 @@ import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirm
 describe('user-confirmation', () => {
   test('should handle general email content', () => {
     const formName = 'My Form Name'
-    const submissionDate = new Date(2025, 5, 4, 14, 21, 35)
+    const submissionDate = new Date(2025, 10, 4, 14, 21, 35) // Novemeber date to prevent issues with BST during testing
     const metadata = buildMetaData({
       submissionGuidance: 'Some submission guidance'
     })
@@ -14,7 +14,7 @@ describe('user-confirmation', () => {
     ).toBe(
       `
 # We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Wednesday 4 June 2025.
+We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Some submission guidance
@@ -29,7 +29,7 @@ From Defra
 
   test('should handle contact details', () => {
     const formName = 'My Form Name'
-    const submissionDate = new Date(2025, 5, 4, 14, 21, 35)
+    const submissionDate = new Date(2025, 10, 4, 14, 21, 35) // Novemeber date to prevent issues with BST during testing
     const metadata = buildMetaData({
       submissionGuidance: 'Some submission guidance',
       contact: {
@@ -49,7 +49,7 @@ From Defra
     ).toBe(
       `
 # We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Wednesday 4 June 2025.
+We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Some submission guidance
