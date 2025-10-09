@@ -3,7 +3,7 @@ import { FormStatus } from '@defra/forms-model'
 import { config } from '~/src/config/index.js'
 import { getJson } from '~/src/lib/fetch.js'
 
-const managerUrl = config.get('managerUrl')
+const managerUrl = /** @type { string | null } */ (config.get('managerUrl'))
 /**
  * Gets the form definition from the Forms Manager API∂
  * @param {string} formId
@@ -12,9 +12,7 @@ const managerUrl = config.get('managerUrl')
  * @returns {Promise<FormDefinition>}
  */
 export async function getFormDefinition(formId, formStatus, versionNumber) {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!managerUrl) {
-    //  TS / eslint conflict
     throw new Error('Missing MANAGER_URL')
   }
 
@@ -38,9 +36,7 @@ export async function getFormDefinition(formId, formStatus, versionNumber) {
  * @returns {Promise<FormMetadata>}
  */
 export async function getFormMetadata(formId) {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!managerUrl) {
-    //  TS / eslint conflict
     throw new Error('Missing MANAGER_URL')
   }
 
