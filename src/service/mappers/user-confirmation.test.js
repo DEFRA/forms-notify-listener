@@ -38,6 +38,17 @@ From Defra
     ).toContain(' on 1:21pm on Tuesday 4 November 2025.')
   })
 
+  test('should handle time shift - plus 1 hour in BST', () => {
+    const formName = 'My Form Name'
+    const submissionDate = new Date('2025-05-04T14:21:35+01:00')
+    const metadata = buildMetaData({
+      submissionGuidance: 'Some submission guidance'
+    })
+    expect(
+      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+    ).toContain(' on 2:21pm on Sunday 4 May 2025.')
+  })
+
   test('should handle contact details', () => {
     const formName = 'My Form Name'
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
