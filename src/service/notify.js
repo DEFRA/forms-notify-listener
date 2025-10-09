@@ -1,23 +1,60 @@
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
-import { getErrorMessage } from '@defra/forms-model'
+import { ControllerType, getErrorMessage } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
-import { getFormDefinition } from '~/src/lib/manager.js'
+import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
+import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
 // @ts-expect-error - incorrect typings in convict
 const templateId = /** @type {string} */ (config.get('notifyTemplateId'))
 
 const logger = createLogger()
 
+// TODO - need a better way to handle custom controllers in the output formatters
+/**
+ * Revert any custom controllers to their parent/base class since engine-plugin has no knowledge of them
+ * @param {FormDefinition} definition
+ * @returns {FormDefinition}
+ */
+export function removeCustomControllers(definition) {
+  return {
+    ...definition,
+    pages: definition.pages.map((page) => {
+      if (page.controller) {
+        const controller = [
+          'SummaryPageWithConfirmationEmailController'
+        ].includes(page.controller)
+          ? ControllerType.Summary
+          : page.controller
+        return /** @type {Page} */ ({
+          ...page,
+          controller
+        })
+      }
+      return page
+    })
+  }
+}
+
 /**
  * Sends a mail to notify
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {Promise<void>}
  */
-export async function sendNotifyEmail(formSubmissionMessage) {
+export async function sendNotifyEmails(formSubmissionMessage) {
+  await sendInternalEmail(formSubmissionMessage)
+  await sendUserConfirmationEmail(formSubmissionMessage)
+}
+
+/**
+ * Sends an internal email to notify (to the form's submission inbox)
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {Promise<void>}
+ */
+export async function sendInternalEmail(formSubmissionMessage) {
   const {
     formName: formNameInput,
     formId,
@@ -29,17 +66,22 @@ export async function sendNotifyEmail(formSubmissionMessage) {
   const logTags = ['submit', 'email']
 
   // Get submission email personalisation
-  logger.info(logTags, 'Getting personalisation data')
-
-  logger.debug(
-    `Getting form definition: ${formId} version: ${versionMetadata?.versionNumber}`
+  logger.info(
+    logTags,
+    'Getting personalisation data - internal submission email'
   )
 
-  const definition = await getFormDefinition(
+  logger.debug(
+    `Getting form definition: ${formId} version: ${versionMetadata?.versionNumber} - internal submission email`
+  )
+
+  const origDefinition = await getFormDefinition(
     formId,
     status,
     versionMetadata?.versionNumber
   )
+
+  const definition = removeCustomControllers(origDefinition)
 
   const formName = escapeMarkdown(formNameInput)
   const subject = isPreview
@@ -58,7 +100,7 @@ export async function sendNotifyEmail(formSubmissionMessage) {
     body = Buffer.from(body).toString('base64')
   }
 
-  logger.info(logTags, 'Sending email')
+  logger.info(logTags, 'Sending internal submission email')
 
   try {
     // Send submission email
@@ -71,17 +113,81 @@ export async function sendNotifyEmail(formSubmissionMessage) {
       }
     })
 
-    logger.info(logTags, 'Email sent successfully')
+    logger.info(logTags, 'Internal submission email sent successfully')
   } catch (err) {
     const errMsg = getErrorMessage(err)
     logger.error(
       err,
-      `[emailSendFailed] Error sending notification email - templateId: ${templateId} - ${errMsg}`
+      `[emailSendFailed] Error sending internal submission email - templateId: ${templateId} - ${errMsg}`
     )
 
     throw err
   }
 }
+
 /**
+ * Sends a confirmation email to the submitting user
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {Promise<void>}
+ */
+export async function sendUserConfirmationEmail(formSubmissionMessage) {
+  const {
+    formId,
+    formName: formNameInput,
+    isPreview,
+    custom
+  } = formSubmissionMessage.meta
+
+  const userConfirmationEmail = custom?.userConfirmationEmail
+
+  if (!userConfirmationEmail) {
+    // Don't send confirmation email if no email address passed in the message
+    return
+  }
+
+  const logTags = ['submit', 'email']
+
+  // Get submission email personalisation
+  logger.info(logTags, 'Getting personalisation data - user confirmation email')
+
+  const formName = escapeMarkdown(formNameInput)
+
+  const metadata = await getFormMetadata(formId)
+
+  const subject = isPreview
+    ? `TEST FORM CONFIRMATION: ${metadata.organisation}`
+    : `Form submitted to ${metadata.organisation}`
+
+  logger.info(logTags, 'Sending user confirmation email')
+
+  if (!metadata.submissionGuidance) {
+    throw new Error(`Missing submission guidance for form id ${formId}`)
+  }
+
+  try {
+    // Send confirmation email
+    await sendNotification({
+      templateId,
+      emailAddress: /** @type {string} */ (userConfirmationEmail),
+      personalisation: {
+        subject,
+        body: getUserConfirmationEmailBody(formName, new Date(), metadata)
+      }
+    })
+
+    logger.info(logTags, 'User confirmation email sent successfully')
+  } catch (err) {
+    const errMsg = getErrorMessage(err)
+    logger.error(
+      err,
+      `[emailSendFailed] Error sending user confirmation email - templateId: ${templateId} - ${errMsg}`
+    )
+
+    throw err
+  }
+}
+
+/**
+ * @import { FormDefinition, Page } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  */

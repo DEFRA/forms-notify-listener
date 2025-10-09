@@ -5,9 +5,9 @@ import {
   FormStatus,
   SchemaVersion
 } from '@defra/forms-model'
-import { buildDefinition } from '@defra/forms-model/stubs'
+import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 
-import { getFormDefinition } from '~/src/lib/manager.js'
+import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import {
   buildFormAdapterSubmissionMessage,
@@ -15,7 +15,10 @@ import {
   buildFormAdapterSubmissionMessageMetaStub,
   buildFormAdapterSubmissionMessageResult
 } from '~/src/service/__stubs__/event-builders.js'
-import { sendNotifyEmail } from '~/src/service/notify.js'
+import {
+  sendNotifyEmails,
+  sendUserConfirmationEmail
+} from '~/src/service/notify.js'
 
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   createLogger: () => ({
@@ -113,7 +116,7 @@ describe('notify', () => {
     lists: []
   })
 
-  describe('sendNotifyEmail', () => {
+  describe('sendNotifyEmails', () => {
     it('should send a v1 machine readable email', async () => {
       const definition = buildDefinition({
         ...baseDefinition,
@@ -123,7 +126,7 @@ describe('notify', () => {
         }
       })
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
 
       const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
       expect(sendNotificationCall).toEqual({
@@ -155,7 +158,7 @@ describe('notify', () => {
 
     it('should send a v2 machine readable email', async () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
 
       const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
       expect(sendNotificationCall).toEqual({
@@ -627,7 +630,7 @@ describe('notify', () => {
       })
 
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
         FormStatus.Live,
@@ -643,12 +646,104 @@ describe('notify', () => {
       })
     })
 
+    it('should send a user confirmation email', async () => {
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(
+        buildMetaData({
+          submissionGuidance: 'Some guidance text'
+        })
+      )
+      const formAdapterMessageWithUserEmail = structuredClone(
+        formAdapterSubmissionMessage
+      )
+      formAdapterMessageWithUserEmail.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com'
+      }
+      await sendNotifyEmails(formAdapterMessageWithUserEmail)
+
+      expect(jest.mocked(sendNotification)).toHaveBeenCalledTimes(2)
+      const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
+      expect(sendNotificationCall).toEqual({
+        templateId: 'notify-template-id-1',
+        emailAddress: 'notificationEmail@example.uk',
+        personalisation: {
+          subject: 'Form submission: Machine readable form',
+          body: expect.any(String)
+        }
+      })
+      const [sendConfirmationCall] = jest.mocked(sendNotification).mock.calls[1]
+      expect(sendConfirmationCall).toEqual({
+        templateId: 'notify-template-id-1',
+        emailAddress: 'my-email@test.com',
+        personalisation: {
+          subject: 'Form submitted to Defra',
+          body: expect.any(String)
+        }
+      })
+      const sendNotificationBody = JSON.parse(
+        Buffer.from(
+          sendNotificationCall.personalisation.body,
+          'base64'
+        ).toString('utf-8')
+      )
+      expect(new Date(sendNotificationBody.meta.timestamp)).not.toBeNaN()
+      expect(sendNotificationBody).toEqual({
+        meta: {
+          schemaVersion: '2',
+          timestamp: expect.any(String),
+          referenceNumber,
+          definition: baseDefinition
+        },
+        data: formSubmissionData
+      })
+    })
+
+    it('should throw if confirmation email has no submission guidance set', async () => {
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(
+        buildMetaData({
+          submissionGuidance: undefined
+        })
+      )
+      const formAdapterMessageWithUserEmail = structuredClone(
+        formAdapterSubmissionMessage
+      )
+      formAdapterMessageWithUserEmail.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com'
+      }
+      await expect(() =>
+        sendNotifyEmails(formAdapterMessageWithUserEmail)
+      ).rejects.toThrow(
+        'Missing submission guidance for form id 68a8b0449ab460290c28940a'
+      )
+    })
+
+    it('confirmation email should handle and throw errors', async () => {
+      const err = new Error('Upstream failure')
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(
+        buildMetaData({
+          submissionGuidance: 'Some guidance text'
+        })
+      )
+      const formAdapterMessageWithUserEmail = structuredClone(
+        formAdapterSubmissionMessage
+      )
+      formAdapterMessageWithUserEmail.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com'
+      }
+      jest.mocked(sendNotification).mockRejectedValueOnce(err)
+      await expect(
+        sendUserConfirmationEmail(formAdapterMessageWithUserEmail)
+      ).rejects.toThrow(err)
+    })
+
     it('should handle and throw errors', async () => {
       const err = new Error('Upstream failure')
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
       jest.mocked(sendNotification).mockRejectedValueOnce(err)
       await expect(
-        sendNotifyEmail(formAdapterSubmissionMessage)
+        sendNotifyEmails(formAdapterSubmissionMessage)
       ).rejects.toThrow(err)
     })
 
@@ -677,7 +772,7 @@ describe('notify', () => {
         })
 
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      await sendNotifyEmail(versionedFormAdapterSubmissionMessage)
+      await sendNotifyEmails(versionedFormAdapterSubmissionMessage)
 
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
@@ -688,7 +783,7 @@ describe('notify', () => {
 
     it('should use default form definition when versionMetadata is not present', async () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      await sendNotifyEmail(formAdapterSubmissionMessage)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
 
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
