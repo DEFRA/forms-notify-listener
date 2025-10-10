@@ -2,6 +2,9 @@ import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/hel
 
 import { format as dateFormat } from '~/src/helpers/date.js'
 
+const submisionGuidancePlaceholder =
+  "Define this text in the 'What happens next' section of the form overview"
+
 /**
  * @param {string} formName
  * @param {Date} submissionDate
@@ -30,7 +33,7 @@ export function getUserConfirmationEmailBody(
 We received your form submission for &lsquo;${formName}&rsquo; on ${formattedSubmissionDate}.
 
 ## What happens next
-${submissionGuidance}
+${submissionGuidance ?? submisionGuidancePlaceholder}
 
 ## Get help
 ${contactDetails}Do not reply to this emall. We do not monitor reples to this email address.

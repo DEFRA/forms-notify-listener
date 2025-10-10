@@ -160,10 +160,6 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 
   logger.info(logTags, 'Sending user confirmation email')
 
-  if (!metadata.submissionGuidance) {
-    throw new Error(`Missing submission guidance for form id ${formId}`)
-  }
-
   try {
     // Send confirmation email
     await sendNotification({
