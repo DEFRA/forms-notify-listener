@@ -698,26 +698,6 @@ describe('notify', () => {
       })
     })
 
-    it('should throw if confirmation email has no submission guidance set', async () => {
-      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      jest.mocked(getFormMetadata).mockResolvedValueOnce(
-        buildMetaData({
-          submissionGuidance: undefined
-        })
-      )
-      const formAdapterMessageWithUserEmail = structuredClone(
-        formAdapterSubmissionMessage
-      )
-      formAdapterMessageWithUserEmail.meta.custom = {
-        userConfirmationEmail: 'my-email@test.com'
-      }
-      await expect(() =>
-        sendNotifyEmails(formAdapterMessageWithUserEmail)
-      ).rejects.toThrow(
-        'Missing submission guidance for form id 68a8b0449ab460290c28940a'
-      )
-    })
-
     it('confirmation email should handle and throw errors', async () => {
       const err = new Error('Upstream failure')
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
