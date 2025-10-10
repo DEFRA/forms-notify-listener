@@ -27,6 +27,28 @@ From Defra
     )
   })
 
+  test('should handle missing submission guidance', () => {
+    const formName = 'My Form Name'
+    const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+    const metadata = buildMetaData()
+    expect(
+      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+    ).toBe(
+      `
+# We have your form
+We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+
+## What happens next
+Define this text in the 'What happens next' section of the form overview
+
+## Get help
+Do not reply to this emall. We do not monitor reples to this email address.
+
+From Defra
+`
+    )
+  })
+
   test('should handle time shift - plus 1 hour', () => {
     const formName = 'My Form Name'
     const submissionDate = new Date('2025-11-04T14:21:35+01:00')
