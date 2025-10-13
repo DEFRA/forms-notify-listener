@@ -2,28 +2,32 @@
 
 Core delivery platform Node.js Backend Template.
 
-- [Requirements](#requirements)
-  - [Node.js](#nodejs)
-- [Local development](#local-development)
-  - [Setup](#setup)
-  - [Development](#development)
-  - [Testing](#testing)
-  - [Production](#production)
-  - [Npm scripts](#npm-scripts)
-  - [Update dependencies](#update-dependencies)
-  - [Formatting](#formatting)
-    - [Windows prettier issue](#windows-prettier-issue)
-- [API endpoints](#api-endpoints)
-- [Development helpers](#development-helpers)
-  - [Proxy](#proxy)
-- [Docker](#docker)
-  - [Development image](#development-image)
-  - [Production image](#production-image)
-  - [Docker Compose](#docker-compose)
-  - [Dependabot](#dependabot)
-  - [SonarCloud](#sonarcloud)
-- [Licence](#licence)
-  - [About the licence](#about-the-licence)
+- [forms-notify-listener](#forms-notify-listener)
+  - [Requirements](#requirements)
+    - [Node.js](#nodejs)
+  - [Local development](#local-development)
+    - [Setup](#setup)
+    - [Development](#development)
+    - [Development](#development-1)
+    - [Testing](#testing)
+    - [Production](#production)
+    - [Notes on SQS queue configuration](#notes-on-sqs-queue-configuration)
+      - [Queue configuration in forms-audit-api](#queue-configuration-in-forms-audit-api)
+    - [Npm scripts](#npm-scripts)
+    - [Update dependencies](#update-dependencies)
+    - [Formatting](#formatting)
+      - [Windows prettier issue](#windows-prettier-issue)
+  - [API endpoints](#api-endpoints)
+  - [Development helpers](#development-helpers)
+    - [Proxy](#proxy)
+  - [Docker](#docker)
+    - [Development image](#development-image)
+    - [Production image](#production-image)
+    - [Docker Compose](#docker-compose)
+    - [Dependabot](#dependabot)
+    - [SonarCloud](#sonarcloud)
+  - [Licence](#licence)
+    - [About the licence](#about-the-licence)
 
 ## Requirements
 
@@ -64,6 +68,7 @@ AWS_SECRET_ACCESS_KEY=dummy
 RECEIVE_MESSAGE_TIMEOUT_MS=5000
 NOTIFY_TEMPLATE_ID=3d448938-8a8b-40c2-a3de-414597f976e1
 NOTIFY_API_KEY=[your api key]
+NOTIFY_REPLY_TO_ID=462e5ac0-28f1-4e51-9d8e-8d8c31f59f6a
 RECEIVE_MESSAGE_TIMEOUT_MS=5000
 MANAGER_URL=http://localhost:3001
 DESIGNER_URL=http://localhost:3000
