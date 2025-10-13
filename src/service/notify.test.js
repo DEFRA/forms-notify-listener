@@ -42,6 +42,7 @@ jest.mock('~/src/config/index.js', () => ({
   config: {
     get: jest.fn((key) => {
       if (key === 'notifyTemplateId') return 'notify-template-id-1'
+      if (key === 'notifyReplyToId') return 'notify-reply-to-id-1'
       return 'mock-value'
     })
   }
@@ -678,7 +679,8 @@ describe('notify', () => {
         personalisation: {
           subject: 'Form submitted to Defra',
           body: expect.any(String)
-        }
+        },
+        notifyReplyToId: 'notify-reply-to-id-1'
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(

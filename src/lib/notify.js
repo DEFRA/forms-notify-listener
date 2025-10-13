@@ -3,8 +3,7 @@ import { token } from '@hapi/jwt'
 import { config } from '~/src/config/index.js'
 import { postJson } from '~/src/lib/fetch.js'
 
-// @ts-expect-error - incorrect typings in convict
-const notifyAPIKey = /** @type {string} */ (config.get('notifyAPIKey'))
+const notifyAPIKey = config.get('notifyAPIKey')
 
 const API_KEY_SUBSTRING_REDUCTION = 36
 const SERVICE_ID_SUBSTRING_REDUCTION = 73
@@ -31,6 +30,7 @@ const serviceId = /** @type {string} */ (
  *   templateId: string
  *   emailAddress: string
  *   personalisation: { subject: string; body: string }
+ *   notifyReplyToId?: string
  * }} SendNotificationArgs
  */
 
@@ -56,13 +56,14 @@ const NOTIFICATIONS_URL = new URL(
  * @returns {Promise<{response: object, body: unknown}>}
  */
 export async function sendNotification(args) {
-  const { templateId, emailAddress, personalisation } = args
+  const { templateId, emailAddress, personalisation, notifyReplyToId } = args
 
   return postJson(NOTIFICATIONS_URL, {
     payload: {
       template_id: templateId,
       email_address: emailAddress,
-      personalisation
+      personalisation,
+      email_reply_to_id: notifyReplyToId
     },
     headers: {
       Authorization: 'Bearer ' + createToken(serviceId, apiKeyId)

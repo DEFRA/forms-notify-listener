@@ -8,8 +8,9 @@ import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
-// @ts-expect-error - incorrect typings in convict
-const templateId = /** @type {string} */ (config.get('notifyTemplateId'))
+const templateId = config.get('notifyTemplateId')
+
+const notifyReplyToId = config.get('notifyReplyToId')
 
 const logger = createLogger()
 
@@ -168,7 +169,8 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
       personalisation: {
         subject,
         body: getUserConfirmationEmailBody(formName, new Date(), metadata)
-      }
+      },
+      notifyReplyToId
     })
 
     logger.info(logTags, 'User confirmation email sent successfully')
