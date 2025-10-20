@@ -143,9 +143,7 @@ export function formatter(
     `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
   )
 
-  lines.push('\n')
-  lines.push('Thanks,')
-  lines.push('Defra')
+  lines.push('\n', 'Thanks,', 'Defra')
 
   return lines.join('\n')
 }
