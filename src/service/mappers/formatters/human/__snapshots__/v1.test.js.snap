@@ -60,7 +60,11 @@ Uploaded 1 file:
 ---
 
 [Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
-"
+
+
+
+Thanks,
+Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response 2 1`] = `
@@ -99,7 +103,11 @@ Line 3
 ---
 
 [Download main form \\(CSV\\)](http://designer/file-download/00000000-0000-0000-0000-000000000000)
-"
+
+
+
+Thanks,
+Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response for legacy graph-based forms 1`] = `
@@ -160,7 +168,11 @@ Uploaded 1 file:
 ---
 
 [Download main form \\(CSV\\)](http://designer/file-download/00000000-0000-0000-0000-000000000000)
-"
+
+
+
+Thanks,
+Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response in Draft mode 1`] = `
@@ -223,7 +235,11 @@ Uploaded 1 file:
 ---
 
 [Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
-"
+
+
+
+Thanks,
+Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response in preview mode 1`] = `
@@ -288,5 +304,9 @@ Uploaded 1 file:
 ---
 
 [Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
-"
+
+
+
+Thanks,
+Defra"
 `;
