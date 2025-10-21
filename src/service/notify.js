@@ -73,7 +73,7 @@ export async function sendNotifyEmails(formSubmissionMessage) {
     await sendInternalEmail(definition, formSubmissionMessage, output)
   }
 
-  // Confirmationm email
+  // Confirmation email
   await sendUserConfirmationEmail(formSubmissionMessage)
 }
 
@@ -144,7 +144,9 @@ export async function sendInternalEmail(
 export async function sendUserConfirmationEmail(formSubmissionMessage) {
   const meta = formSubmissionMessage.meta
 
-  const userConfirmationEmail = meta.custom?.userConfirmationEmail
+  const userConfirmationEmail = /** @type { string | undefined } */ (
+    meta.custom?.userConfirmationEmail
+  )
 
   if (!userConfirmationEmail) {
     // Don't send confirmation email if no email address passed in the message
@@ -170,7 +172,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
     // Send confirmation email
     await sendNotification({
       templateId,
-      emailAddress: /** @type {string} */ (userConfirmationEmail),
+      emailAddress: userConfirmationEmail,
       personalisation: {
         subject,
         body: getUserConfirmationEmailBody(formName, new Date(), formMetadata)
