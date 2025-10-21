@@ -36,7 +36,7 @@ We received your form submission for &lsquo;${formName}&rsquo; on ${formattedSub
 ${submissionGuidance ?? submisionGuidancePlaceholder}
 
 ## Get help
-${contactDetails}Do not reply to this emall. We do not monitor reples to this email address.
+${contactDetails}Do not reply to this emall. We do not monitor replies to this email address.
 
 From ${escapeMarkdown(organisation)}
 `
