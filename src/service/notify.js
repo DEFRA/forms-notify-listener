@@ -9,9 +9,7 @@ import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
 const templateId = config.get('notifyTemplateId')
-
 const notifyReplyToId = config.get('notifyReplyToId')
-
 const logger = createLogger()
 
 // TODO - need a better way to handle custom controllers in the output formatters
@@ -41,63 +39,75 @@ export function removeCustomControllers(definition) {
 }
 
 /**
- * Sends a mail to notify
+ * Sends one or more mails to GovNotify
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {Promise<void>}
  */
 export async function sendNotifyEmails(formSubmissionMessage) {
-  await sendInternalEmail(formSubmissionMessage)
+  const {
+    formId,
+    notificationEmail: emailAddress,
+    status,
+    versionMetadata
+  } = formSubmissionMessage.meta
+
+  const definition = removeCustomControllers(
+    await getFormDefinition(formId, status, versionMetadata?.versionNumber)
+  )
+
+  // Submission email targets are defined in either or both of:
+  // - FormDefinition.output (with email address set in FormDefinition.outputEmail or in form metadata)
+  // - FormDefinition.outputs (multiple rows are possible)
+  const submissionOutputs = /** @type {Output[]} */ (
+    [
+      {
+        audience: definition.output?.audience ?? 'human',
+        version: definition.output?.version ?? '1',
+        emailAddress
+      }
+    ].concat(definition.outputs ?? [])
+  )
+
+  // Submission emails
+  for (const output of submissionOutputs) {
+    await sendInternalEmail(definition, formSubmissionMessage, output)
+  }
+
+  // Confirmation email
   await sendUserConfirmationEmail(formSubmissionMessage)
 }
 
 /**
  * Sends an internal email to notify (to the form's submission inbox)
+ * @param {FormDefinition} definition
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Output} output
  * @returns {Promise<void>}
  */
-export async function sendInternalEmail(formSubmissionMessage) {
-  const {
-    formName: formNameInput,
-    formId,
-    notificationEmail: emailAddress,
-    status,
-    isPreview,
-    versionMetadata
-  } = formSubmissionMessage.meta
+export async function sendInternalEmail(
+  definition,
+  formSubmissionMessage,
+  output
+) {
   const logTags = ['submit', 'email']
 
+  const messageMeta = formSubmissionMessage.meta
+
   // Get submission email personalisation
-  logger.info(
-    logTags,
-    'Getting personalisation data - internal submission email'
-  )
+  logger.info(logTags, 'Getting personalisation data - submission email')
 
-  logger.debug(
-    `Getting form definition: ${formId} version: ${versionMetadata?.versionNumber} - internal submission email`
-  )
+  const formName = escapeMarkdown(messageMeta.formName)
 
-  const origDefinition = await getFormDefinition(
-    formId,
-    status,
-    versionMetadata?.versionNumber
-  )
-
-  const definition = removeCustomControllers(origDefinition)
-
-  const formName = escapeMarkdown(formNameInput)
-  const subject = isPreview
+  const subject = messageMeta.isPreview
     ? `TEST FORM SUBMISSION: ${formName}`
     : `Form submission: ${formName}`
 
-  const outputAudience = definition.output?.audience ?? 'human'
-  const schemaVersion = definition.output?.version ?? '1'
-
-  const outputFormatter = getFormatter(outputAudience, schemaVersion)
-  let body = outputFormatter(formSubmissionMessage, definition, schemaVersion)
+  const outputFormatter = getFormatter(output.audience, output.version)
+  let body = outputFormatter(formSubmissionMessage, definition, output.version)
 
   // GOV.UK Notify transforms quotes into curly quotes, so we can't just send the raw payload
   // This is logic specific to Notify, so we include the logic here rather than in the formatter
-  if (outputAudience === 'machine') {
+  if (output.audience === 'machine') {
     body = Buffer.from(body).toString('base64')
   }
 
@@ -107,7 +117,7 @@ export async function sendInternalEmail(formSubmissionMessage) {
     // Send submission email
     await sendNotification({
       templateId,
-      emailAddress,
+      emailAddress: output.emailAddress,
       personalisation: {
         subject,
         body
@@ -132,32 +142,29 @@ export async function sendInternalEmail(formSubmissionMessage) {
  * @returns {Promise<void>}
  */
 export async function sendUserConfirmationEmail(formSubmissionMessage) {
-  const {
-    formId,
-    formName: formNameInput,
-    isPreview,
-    custom
-  } = formSubmissionMessage.meta
+  const meta = formSubmissionMessage.meta
 
-  const userConfirmationEmail = custom?.userConfirmationEmail
+  const userConfirmationEmail = /** @type { string | undefined } */ (
+    meta.custom?.userConfirmationEmail
+  )
 
   if (!userConfirmationEmail) {
     // Don't send confirmation email if no email address passed in the message
     return
   }
 
-  const logTags = ['submit', 'email']
+  const logTags = ['confirmation', 'email']
 
-  // Get submission email personalisation
+  // Get confirmation email personalisation
   logger.info(logTags, 'Getting personalisation data - user confirmation email')
 
-  const formName = escapeMarkdown(formNameInput)
+  const formName = escapeMarkdown(meta.formName)
 
-  const metadata = await getFormMetadata(formId)
+  const formMetadata = await getFormMetadata(meta.formId)
 
-  const subject = isPreview
-    ? `TEST FORM CONFIRMATION: ${metadata.organisation}`
-    : `Form submitted to ${metadata.organisation}`
+  const subject = meta.isPreview
+    ? `TEST FORM CONFIRMATION: ${formMetadata.organisation}`
+    : `Form submitted to ${formMetadata.organisation}`
 
   logger.info(logTags, 'Sending user confirmation email')
 
@@ -165,10 +172,10 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
     // Send confirmation email
     await sendNotification({
       templateId,
-      emailAddress: /** @type {string} */ (userConfirmationEmail),
+      emailAddress: userConfirmationEmail,
       personalisation: {
         subject,
-        body: getUserConfirmationEmailBody(formName, new Date(), metadata)
+        body: getUserConfirmationEmailBody(formName, new Date(), formMetadata)
       },
       notifyReplyToId
     })
@@ -186,6 +193,6 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 }
 
 /**
- * @import { FormDefinition, Page } from '@defra/forms-model'
+ * @import { FormDefinition, Output, Page } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  */
