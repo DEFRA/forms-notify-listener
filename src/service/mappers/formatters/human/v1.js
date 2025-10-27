@@ -232,6 +232,12 @@ function generateFieldLine(answer, field, richFormValue) {
       .map(escapeMarkdown)
       .join('\n')
       .concat('\n')
+  } else if (
+    field instanceof Components.EastingNorthingField ||
+    field instanceof Components.LatLongField
+  ) {
+    const contextValue = field.getContextValueFromFormValue(richFormValue)
+    answerEscaped = contextValue ? `${contextValue}\n` : ''
   }
 
   return answerEscaped
