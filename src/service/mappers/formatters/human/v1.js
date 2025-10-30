@@ -414,9 +414,8 @@ export function getRelevantPagesForLegacy(
 }
 
 /**
- * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js';
- * @import { PageController } from '@defra/forms-engine-plugin/engine/pageControllers/PageController.js';
- * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js';
+ * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
+ * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
- * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
+ * @import { FormDefinition } from '@defra/forms-model'
  */

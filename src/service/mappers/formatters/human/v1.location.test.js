@@ -29,7 +29,12 @@ describe('Location field formatting in Human V1', () => {
     jest.useFakeTimers().setSystemTime(new Date('2025-04-01T23:00:00Z'))
   })
 
+  afterEach(() => {
+    jest.clearAllTimers()
+  })
+
   afterAll(() => {
+    jest.runOnlyPendingTimers()
     jest.useRealTimers()
   })
 
