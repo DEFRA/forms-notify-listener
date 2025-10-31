@@ -151,11 +151,11 @@ export function formatter(
 /**
  * Format file upload field
  * @param {string} answer
- * @param {Component} field
+ * @param {Component} _field
  * @param {RichFormValue} richFormValue
  * @returns {string}
  */
-function formatFileUploadField(answer, field, richFormValue) {
+function formatFileUploadField(answer, _field, richFormValue) {
   const formAdapterFiles = /** @type {FormAdapterFile[]} */ (richFormValue)
 
   // Skip empty files
@@ -237,12 +237,12 @@ function formatMultilineTextField(answer, _field, _richFormValue) {
 
 /**
  * Format UK address field
- * @param {string} answer
+ * @param {string} _answer
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @returns {string}
  */
-function formatUkAddressField(answer, field, richFormValue) {
+function formatUkAddressField(_answer, field, richFormValue) {
   // Format UK addresses into new lines
   return (field.getContextValueFromFormValue(richFormValue) ?? [])
     .map(escapeMarkdown)
@@ -252,12 +252,12 @@ function formatUkAddressField(answer, field, richFormValue) {
 
 /**
  * Format location coordinate fields (Easting/Northing or Lat/Long)
- * @param {string} answer
+ * @param {string} _answer
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @returns {string}
  */
-function formatLocationField(answer, field, richFormValue) {
+function formatLocationField(_answer, field, richFormValue) {
   const contextValue = field.getContextValueFromFormValue(richFormValue)
   return contextValue ? `${contextValue}\n` : ''
 }
