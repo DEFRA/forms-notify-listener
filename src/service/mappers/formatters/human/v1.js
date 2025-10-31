@@ -149,6 +149,72 @@ export function formatter(
 }
 
 /**
+ * Format file upload field
+ * @param {string} answer
+ * @param {FormAdapterFile[]} richFormValue
+ * @returns {string}
+ */
+function formatFileUploadField(answer, richFormValue) {
+  // Skip empty files
+  if (!richFormValue.length) {
+    return `${escapeMarkdown(answer)}\n`
+  }
+
+  let answerEscaped = `${escapeMarkdown(answer)}:\n\n`
+
+  const fileUploadString = richFormValue
+    .map((file) => {
+      const fileUploadFilename = escapeMarkdown(file.fileName)
+      return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
+    })
+    .join('')
+
+  answerEscaped += fileUploadString
+  return answerEscaped
+}
+
+/**
+ * Format list form component field
+ * @param {string} answer
+ * @param {ListFormComponent & FormComponent} field
+ * @param {RichFormValue} richFormValue
+ * @returns {string}
+ */
+function formatListFormComponent(answer, field, richFormValue) {
+  const values = new Set(
+    [field.getContextValueFromFormValue(richFormValue)].flat()
+  )
+  const items = field.items.filter(({ value }) => values.has(value))
+
+  // Skip empty values
+  if (!items.length) {
+    return `${escapeMarkdown(answer)}\n`
+  }
+
+  const formattedItems = items
+    .map((item) => {
+      const label = escapeMarkdown(item.text)
+      const value = escapeMarkdown(`(${item.value})`)
+
+      let line = label
+
+      // Prepend bullet points for checkboxes only
+      if (field instanceof Components.CheckboxesField) {
+        line = `* ${line}`
+      }
+
+      // Append raw values in parentheses
+      // e.g. `* None of the above (false)`
+      return `${item.value}`.toLowerCase() === item.text.toLowerCase()
+        ? `${line}\n`
+        : `${line} ${value}\n`
+    })
+    .join('')
+
+  return formattedItems
+}
+
+/**
  *
  * @param {string} answer
  * @param {Component} field
@@ -156,91 +222,44 @@ export function formatter(
  * @returns {string}
  */
 function generateFieldLine(answer, field, richFormValue) {
-  // Use escaped display text
-  /**
-   * @type {string}
-   */
-  let answerEscaped = `${escapeMarkdown(answer)}\n`
-
   if (field instanceof Components.FileUploadField) {
-    // Skip empty files
-    if (!richFormValue?.length) {
-      return answerEscaped
-    }
-    const formAdapterFile = /** @type {FormAdapterFile[]} */ (richFormValue)
-
-    answerEscaped = `${escapeMarkdown(answer)}:\n\n`
-
-    /**
-     * @type {string}
-     */
-    const fileUploadString = formAdapterFile
-      .map((file) => {
-        const fileUploadFilename = escapeMarkdown(file.fileName)
-        return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
-      })
-      .join('')
-
-    // Append bullet points
-    answerEscaped += fileUploadString
-  } else if (
-    field instanceof ListFormComponent &&
-    field instanceof FormComponent
-  ) {
-    const values = new Set(
-      [field.getContextValueFromFormValue(richFormValue)].flat()
+    return formatFileUploadField(
+      answer,
+      /** @type {FormAdapterFile[]} */ (richFormValue)
     )
-    const items = field.items.filter(({ value }) => values.has(value))
+  }
 
-    // Skip empty values
-    if (!items.length) {
-      return answerEscaped
-    }
+  if (field instanceof ListFormComponent && field instanceof FormComponent) {
+    return formatListFormComponent(answer, field, richFormValue)
+  }
 
-    answerEscaped = ''
-
-    // Append bullet points
-    answerEscaped += items
-      .map((item) => {
-        const label = escapeMarkdown(item.text)
-        const value = escapeMarkdown(`(${item.value})`)
-
-        let line = label
-
-        // Prepend bullet points for checkboxes only
-        if (field instanceof Components.CheckboxesField) {
-          line = `* ${line}`
-        }
-
-        // Append raw values in parentheses
-        // e.g. `* None of the above (false)`
-        return `${item.value}`.toLowerCase() === item.text.toLowerCase()
-          ? `${line}\n`
-          : `${line} ${value}\n`
-      })
-      .join('')
-  } else if (field instanceof Components.MultilineTextField) {
+  if (field instanceof Components.MultilineTextField) {
     // Preserve Multiline text new lines
-    answerEscaped = answer
+    return answer
       .split(/(?:\r?\n)+/)
       .map(escapeMarkdown)
       .join('\n')
       .concat('\n')
-  } else if (field instanceof Components.UkAddressField) {
+  }
+
+  if (field instanceof Components.UkAddressField) {
     // Format UK addresses into new lines
-    answerEscaped = (field.getContextValueFromFormValue(richFormValue) ?? [])
+    return (field.getContextValueFromFormValue(richFormValue) ?? [])
       .map(escapeMarkdown)
       .join('\n')
       .concat('\n')
-  } else if (
+  }
+
+  if (
     field instanceof Components.EastingNorthingField ||
     field instanceof Components.LatLongField
   ) {
     const contextValue = field.getContextValueFromFormValue(richFormValue)
-    answerEscaped = contextValue ? `${contextValue}\n` : ''
+    return contextValue ? `${contextValue}\n` : ''
   }
 
-  return answerEscaped
+  // Use escaped display text for default case
+  return `${escapeMarkdown(answer)}\n`
 }
 
 /**
