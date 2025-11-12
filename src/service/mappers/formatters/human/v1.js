@@ -14,6 +14,7 @@ import { addDays } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
+import { hasStringValue } from '~/src/helpers/string-utils.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -29,6 +30,7 @@ function findRepeaterPageByKey(key, formDefinition) {
     return hasRepeater(page) && page.repeat.options.name === key
   })
 }
+
 /**
  * Human readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -97,7 +99,7 @@ export function formatter(
     const label = escapeMarkdown(field.title)
     questionLines.push(`## ${label}\n`)
 
-    if (richFormValue !== null) {
+    if (richFormValue !== null || hasStringValue(answer)) {
       const answerLine = generateFieldLine(answer, field, richFormValue)
       questionLines.push(answerLine)
     }
