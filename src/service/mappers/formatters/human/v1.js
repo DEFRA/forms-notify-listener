@@ -14,7 +14,7 @@ import { addDays } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
-import { hasStringValue } from '~/src/helpers/string-utils.js'
+import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -99,7 +99,7 @@ export function formatter(
     const label = escapeMarkdown(field.title)
     questionLines.push(`## ${label}\n`)
 
-    if (richFormValue !== null || hasStringValue(answer)) {
+    if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
       const answerLine = generateFieldLine(answer, field, richFormValue)
       questionLines.push(answerLine)
     }

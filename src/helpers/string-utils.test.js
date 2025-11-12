@@ -1,4 +1,7 @@
-import { escapeRegExp, hasStringValue } from '~/src/helpers/string-utils.js'
+import {
+  escapeRegExp,
+  stringHasNonEmptyValue
+} from '~/src/helpers/string-utils.js'
 
 describe('String Utils', () => {
   describe('escapeRegExp', () => {
@@ -37,16 +40,16 @@ describe('String Utils', () => {
 
   describe('hasStringValue', () => {
     test('should return false if not a string', () => {
-      expect(hasStringValue({})).toBe(false)
+      expect(stringHasNonEmptyValue({})).toBe(false)
     })
     test('should return false if undefined', () => {
-      expect(hasStringValue(undefined)).toBe(false)
+      expect(stringHasNonEmptyValue(undefined)).toBe(false)
     })
     test('should return false if empty string', () => {
-      expect(hasStringValue('')).toBe(false)
+      expect(stringHasNonEmptyValue('')).toBe(false)
     })
     test('should return true if non-empty string', () => {
-      expect(hasStringValue('a')).toBe(true)
+      expect(stringHasNonEmptyValue('a')).toBe(true)
     })
   })
 })

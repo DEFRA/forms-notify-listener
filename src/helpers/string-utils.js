@@ -9,8 +9,9 @@ export function escapeRegExp(string) {
 
 /**
  * @param {any} str - The string to examine
+ * @returns {boolean}
  */
-export function hasStringValue(str) {
+export function stringHasNonEmptyValue(str) {
   if (typeof str !== 'string') {
     return false
   }
