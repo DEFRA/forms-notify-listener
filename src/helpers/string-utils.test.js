@@ -40,9 +40,11 @@ describe('String Utils', () => {
 
   describe('hasStringValue', () => {
     test('should return false if not a string', () => {
+      // @ts-expect-error - invalid type for test call
       expect(stringHasNonEmptyValue({})).toBe(false)
     })
     test('should return false if undefined', () => {
+      // @ts-expect-error - invalid type for test call
       expect(stringHasNonEmptyValue(undefined)).toBe(false)
     })
     test('should return false if empty string', () => {

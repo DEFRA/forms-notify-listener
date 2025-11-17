@@ -8,7 +8,7 @@ export function escapeRegExp(string) {
 }
 
 /**
- * @param {any} str - The string to examine
+ * @param {string} str - The string to examine
  * @returns {boolean}
  */
 export function stringHasNonEmptyValue(str) {
