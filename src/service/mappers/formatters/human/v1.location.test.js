@@ -199,8 +199,8 @@ describe('Location field formatting in Human V1', () => {
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
       expect(output).toContain('## What are your coordinates?')
-      expect(output).toContain('Lat: 51.51945')
-      expect(output).toContain('Long: -0.127758')
+      expect(output).toContain('Latitude: 51.51945')
+      expect(output).toContain('Longitude: -0.127758')
       expect(output).not.toContain('51.51945, -0.127758')
     })
 
@@ -437,8 +437,8 @@ describe('Location field formatting in Human V1', () => {
 
       // Check Latitude and Longitude
       expect(output).toContain('## Latitude and Longitude')
-      expect(output).toContain('Lat: 51.51945')
-      expect(output).toContain('Long: -0.127758')
+      expect(output).toContain('Latitude: 51.51945')
+      expect(output).toContain('Longitude: -0.127758')
 
       // Check OS Grid Reference
       expect(output).toContain('## OS Grid Reference')
