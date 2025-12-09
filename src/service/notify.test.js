@@ -15,7 +15,10 @@ import {
   buildFormAdapterSubmissionMessageMetaStub,
   buildFormAdapterSubmissionMessageResult
 } from '~/src/service/__stubs__/event-builders.js'
-import { definitionForEmail } from '~/src/service/__stubs__/forms.js'
+import {
+  definitionForEmail,
+  definitionForFeedbackForm
+} from '~/src/service/__stubs__/forms.js'
 import {
   sendNotifyEmails,
   sendUserConfirmationEmail
@@ -247,6 +250,41 @@ describe('notify', () => {
           body: expect.any(String)
         }
       })
+    })
+
+    it('should not send emails if a feedback form', async () => {
+      const formAdapterSubmissionMessage = buildFormAdapterSubmissionMessage({
+        meta: buildFormAdapterSubmissionMessageMetaStub({
+          formName: 'Feedback',
+          formSlug: 'feedback',
+          isPreview: false,
+          status: FormStatus.Live,
+          notificationEmail: 'notificationEmail@example.uk',
+          referenceNumber: '576-225-943',
+          formId
+        }),
+        data: buildFormAdapterSubmissionMessageData({
+          main: {
+            QMwMir: 'Very satisfied',
+            duOEvZ: 'Extra text',
+            formId
+          },
+          repeaters: {},
+          files: {}
+        }),
+        result: {
+          files: {
+            main: '9a2c50db-cbd5-4fba-ae5f-58dbfdd176d2',
+            repeaters: {}
+          }
+        }
+      })
+
+      jest
+        .mocked(getFormDefinition)
+        .mockResolvedValueOnce(definitionForFeedbackForm)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
+      expect(sendNotification).not.toHaveBeenCalled()
     })
 
     it('should send multiple submission emails', async () => {

@@ -29,14 +29,18 @@ export async function sendNotifyEmails(formSubmissionMessage) {
     versionMetadata
   } = formSubmissionMessage.meta
 
-  const definition = replaceCustomControllers(
-    await getFormDefinition(formId, status, versionMetadata?.versionNumber)
+  const definitionPreConverted = await getFormDefinition(
+    formId,
+    status,
+    versionMetadata?.versionNumber
   )
 
-  if (isFeedbackForm(definition)) {
+  if (isFeedbackForm(definitionPreConverted)) {
     // Dont send a submission email or a confirmation email if this is a feedback form
     return
   }
+
+  const definition = replaceCustomControllers(definitionPreConverted)
 
   // Submission email targets are defined in either or both of:
   // - FormDefinition.output (with email address set in FormDefinition.outputEmail or in form metadata)
