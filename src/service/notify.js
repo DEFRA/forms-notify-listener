@@ -1,5 +1,9 @@
 import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
-import { ControllerType, getErrorMessage } from '@defra/forms-model'
+import {
+  getErrorMessage,
+  isFeedbackForm,
+  replaceCustomControllers
+} from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
@@ -11,32 +15,6 @@ import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirm
 const templateId = config.get('notifyTemplateId')
 const notifyReplyToId = config.get('notifyReplyToId')
 const logger = createLogger()
-
-// TODO - need a better way to handle custom controllers in the output formatters
-/**
- * Revert any custom controllers to their parent/base class since engine-plugin has no knowledge of them
- * @param {FormDefinition} definition
- * @returns {FormDefinition}
- */
-export function removeCustomControllers(definition) {
-  return {
-    ...definition,
-    pages: definition.pages.map((page) => {
-      if (page.controller) {
-        const controller = [
-          'SummaryPageWithConfirmationEmailController'
-        ].includes(page.controller)
-          ? ControllerType.Summary
-          : page.controller
-        return /** @type {Page} */ ({
-          ...page,
-          controller
-        })
-      }
-      return page
-    })
-  }
-}
 
 /**
  * Sends one or more mails to GovNotify
@@ -51,9 +29,18 @@ export async function sendNotifyEmails(formSubmissionMessage) {
     versionMetadata
   } = formSubmissionMessage.meta
 
-  const definition = removeCustomControllers(
-    await getFormDefinition(formId, status, versionMetadata?.versionNumber)
+  const definitionPreConverted = await getFormDefinition(
+    formId,
+    status,
+    versionMetadata?.versionNumber
   )
+
+  if (isFeedbackForm(definitionPreConverted)) {
+    // Dont send a submission email or a confirmation email if this is a feedback form
+    return
+  }
+
+  const definition = replaceCustomControllers(definitionPreConverted)
 
   // Submission email targets are defined in either or both of:
   // - FormDefinition.output (with email address set in FormDefinition.outputEmail or in form metadata)
