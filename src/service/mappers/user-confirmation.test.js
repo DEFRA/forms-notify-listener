@@ -19,10 +19,14 @@ We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tue
 ## What happens next
 Some submission guidance
 
+## Your answers
+Your answers are included at the end of this email.
+
 ## Get help
 Do not reply to this emall. We do not monitor replies to this email address.
 
 From Defra
+
 `
     )
   })
@@ -41,10 +45,14 @@ We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tue
 ## What happens next
 Define this text in the 'What happens next' section of the form overview
 
+## Your answers
+Your answers are included at the end of this email.
+
 ## Get help
 Do not reply to this emall. We do not monitor replies to this email address.
 
 From Defra
+
 `
     )
   })
@@ -98,6 +106,9 @@ We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tue
 ## What happens next
 Some submission guidance
 
+## Your answers
+Your answers are included at the end of this email.
+
 ## Get help
 0121 123456789
 
@@ -109,6 +120,7 @@ We will respond within 5 working days
 Do not reply to this emall. We do not monitor replies to this email address.
 
 From Defra
+
 `
     )
   })

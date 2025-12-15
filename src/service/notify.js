@@ -147,7 +147,16 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 
   const formName = escapeMarkdown(meta.formName)
 
-  const formMetadata = await getFormMetadata(meta.formId)
+  const [formMetadata, definitionPreConverted] = await Promise.all([
+    getFormMetadata(meta.formId),
+    getFormDefinition(
+      meta.formId,
+      meta.status,
+      meta.versionMetadata?.versionNumber
+    )
+  ])
+
+  const definition = replaceCustomControllers(definitionPreConverted)
 
   const subject = meta.isPreview
     ? `TEST FORM CONFIRMATION: ${formMetadata.organisation}`
@@ -162,7 +171,13 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
       emailAddress: userConfirmationEmail,
       personalisation: {
         subject,
-        body: getUserConfirmationEmailBody(formName, new Date(), formMetadata)
+        body: getUserConfirmationEmailBody(
+          formName,
+          new Date(),
+          formMetadata,
+          formSubmissionMessage,
+          definition
+        )
       },
       notifyReplyToId
     })
