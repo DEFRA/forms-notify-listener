@@ -43,24 +43,25 @@ export function getUserConfirmationEmailBody(
     if (formattedAnswers) {
       answersSection = `
 ---
-
 ${formattedAnswers}
 `
     }
   }
 
   return `
-# We have your form
-We received your form submission for &lsquo;${formName}&rsquo; on ${formattedSubmissionDate}.
+# Form submitted
+We received your form submission for &lsquo;${formName}&rsquo; at ${formattedSubmissionDate}. See your answers below.
 
 ## What happens next
 ${submissionGuidance ?? submisionGuidancePlaceholder}
 
-## Your answers
-Your answers are included at the end of this email.
-
 ## Get help
-${contactDetails}Do not reply to this emall. We do not monitor replies to this email address.
+${contactDetails}
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
+
+Do not reply to this email. We do not monitor replies to this email address.
 
 From ${escapeMarkdown(organisation)}
 ${answersSection}
