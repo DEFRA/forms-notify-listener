@@ -394,7 +394,8 @@ describe('notify', () => {
     })
 
     it('should send a user confirmation email', async () => {
-      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition) // Called twice, once for internal email
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition) // and once for user confirmation email
       jest.mocked(getFormMetadata).mockResolvedValueOnce(
         buildMetaData({
           submissionGuidance: 'Some guidance text'

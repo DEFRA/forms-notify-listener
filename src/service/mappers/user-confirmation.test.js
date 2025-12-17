@@ -13,16 +13,18 @@ describe('user-confirmation', () => {
       getUserConfirmationEmailBody(formName, submissionDate, metadata)
     ).toBe(
       `
-# We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+# Form submitted
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025. See your answers below.
 
 ## What happens next
 Some submission guidance
 
-## Your answers
-Your answers are included at the end of this email.
-
 ## Get help
+
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
+
 Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
@@ -39,16 +41,18 @@ From Defra
       getUserConfirmationEmailBody(formName, submissionDate, metadata)
     ).toBe(
       `
-# We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+# Form submitted
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025. See your answers below.
 
 ## What happens next
 Define this text in the 'What happens next' section of the form overview
 
-## Your answers
-Your answers are included at the end of this email.
-
 ## Get help
+
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
+
 Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
@@ -65,7 +69,7 @@ From Defra
     })
     expect(
       getUserConfirmationEmailBody(formName, submissionDate, metadata)
-    ).toContain(' on 1:21pm on Tuesday 4 November 2025.')
+    ).toContain(' at 1:21pm on Tuesday 4 November 2025.')
   })
 
   test('should handle time shift - plus 1 hour in BST', () => {
@@ -76,7 +80,7 @@ From Defra
     })
     expect(
       getUserConfirmationEmailBody(formName, submissionDate, metadata)
-    ).toContain(' on 2:21pm on Sunday 4 May 2025.')
+    ).toContain(' at 2:21pm on Sunday 4 May 2025.')
   })
 
   test('should handle contact details', () => {
@@ -100,14 +104,11 @@ From Defra
       getUserConfirmationEmailBody(formName, submissionDate, metadata)
     ).toBe(
       `
-# We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+# Form submitted
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025. See your answers below.
 
 ## What happens next
 Some submission guidance
-
-## Your answers
-Your answers are included at the end of this email.
 
 ## Get help
 0121 123456789
@@ -116,6 +117,11 @@ Your answers are included at the end of this email.
 We will respond within 5 working days
 
 [This is our online url](https://some-online-help.com)
+
+
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
 
 Do not reply to this email. We do not monitor replies to this email address.
 
