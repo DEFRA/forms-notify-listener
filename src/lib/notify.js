@@ -51,8 +51,9 @@ export function escapeNotifyContent(str) {
  */
 export function escapeNotifyPersonalisation(personalisation) {
   const { subject, body } = personalisation
+  // Dont escape the subject line as this doesn't render in an HTML-like way
   return {
-    subject: escapeNotifyContent(subject),
+    subject,
     body: escapeNotifyContent(body)
   }
 }
