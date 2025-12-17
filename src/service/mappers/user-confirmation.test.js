@@ -23,7 +23,7 @@ Some submission guidance
 Your answers are included at the end of this email.
 
 ## Get help
-Do not reply to this emall. We do not monitor replies to this email address.
+Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
 
@@ -49,7 +49,7 @@ Define this text in the 'What happens next' section of the form overview
 Your answers are included at the end of this email.
 
 ## Get help
-Do not reply to this emall. We do not monitor replies to this email address.
+Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
 
@@ -117,7 +117,7 @@ We will respond within 5 working days
 
 [This is our online url](https://some-online-help.com)
 
-Do not reply to this emall. We do not monitor replies to this email address.
+Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
 
