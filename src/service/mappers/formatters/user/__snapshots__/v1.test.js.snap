@@ -87,3 +87,63 @@ Gandalf
 
 * supporting\\_evidence\\.pdf"
 `;
+
+exports[`User answers formatter v1 legacy V1 engine forms should match snapshot for legacy V1 form 1`] = `
+"# Your age
+
+4
+
+# Country of birth
+
+England
+
+# First name
+
+John
+
+# Last name
+
+Doe
+
+# First name
+
+## person 1
+
+Jane
+
+## person 2
+
+Janet
+
+# Last name
+
+## person 1
+
+Doe
+
+## person 2
+
+Doe
+
+# When did they leave the UK?
+
+## person 1
+
+January 2000
+
+## person 2
+
+January 2000
+
+# Passport number
+
+23423
+
+# Number of people in your household
+
+543
+
+# Upload proof of address
+
+* bank\\_statement\\.pdf"
+`;

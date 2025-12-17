@@ -3,9 +3,132 @@ import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
+jest.mock('nunjucks', () => {
+  const environment = {
+    addFilter: jest.fn(),
+    addGlobal: jest.fn()
+  }
+  return {
+    configure: jest.fn(() => environment)
+  }
+})
+
 describe('user-confirmation', () => {
   const formSubmissionMessage = buildFormAdapterSubmissionMessage()
   const formDefinition = buildDefinition()
+
+  describe('validation', () => {
+    test('should throw TypeError for empty formName', () => {
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData()
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          '',
+          submissionDate,
+          metadata,
+          formSubmissionMessage,
+          formDefinition
+        )
+      ).toThrow(TypeError)
+      expect(() =>
+        getUserConfirmationEmailBody(
+          '',
+          submissionDate,
+          metadata,
+          formSubmissionMessage,
+          formDefinition
+        )
+      ).toThrow('formName is required and must be a non-empty string')
+    })
+
+    test('should throw TypeError for whitespace-only formName', () => {
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData()
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          '   ',
+          submissionDate,
+          metadata,
+          formSubmissionMessage,
+          formDefinition
+        )
+      ).toThrow('formName is required and must be a non-empty string')
+    })
+
+    test('should throw TypeError for invalid submissionDate', () => {
+      const metadata = buildMetaData()
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          'My Form',
+          new Date('invalid'),
+          metadata,
+          formSubmissionMessage,
+          formDefinition
+        )
+      ).toThrow('submissionDate is required and must be a valid Date')
+    })
+
+    test('should throw TypeError for null submissionDate', () => {
+      const metadata = buildMetaData()
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          'My Form',
+          /** @type {any} */ (null),
+          metadata,
+          formSubmissionMessage,
+          formDefinition
+        )
+      ).toThrow('submissionDate is required and must be a valid Date')
+    })
+
+    test('should throw TypeError for missing metadata', () => {
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          'My Form',
+          submissionDate,
+          /** @type {any} */ (null),
+          formSubmissionMessage,
+          formDefinition
+        )
+      ).toThrow('metadata is required')
+    })
+
+    test('should throw TypeError for missing formSubmissionMessage', () => {
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData()
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          'My Form',
+          submissionDate,
+          metadata,
+          /** @type {any} */ (null),
+          formDefinition
+        )
+      ).toThrow('formSubmissionMessage is required')
+    })
+
+    test('should throw TypeError for missing formDefinition', () => {
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData()
+
+      expect(() =>
+        getUserConfirmationEmailBody(
+          'My Form',
+          submissionDate,
+          metadata,
+          formSubmissionMessage,
+          /** @type {any} */ (null)
+        )
+      ).toThrow('formDefinition is required')
+    })
+  })
 
   test('should handle general email content', () => {
     const formName = 'My Form Name'

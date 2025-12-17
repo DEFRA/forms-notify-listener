@@ -1,6 +1,17 @@
-import { buildDefinition } from '@defra/forms-model/stubs'
+import {
+  buildDefinition,
+  buildFileUploadComponent,
+  buildFileUploadPage,
+  buildQuestionPage,
+  buildSummaryPage,
+  buildTextFieldComponent
+} from '@defra/forms-model/stubs'
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
+import {
+  legacyGraphFormDefinition,
+  legacyGraphFormMessage
+} from '~/src/service/mappers/formatters/__stubs__/legacy-form.js'
 import {
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
@@ -212,6 +223,209 @@ describe('User answers formatter v1', () => {
     it('should match snapshot for pizza form', () => {
       const definition = buildDefinition(pizzaFormDefinition)
       const output = formatter(pizzaMessage, definition)
+
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should skip optional fields with undefined value', () => {
+      const messageWithUndefined = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          main: {
+            ...exampleNotifyFormMessage.data.main,
+            ADDDTS: undefined
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const output = formatter(messageWithUndefined, definition)
+
+      expect(output).not.toContain('# Additional details')
+    })
+
+    it('should skip optional file upload fields with empty array', () => {
+      const definitionWithOptionalFile = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        pages: [
+          buildQuestionPage({
+            title: '',
+            path: '/name',
+            components: [
+              buildTextFieldComponent({
+                title: 'Your name',
+                name: 'nameField',
+                options: { required: true }
+              })
+            ]
+          }),
+          buildFileUploadPage({
+            title: '',
+            path: '/optional-file',
+            components: [
+              buildFileUploadComponent({
+                title: 'Optional document',
+                name: 'optionalFile',
+                options: { required: false }
+              })
+            ]
+          }),
+          buildSummaryPage({
+            title: 'Summary',
+            path: '/summary'
+          })
+        ]
+      })
+
+      const messageWithEmptyFile = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          main: {
+            nameField: 'Test User'
+          },
+          repeaters: {},
+          files: {
+            optionalFile: []
+          }
+        }
+      })
+
+      const output = formatter(messageWithEmptyFile, definitionWithOptionalFile)
+
+      expect(output).toContain('# Your name')
+      expect(output).toContain('Test User')
+      expect(output).not.toContain('# Optional document')
+    })
+
+    it('should skip repeater items with null or empty values', () => {
+      const messageWithNullRepeaterValue = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          repeaters: {
+            repeaterOptionName: [
+              {
+                repeaterComponentName: 'Frodo',
+                repeaterComponentDate: { day: 1, month: 1, year: 2000 }
+              },
+              {
+                repeaterComponentName: null,
+                repeaterComponentDate: { day: 1, month: 1, year: 2020 }
+              },
+              {
+                repeaterComponentName: '',
+                repeaterComponentDate: { day: 1, month: 1, year: 2021 }
+              }
+            ]
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const output = formatter(messageWithNullRepeaterValue, definition)
+
+      // Should include the first item
+      expect(output).toContain('## Team Member 1')
+      expect(output).toContain('Frodo')
+      // Should skip items with null/empty name but still show date
+      expect(output).toContain('## Team Member 2')
+      expect(output).toContain('1 January 2020')
+      expect(output).toContain('## Team Member 3')
+      expect(output).toContain('1 January 2021')
+    })
+
+    it('should handle data with unknown component keys gracefully', () => {
+      const messageWithUnknownKey = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          main: {
+            ...exampleNotifyFormMessage.data.main,
+            unknownComponentKey: 'Some value'
+          },
+          repeaters: exampleNotifyFormMessage.data.repeaters,
+          files: exampleNotifyFormMessage.data.files
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const output = formatter(messageWithUnknownKey, definition)
+
+      // Should not include unknown component
+      expect(output).not.toContain('unknownComponentKey')
+      expect(output).not.toContain('Some value')
+      // Should still include known components
+      expect(output).toContain('# What is your name?')
+    })
+
+    it('should handle repeaters with unknown keys gracefully', () => {
+      const messageWithUnknownRepeater = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          main: exampleNotifyFormMessage.data.main,
+          repeaters: {
+            ...exampleNotifyFormMessage.data.repeaters,
+            unknownRepeaterKey: [{ someField: 'value' }]
+          },
+          files: exampleNotifyFormMessage.data.files
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const output = formatter(messageWithUnknownRepeater, definition)
+
+      // Should not crash and should still format known repeaters
+      expect(output).toContain('## Team Member 1')
+      expect(output).toContain('Frodo')
+    })
+  })
+
+  describe('legacy V1 engine forms', () => {
+    it('should format legacy V1 forms correctly', () => {
+      const definition = buildDefinition(legacyGraphFormDefinition)
+      const output = formatter(legacyGraphFormMessage, definition)
+
+      // Should include main form fields
+      expect(output).toContain('# First name')
+      expect(output).toContain('John')
+      expect(output).toContain('# Last name')
+      expect(output).toContain('Doe')
+      expect(output).toContain('# Your age')
+      expect(output).toContain('4')
+    })
+
+    it('should handle legacy V1 form repeaters', () => {
+      const definition = buildDefinition(legacyGraphFormDefinition)
+      const output = formatter(legacyGraphFormMessage, definition)
+
+      // Should include repeater data
+      expect(output).toContain('## person 1')
+      expect(output).toContain('Jane')
+      expect(output).toContain('## person 2')
+      expect(output).toContain('Janet')
+    })
+
+    it('should handle legacy V1 form file uploads', () => {
+      const definition = buildDefinition(legacyGraphFormDefinition)
+      const output = formatter(legacyGraphFormMessage, definition)
+
+      // Should include file upload without links
+      expect(output).toContain('bank\\_statement\\.pdf')
+      expect(output).not.toContain('http://localhost')
+    })
+
+    it('should handle legacy V1 form radio selections', () => {
+      const definition = buildDefinition(legacyGraphFormDefinition)
+      const output = formatter(legacyGraphFormMessage, definition)
+
+      // Should include radio selection
+      expect(output).toContain('# Country of birth')
+      expect(output).toContain('England')
+    })
+
+    it('should match snapshot for legacy V1 form', () => {
+      const definition = buildDefinition(legacyGraphFormDefinition)
+      const output = formatter(legacyGraphFormMessage, definition)
 
       expect(output).toMatchSnapshot()
     })
