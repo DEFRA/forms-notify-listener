@@ -35,6 +35,29 @@ const serviceId = /** @type {string} */ (
  */
 
 /**
+ * Notify auto-translates ASCII hyphens to en dashes, and strips whitespace (including tabs) before punctuation.
+ * This method is used to escape each of these characters so Notify doesn't translate the content.
+ * @param {string} str
+ */
+export function escapeNotifyContent(str) {
+  return str
+    .replaceAll('-', '&hyphen;')
+    .replaceAll(' ', '&nbsp;')
+    .replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
+}
+
+/**
+ * @param {{ subject: string; body: string }} personalisation
+ */
+export function escapeNotifyPersonalisation(personalisation) {
+  const { subject, body } = personalisation
+  return {
+    subject: escapeNotifyContent(subject),
+    body: escapeNotifyContent(body)
+  }
+}
+
+/**
  * @param {string} iss
  * @param {string} secret
  */
@@ -58,11 +81,13 @@ const NOTIFICATIONS_URL = new URL(
 export async function sendNotification(args) {
   const { templateId, emailAddress, personalisation, notifyReplyToId } = args
 
+  const escapedPersonalisation = escapeNotifyPersonalisation(personalisation)
+
   return postJson(NOTIFICATIONS_URL, {
     payload: {
       template_id: templateId,
       email_address: emailAddress,
-      personalisation,
+      personalisation: escapedPersonalisation,
       email_reply_to_id: notifyReplyToId
     },
     headers: {
