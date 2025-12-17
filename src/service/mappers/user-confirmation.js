@@ -7,11 +7,53 @@ const submisionGuidancePlaceholder =
   "Define this text in the 'What happens next' section of the form overview"
 
 /**
+ * Validates the parameters for getUserConfirmationEmailBody
  * @param {string} formName
  * @param {Date} submissionDate
  * @param {FormMetadata} metadata
- * @param {FormAdapterSubmissionMessage} [formSubmissionMessage]
- * @param {FormDefinition} [formDefinition]
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} formDefinition
+ */
+function validateUserConfirmationEmailParams(
+  formName,
+  submissionDate,
+  metadata,
+  formSubmissionMessage,
+  formDefinition
+) {
+  if (typeof formName !== 'string' || !formName.trim()) {
+    throw new TypeError('formName is required and must be a non-empty string')
+  }
+
+  if (
+    !(submissionDate instanceof Date) ||
+    Number.isNaN(submissionDate.getTime())
+  ) {
+    throw new TypeError('submissionDate is required and must be a valid Date')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
+  if (!metadata) {
+    throw new TypeError('metadata is required')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
+  if (!formSubmissionMessage) {
+    throw new TypeError('formSubmissionMessage is required')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime validation
+  if (!formDefinition) {
+    throw new TypeError('formDefinition is required')
+  }
+}
+
+/**
+ * @param {string} formName
+ * @param {Date} submissionDate
+ * @param {FormMetadata} metadata
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} formDefinition
  */
 export function getUserConfirmationEmailBody(
   formName,
@@ -20,6 +62,14 @@ export function getUserConfirmationEmailBody(
   formSubmissionMessage,
   formDefinition
 ) {
+  validateUserConfirmationEmailParams(
+    formName,
+    submissionDate,
+    metadata,
+    formSubmissionMessage,
+    formDefinition
+  )
+
   const formattedSubmissionDate = `${dateFormat(submissionDate, 'h:mmaaa')} on ${dateFormat(submissionDate, 'eeee d MMMM yyyy')}`
 
   const { submissionGuidance, organisation, contact } = metadata
@@ -35,17 +85,15 @@ export function getUserConfirmationEmailBody(
 
   // Generate the answers section if submission data is provided
   let answersSection = ''
-  if (formSubmissionMessage && formDefinition) {
-    const formattedAnswers = userAnswersFormatter(
-      formSubmissionMessage,
-      formDefinition
-    )
-    if (formattedAnswers) {
-      answersSection = `
+  const formattedAnswers = userAnswersFormatter(
+    formSubmissionMessage,
+    formDefinition
+  )
+  if (formattedAnswers) {
+    answersSection = `
 ---
 ${formattedAnswers}
 `
-    }
   }
 
   return `

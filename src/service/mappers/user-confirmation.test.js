@@ -1,8 +1,12 @@
-import { buildMetaData } from '@defra/forms-model/stubs'
+import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 
+import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
 describe('user-confirmation', () => {
+  const formSubmissionMessage = buildFormAdapterSubmissionMessage()
+  const formDefinition = buildDefinition()
+
   test('should handle general email content', () => {
     const formName = 'My Form Name'
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
@@ -10,7 +14,13 @@ describe('user-confirmation', () => {
       submissionGuidance: 'Some submission guidance'
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toBe(
       `
 # Form submitted
@@ -38,7 +48,13 @@ From Defra
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
     const metadata = buildMetaData()
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toBe(
       `
 # Form submitted
@@ -68,7 +84,13 @@ From Defra
       submissionGuidance: 'Some submission guidance'
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toContain(' at 1:21pm on Tuesday 4 November 2025.')
   })
 
@@ -79,7 +101,13 @@ From Defra
       submissionGuidance: 'Some submission guidance'
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toContain(' at 2:21pm on Sunday 4 May 2025.')
   })
 
@@ -101,7 +129,13 @@ From Defra
       }
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toBe(
       `
 # Form submitted
