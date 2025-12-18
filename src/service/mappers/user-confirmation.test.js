@@ -147,7 +147,7 @@ describe('user-confirmation', () => {
     ).toBe(
       `
 # Form submitted
-We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025. See your answers below.
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Some submission guidance
@@ -181,7 +181,7 @@ From Defra
     ).toBe(
       `
 # Form submitted
-We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025. See your answers below.
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Define this text in the 'What happens next' section of the form overview
@@ -262,7 +262,7 @@ From Defra
     ).toBe(
       `
 # Form submitted
-We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025. See your answers below.
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Some submission guidance

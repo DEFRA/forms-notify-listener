@@ -98,7 +98,7 @@ ${formattedAnswers}
 
   return `
 # Form submitted
-We received your form submission for &lsquo;${formName}&rsquo; at ${formattedSubmissionDate}. See your answers below.
+We received your form submission for &lsquo;${formName}&rsquo; at ${formattedSubmissionDate}.
 
 ## What happens next
 ${submissionGuidance ?? submisionGuidancePlaceholder}
