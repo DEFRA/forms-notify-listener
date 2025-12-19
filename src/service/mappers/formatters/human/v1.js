@@ -15,21 +15,16 @@ import { addDays } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
+import {
+  findRepeaterPageByKey,
+  formatLocationField,
+  formatMultilineTextField,
+  formatUkAddressField
+} from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
 
 const FILE_EXPIRY_OFFSET = 90
-
-/**
- *
- * @param {string} key
- * @param {FormDefinition} formDefinition
- */
-function findRepeaterPageByKey(key, formDefinition) {
-  return formDefinition.pages.find((page) => {
-    return hasRepeater(page) && page.repeat.options.name === key
-  })
-}
 
 /**
  * Human readable notify formatter v1
@@ -219,49 +214,6 @@ function formatListFormComponent(answer, field, richFormValue) {
     .join('')
 
   return formattedItems
-}
-
-/**
- * Format multiline text field
- * @param {string} answer
- * @param {Component} _field
- * @param {RichFormValue} _richFormValue
- * @returns {string}
- */
-function formatMultilineTextField(answer, _field, _richFormValue) {
-  // Preserve Multiline text new lines
-  return answer
-    .split(/(?:\r?\n)+/)
-    .map(escapeMarkdown)
-    .join('\n')
-    .concat('\n')
-}
-
-/**
- * Format UK address field
- * @param {string} _answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatUkAddressField(_answer, field, richFormValue) {
-  // Format UK addresses into new lines
-  return (field.getContextValueFromFormValue(richFormValue) ?? [])
-    .map(escapeMarkdown)
-    .join('\n')
-    .concat('\n')
-}
-
-/**
- * Format location coordinate fields (Easting/Northing or Lat/Long)
- * @param {string} _answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatLocationField(_answer, field, richFormValue) {
-  const contextValue = field.getContextValueFromFormValue(richFormValue)
-  return contextValue ? `${contextValue}\n` : ''
 }
 
 /**

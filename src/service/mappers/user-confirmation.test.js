@@ -1,8 +1,22 @@
-import { buildMetaData } from '@defra/forms-model/stubs'
+import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 
+import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
+jest.mock('nunjucks', () => {
+  const environment = {
+    addFilter: jest.fn(),
+    addGlobal: jest.fn()
+  }
+  return {
+    configure: jest.fn(() => environment)
+  }
+})
+
 describe('user-confirmation', () => {
+  const formSubmissionMessage = buildFormAdapterSubmissionMessage()
+  const formDefinition = buildDefinition()
+
   test('should handle general email content', () => {
     const formName = 'My Form Name'
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
@@ -10,19 +24,31 @@ describe('user-confirmation', () => {
       submissionGuidance: 'Some submission guidance'
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toBe(
       `
-# We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+# Form submitted
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Some submission guidance
 
 ## Get help
+
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
+
 Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
+
 `
     )
   })
@@ -32,19 +58,31 @@ From Defra
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
     const metadata = buildMetaData()
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toBe(
       `
-# We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+# Form submitted
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Define this text in the 'What happens next' section of the form overview
 
 ## Get help
+
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
+
 Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
+
 `
     )
   })
@@ -56,8 +94,14 @@ From Defra
       submissionGuidance: 'Some submission guidance'
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
-    ).toContain(' on 1:21pm on Tuesday 4 November 2025.')
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
+    ).toContain(' at 1:21pm on Tuesday 4 November 2025.')
   })
 
   test('should handle time shift - plus 1 hour in BST', () => {
@@ -67,8 +111,14 @@ From Defra
       submissionGuidance: 'Some submission guidance'
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
-    ).toContain(' on 2:21pm on Sunday 4 May 2025.')
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
+    ).toContain(' at 2:21pm on Sunday 4 May 2025.')
   })
 
   test('should handle contact details', () => {
@@ -89,11 +139,17 @@ From Defra
       }
     })
     expect(
-      getUserConfirmationEmailBody(formName, submissionDate, metadata)
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
     ).toBe(
       `
-# We have your form
-We received your form submission for &lsquo;My Form Name&rsquo; on 2:21pm on Tuesday 4 November 2025.
+# Form submitted
+We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
 Some submission guidance
@@ -106,9 +162,15 @@ We will respond within 5 working days
 
 [This is our online url](https://some-online-help.com)
 
+
+
+## Your answers
+Find a copy of your answers at the bottom of this email.
+
 Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
+
 `
     )
   })
