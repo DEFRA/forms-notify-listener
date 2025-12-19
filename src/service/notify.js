@@ -173,7 +173,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
         subject,
         body: getUserConfirmationEmailBody(
           formName,
-          new Date(),
+          meta.timestamp,
           formMetadata,
           formSubmissionMessage,
           definition

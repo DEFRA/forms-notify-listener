@@ -21,10 +21,10 @@ import {
  * @returns {boolean}
  */
 function shouldSkipOptionalField(field, richFormValue) {
-  const isOptional = !field.options?.required
+  const isRequired = field.options?.required ?? true
 
-  if (!isOptional) {
-    return false
+  if (isRequired) {
+    return false // Never skip a required field
   }
 
   const hasNoValue = richFormValue === null || richFormValue === undefined
