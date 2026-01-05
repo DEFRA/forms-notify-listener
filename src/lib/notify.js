@@ -35,27 +35,17 @@ const serviceId = /** @type {string} */ (
  */
 
 /**
- * Notify auto-translates ASCII hyphens to en dashes, and strips whitespace (including tabs) before punctuation.
+ * Notify auto-translates ASCII hyphens to en dashes (where used to split a sentence), and strips whitespace (including tabs)
+ * before punctuation.
  * This method is used to escape each of these characters so Notify doesn't translate the content.
+ * NOTE - hyhens are not converted because we are forcing '&nbsp;' in the surrounding spaces (if any), therefore Notify doesn't think
+ * it's a sentence break
  * @param {string} str
  */
 export function escapeNotifyContent(str) {
   return str
-    .replaceAll('-', '&hyphen;')
     .replaceAll(' ', '&nbsp;')
     .replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
-}
-
-/**
- * @param {{ subject: string; body: string }} personalisation
- */
-export function escapeNotifyPersonalisation(personalisation) {
-  const { subject, body } = personalisation
-  // Dont escape the subject line as this doesn't render in an HTML-like way
-  return {
-    subject,
-    body: escapeNotifyContent(body)
-  }
 }
 
 /**
@@ -82,13 +72,11 @@ const NOTIFICATIONS_URL = new URL(
 export async function sendNotification(args) {
   const { templateId, emailAddress, personalisation, notifyReplyToId } = args
 
-  const escapedPersonalisation = escapeNotifyPersonalisation(personalisation)
-
   return postJson(NOTIFICATIONS_URL, {
     payload: {
       template_id: templateId,
       email_address: emailAddress,
-      personalisation: escapedPersonalisation,
+      personalisation,
       email_reply_to_id: notifyReplyToId
     },
     headers: {
