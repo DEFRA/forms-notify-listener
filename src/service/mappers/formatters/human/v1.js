@@ -15,6 +15,7 @@ import { addDays } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
+import { escapeNotifyContent } from '~/src/lib/notify.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -123,7 +124,9 @@ export function formatter(
 
       questionLines.push(`## ${label}\n`)
 
-      const repeaterFilename = escapeMarkdown(`Download ${label} (CSV)`)
+      const repeaterFilename = escapeMarkdown(
+        escapeNotifyContent(`Download ${label} (CSV)`)
+      )
       questionLines.push(
         `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
         '---\n'
@@ -169,7 +172,9 @@ function formatFileUploadField(answer, _field, richFormValue) {
 
   const fileUploadString = formAdapterFiles
     .map((file) => {
-      const fileUploadFilename = escapeMarkdown(file.fileName)
+      const fileUploadFilename = escapeMarkdown(
+        escapeNotifyContent(file.fileName)
+      )
       return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
     })
     .join('')
@@ -381,7 +386,7 @@ function mapFormAdapterFileToFileState(file) {
         contentLength: 0,
         fileStatus: FileStatus.complete,
         fileId: file.fileId,
-        filename: file.fileName
+        filename: escapeNotifyContent(file.fileName)
       }
     },
     uploadStatus: UploadStatus.ready,

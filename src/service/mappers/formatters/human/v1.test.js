@@ -144,7 +144,7 @@ describe('Page controller helpers', () => {
       expect(output).toContain('* Frodo')
       expect(output).toContain('## Team Member')
       expect(output).toContain(
-        '[Download Team Member \\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
+        '[Download&nbsp;Team&nbsp;Member&nbsp;\\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
       )
       expect(output).toContain('## Please add supporting evidence')
       expect(output).toContain('Uploaded 1 file:')

@@ -48,18 +48,18 @@ describe('Utils: Notify', () => {
       {
         inStr: 'This has one hyphen - in the middle',
         outStr:
-          'This&nbsp;has&nbsp;one&nbsp;hyphen&nbsp;&hyphen;&nbsp;in&nbsp;the&nbsp;middle'
+          'This&nbsp;has&nbsp;one&nbsp;hyphen&nbsp;-&nbsp;in&nbsp;the&nbsp;middle'
       },
       {
         inStr: '-This has multiple hyphens - here - here - and here-',
         outStr:
-          '&hyphen;This&nbsp;has&nbsp;multiple&nbsp;hyphens&nbsp;&hyphen;&nbsp;here&nbsp;&hyphen;&nbsp;here&nbsp;&hyphen;&nbsp;and&nbsp;here&hyphen;'
+          '-This&nbsp;has&nbsp;multiple&nbsp;hyphens&nbsp;-&nbsp;here&nbsp;-&nbsp;here&nbsp;-&nbsp;and&nbsp;here-'
       },
       {
         inStr:
           'This has various whitespace - plus punctuations     ,     .     :     ;     !  ',
         outStr:
-          'This&nbsp;has&nbsp;various&nbsp;whitespace&nbsp;&hyphen;&nbsp;plus&nbsp;punctuations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!&nbsp;&nbsp;'
+          'This&nbsp;has&nbsp;various&nbsp;whitespace&nbsp;-&nbsp;plus&nbsp;punctuations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!&nbsp;&nbsp;'
       },
       {
         inStr:
