@@ -378,6 +378,91 @@ describe('User answers formatter v1', () => {
       expect(output).toContain('## Team Member 1')
       expect(output).toContain('Frodo')
     })
+
+    it('should handle repeater pages with guidance components', () => {
+      const definitionWithRepeaterGuidance =
+        /** @type {import('@defra/forms-model').FormDefinition} */ ({
+          name: 'Form with repeater guidance',
+          pages: [
+            {
+              title: 'Team members',
+              path: '/team-members',
+              components: [
+                {
+                  id: 'bac683ce-149e-4740-95aa-8289b35bc327',
+                  options: {},
+                  content: 'Some guidance content.',
+                  type: 'Markdown'
+                },
+                {
+                  id: '407dd0d7-cce9-4f43-8e1f-7d89cb698875',
+                  name: 'teamMemberName',
+                  title: 'Name of team member',
+                  hint: '',
+                  options: {
+                    required: true
+                  },
+                  schema: {},
+                  type: 'TextField'
+                }
+              ],
+              next: [],
+              id: '32888028-61db-40fc-b255-80bc67829d31',
+              repeat: {
+                options: {
+                  name: 'teamMembers',
+                  title: 'Team member'
+                },
+                schema: {
+                  min: 1,
+                  max: 5
+                }
+              },
+              controller: 'RepeatPageController'
+            },
+            {
+              id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
+              title: 'Summary',
+              path: '/summary',
+              controller: 'SummaryPageController'
+            }
+          ],
+          conditions: [],
+          sections: [],
+          lists: [],
+          startPage: '/team-members'
+        })
+
+      const messageWithRepeaterGuidance = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          main: {},
+          repeaters: {
+            teamMembers: [
+              { teamMemberName: 'Alice' },
+              { teamMemberName: 'Bob' }
+            ]
+          },
+          files: {}
+        }
+      })
+
+      const output = formatter(
+        messageWithRepeaterGuidance,
+        definitionWithRepeaterGuidance
+      )
+
+      // Should include the team member names
+      expect(output).toContain('# Name of team member')
+      expect(output).toContain('## Team member 1')
+      expect(output).toContain('Alice')
+      expect(output).toContain('## Team member 2')
+      expect(output).toContain('Bob')
+      // Should NOT include the guidance component content
+      expect(output).not.toContain(
+        'Please enter the details for each team member.'
+      )
+    })
   })
 
   describe('legacy V1 engine forms', () => {

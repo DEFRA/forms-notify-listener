@@ -2,6 +2,21 @@ import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/hel
 import { hasRepeater } from '@defra/forms-model'
 
 /**
+ * Safely escape markdown, handling null or undefined values
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function escapeMarkdownSafe(value) {
+  if (value === null || value === undefined) {
+    return ''
+  }
+  if (typeof value !== 'string') {
+    return ''
+  }
+  return escapeMarkdown(value)
+}
+
+/**
  * Finds a repeater page by its key (repeat.options.name)
  * @param {string} key
  * @param {FormDefinition} formDefinition
@@ -23,7 +38,7 @@ export function formatMultilineTextField(answer, _field, _richFormValue) {
   // Preserve Multiline text new lines
   return answer
     .split(/(?:\r?\n)+/)
-    .map(escapeMarkdown)
+    .map(escapeMarkdownSafe)
     .join('\n')
     .concat('\n')
 }
@@ -38,7 +53,7 @@ export function formatMultilineTextField(answer, _field, _richFormValue) {
 export function formatUkAddressField(_answer, field, richFormValue) {
   // Format UK addresses into new lines
   return (field.getContextValueFromFormValue(richFormValue) ?? [])
-    .map(escapeMarkdown)
+    .map(escapeMarkdownSafe)
     .join('\n')
     .concat('\n')
 }

@@ -1,13 +1,13 @@
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
-import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 
 import { getRelevantPagesForLegacy } from '~/src/service/mappers/formatters/human/v1.js'
 import {
+  escapeMarkdownSafe,
   findRepeaterPageByKey,
   formatLocationField,
   formatMultilineTextField,
@@ -71,7 +71,7 @@ function processMainEntries(formSubmissionMessage, formModel) {
     }
 
     const questionLines = /** @type {string[]} */ ([])
-    const label = escapeMarkdown(field.title)
+    const label = escapeMarkdownSafe(field.title)
 
     // Questions use heading level 1 (#)
     questionLines.push(`# ${label}\n`)
@@ -101,7 +101,7 @@ function processRepeaterComponent(
   repeaterItems
 ) {
   const questionLines = /** @type {string[]} */ ([])
-  const componentLabel = escapeMarkdown(componentField.title)
+  const componentLabel = escapeMarkdownSafe(componentField.title)
 
   // Question text uses heading level 1 (#)
   questionLines.push(`# ${componentLabel}\n`)
@@ -125,7 +125,7 @@ function processRepeaterComponent(
       componentField.getDisplayStringFromFormValue(componentValue)
 
     // Repeater item label uses heading level 2 (##)
-    questionLines.push(`## ${escapeMarkdown(itemLabel)}\n`)
+    questionLines.push(`## ${escapeMarkdownSafe(itemLabel)}\n`)
 
     // Answer beneath with blank line separation
     questionLines.push(
@@ -161,7 +161,7 @@ function processRepeaterEntries(
       continue
     }
 
-    const repeaterTitle = escapeMarkdown(repeaterPage.repeat.options.title)
+    const repeaterTitle = escapeMarkdownSafe(repeaterPage.repeat.options.title)
     const repeaterItems = /** @type {Record<string, RichFormValue>[]} */ (
       repeaterData
     )
@@ -170,9 +170,14 @@ function processRepeaterEntries(
       continue
     }
 
-    for (const componentDef of repeaterPage.components) {
+    // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
+    for (const componentDef of repeaterPage.components.filter(
+      (componentDef) => 'title' in componentDef
+    )) {
       const componentName = componentDef.name
-      const componentField = formModel.componentMap.get(componentName)
+      const componentField = /** @type {Component} */ (
+        formModel.componentMap.get(componentName)
+      )
 
       if (!componentField) {
         continue
@@ -251,13 +256,13 @@ function formatFileUploadField(answer, _field, richFormValue) {
 
   // Skip empty files
   if (!formAdapterFiles.length) {
-    return `${escapeMarkdown(answer)}\n`
+    return `${escapeMarkdownSafe(answer)}\n`
   }
 
   // Just list file names with bullet points
   const fileList = formAdapterFiles
     .map((file) => {
-      const filename = escapeMarkdown(file.fileName)
+      const filename = escapeMarkdownSafe(file.fileName)
       return `* ${filename}\n`
     })
     .join('')
@@ -288,13 +293,13 @@ function formatListFormComponent(_answer, field, richFormValue) {
 
   // Single answer: no bullet point
   if (items.length === 1) {
-    return `${escapeMarkdown(items[0].text)}\n`
+    return `${escapeMarkdownSafe(items[0].text)}\n`
   }
 
   // Multiple answers: use bullet points
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeMarkdown(item.text)
+      const label = escapeMarkdownSafe(item.text)
       return `* ${label}\n`
     })
     .join('')
@@ -347,7 +352,7 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   // Default handler for all other field types
-  return `${escapeMarkdown(answer)}\n`
+  return `${escapeMarkdownSafe(answer)}\n`
 }
 
 /**
