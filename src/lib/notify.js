@@ -49,33 +49,11 @@ export function escapeNotifyContent(str) {
 }
 
 /**
- * Prevent Markdown formatting
+ * Prevent Markdown formatting by marking content as a 'code block'
  * @param {string} answer
  */
 export function escapeMarkdownChars(answer) {
-  const punctuation = new Map([
-    ['`', '&grave;'],
-    ["'", '&apos;'],
-    ['*', '&ast;'],
-    ['_', '&lowbar;'],
-    ['{', '&lbrace;'],
-    ['}', '&rbrace;'],
-    ['[', '&lbrack;'],
-    [']', '&rbrack;'],
-    ['(', '&lpar;'],
-    [')', '&rpar;'],
-    ['#', '&num;'],
-    ['+', '&plus;'],
-    [' - ', ' &hyphen; '],
-    ['.', '&period;'],
-    ['!', '&excl;']
-  ])
-
-  for (const [charOrig, charRepl] of punctuation.entries()) {
-    answer = answer.replaceAll(charOrig, charRepl)
-  }
-
-  return answer
+  return `\`\`\`\r\n${answer}\r\n\`\`\``
 }
 
 /**
