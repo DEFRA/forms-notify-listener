@@ -15,7 +15,7 @@ import { addDays } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
-import { escapeMarkdownChars, escapeNotifyContent } from '~/src/lib/notify.js'
+import { escapeAnswer, escapeNotifyContent } from '~/src/lib/notify.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -315,7 +315,7 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   // Default handler for all other field types
-  return `${escapeMarkdownChars(answer)}\n`
+  return `${escapeAnswer(answer)}\n`
 }
 
 /**

@@ -52,7 +52,7 @@ export function escapeNotifyContent(str) {
  * Prevent Markdown formatting by marking content as a 'code block'
  * @param {string} answer
  */
-export function escapeMarkdownChars(answer) {
+export function escapeAnswer(answer) {
   return `\`\`\`\r\n${answer}\r\n\`\`\``
 }
 
