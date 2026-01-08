@@ -14,7 +14,7 @@ import { addDays } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
-import { escapeNotifyContent } from '~/src/lib/notify.js'
+import { escapeAnswer, escapeNotifyContent } from '~/src/lib/notify.js'
 import {
   escapeMarkdownSafe,
   findRepeaterPageByKey,
@@ -267,7 +267,7 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   // Default handler for all other field types
-  return `${escapeMarkdownSafe(answer)}\n`
+  return `${escapeAnswer(answer)}\n`
 }
 
 /**
