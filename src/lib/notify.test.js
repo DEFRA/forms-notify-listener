@@ -1,5 +1,5 @@
 import { postJson } from '~/src/lib/fetch.js'
-import { sendNotification } from '~/src/lib/notify.js'
+import { escapeNotifyContent, sendNotification } from '~/src/lib/notify.js'
 
 jest.mock('~/src/lib/fetch.js')
 
@@ -35,6 +35,40 @@ describe('Utils: Notify', () => {
           }
         }
       )
+    })
+  })
+
+  describe('escapeNotifyContent', () => {
+    it.each([
+      {
+        inStr: 'This is a normal sentence without hyphens',
+        outStr:
+          'This&nbsp;is&nbsp;a&nbsp;normal&nbsp;sentence&nbsp;without&nbsp;hyphens'
+      },
+      {
+        inStr: 'This has one hyphen - in the middle',
+        outStr:
+          'This&nbsp;has&nbsp;one&nbsp;hyphen&nbsp;-&nbsp;in&nbsp;the&nbsp;middle'
+      },
+      {
+        inStr: '-This has multiple hyphens - here - here - and here-',
+        outStr:
+          '-This&nbsp;has&nbsp;multiple&nbsp;hyphens&nbsp;-&nbsp;here&nbsp;-&nbsp;here&nbsp;-&nbsp;and&nbsp;here-'
+      },
+      {
+        inStr:
+          'This has various whitespace - plus punctuations     ,     .     :     ;     !  ',
+        outStr:
+          'This&nbsp;has&nbsp;various&nbsp;whitespace&nbsp;-&nbsp;plus&nbsp;punctuations&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!&nbsp;&nbsp;'
+      },
+      {
+        inStr:
+          'This has multiples and tabs   ,   .   .      ,   \t  \t      . ',
+        outStr:
+          'This&nbsp;has&nbsp;multiples&nbsp;and&nbsp;tabs&nbsp;&nbsp;&nbsp;,&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.&nbsp;'
+      }
+    ])("formats '$inStr' to '$outStr'", ({ inStr, outStr }) => {
+      expect(escapeNotifyContent(inStr)).toBe(outStr)
     })
   })
 })

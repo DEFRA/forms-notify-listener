@@ -35,6 +35,20 @@ const serviceId = /** @type {string} */ (
  */
 
 /**
+ * Notify auto-translates ASCII hyphens to en dashes (where used to split a sentence), and strips whitespace (including tabs)
+ * before punctuation.
+ * This method is used to escape each of these characters so Notify doesn't translate the content.
+ * NOTE - hyhens are not converted because we are forcing '&nbsp;' in the surrounding spaces (if any), therefore Notify doesn't think
+ * it's a sentence break
+ * @param {string} str
+ */
+export function escapeNotifyContent(str) {
+  return str
+    .replaceAll(' ', '&nbsp;')
+    .replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
+}
+
+/**
  * @param {string} iss
  * @param {string} secret
  */
