@@ -103,8 +103,8 @@ describe('User answers formatter v1', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
       const output = formatter(exampleNotifyFormMessage, definition)
 
-      // File uploads should show file names with bullet points, not links
-      expect(output).toContain('* supporting\\_evidence\\.pdf')
+      // File uploads should show file names (no bullet for single file, bullets for multiple)
+      expect(output).toContain('supporting_evidence.pdf')
       // Should NOT contain download links
       expect(output).not.toContain('file-download')
       expect(output).not.toContain('http://designer')
@@ -495,7 +495,7 @@ describe('User answers formatter v1', () => {
       const output = formatter(legacyGraphFormMessage, definition)
 
       // Should include file upload without links
-      expect(output).toContain('bank\\_statement\\.pdf')
+      expect(output).toContain('bank_statement.pdf')
       expect(output).not.toContain('http://localhost')
     })
 

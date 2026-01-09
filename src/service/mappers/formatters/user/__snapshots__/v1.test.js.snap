@@ -85,7 +85,7 @@ Gandalf
 
 # Please add supporting evidence
 
-* supporting\\_evidence\\.pdf"
+supporting_evidence.pdf"
 `;
 
 exports[`User answers formatter v1 legacy V1 engine forms should match snapshot for legacy V1 form 1`] = `
@@ -145,5 +145,5 @@ January 2000
 
 # Upload proof of address
 
-* bank\\_statement\\.pdf"
+bank_statement.pdf"
 `;

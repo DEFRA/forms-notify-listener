@@ -1,6 +1,8 @@
+import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import { token } from '@hapi/jwt'
 
 import { config } from '~/src/config/index.js'
+import validation from '~/src/helpers/validation/basic-validators.js'
 import { postJson } from '~/src/lib/fetch.js'
 
 const notifyAPIKey = config.get('notifyAPIKey')
@@ -34,26 +36,78 @@ const serviceId = /** @type {string} */ (
  * }} SendNotificationArgs
  */
 
+/*
+  The escaping methods below should be used for the following:
+  - escapeFileLabel: used for the filename text value when used in the Markdown format of [<filename>](<url>) (escapes any spaces so Notify doesn’t translate anything)
+  - escapeSingleLineAnswer: used to wrap any answer text in triple back-ticks. This ensures the content is escaped but things like URLs still remain usable. Only suitable for single lines of text.
+  - escapeAnswer: used to characters contained within an answer which would otherwise be formatted as Markdown.
+  - escapeSubject: used to escape email subject line by putting in backslashes since the subject line doesn’t render as HTML (whereas the body does render like HTML)
+*/
+
 /**
+ * For escaping filenames and file labels.
+ *
  * Notify auto-translates ASCII hyphens to en dashes (where used to split a sentence), and strips whitespace (including tabs)
  * before punctuation.
  * This method is used to escape each of these characters so Notify doesn't translate the content.
- * NOTE - hyhens are not converted because we are forcing '&nbsp;' in the surrounding spaces (if any), therefore Notify doesn't think
- * it's a sentence break
- * @param {string} str
+ *
+ * NOTE: hyphens are not converted because we are forcing '&nbsp;' in the surrounding spaces (if any), therefore Notify doesn't think
+ * it's a sentence break.
+ * @param {string} str - Gracefully handles null, undefined and non-string values.
  */
-export function escapeNotifyContent(str) {
+export function escapeFileLabel(str) {
+  if (!validation.isString(str)) {
+    return ''
+  }
   return str
     .replaceAll(' ', '&nbsp;')
     .replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
 }
 
 /**
- * Prevent Markdown formatting by marking content as a 'code block'
- * @param {string} answer
+ * Prevent Markdown formatting by marking content as a 'code block'.
+ *
+ * NOTE: Line breaks are NOT preserved by Notify when using this method and it should be used for single lines only.
+ * Also, if you have two items immediately following each other which have been escaped using this method, then
+ * Notify will cause them to appear on the same line.
+ *
+ * WARNING: Triple backticks in the answer will be replaced with three backticks each separated by a space.
+ * @param {string|number} answer - Gracefully handles null and undefined values.
+ */
+export function escapeSingleLineAnswer(answer) {
+  if (validation.isUndefinedOrNull(answer)) {
+    return ''
+  }
+
+  if (validation.isNonEmptyString(answer)) {
+    // Need to prevent the answer from ending the escape sequence in Notify.
+    answer = answer.replaceAll('```', '` ` `')
+  }
+
+  return `\`\`\`\r\n${answer}\r\n\`\`\``
+}
+
+/**
+ * Escapes the parts of an answer which would otherwise be formatted as Markdown.
+ * @param {string} answer - Gracefully handles null, undefined and non-string values.
+ * @returns {string}
  */
 export function escapeAnswer(answer) {
-  return `\`\`\`\r\n${answer}\r\n\`\`\``
+  if (!validation.isString(answer)) {
+    return ''
+  }
+  return escapeMarkdown(answer)
+}
+
+/**
+ * Escapes a subject.
+ *
+ * Subjects are treated differently in Notify and different escaping rules apply.
+ * @param {string} subject - Gracefully handles null, undefined and non-string values.
+ * @returns {string}
+ */
+export function escapeSubject(subject) {
+  return escapeAnswer(subject)
 }
 
 /**

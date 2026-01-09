@@ -144,16 +144,16 @@ describe('Page controller helpers', () => {
       expect(output).toContain('* Frodo')
       expect(output).toContain('## Team Member')
       expect(output).toContain(
-        '[Download&nbsp;Team&nbsp;Member&nbsp;\\(CSV\\)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
+        '[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
       )
       expect(output).toContain('## Please add supporting evidence')
-      expect(output).toContain('Uploaded 1 file:')
+      expect(output).toContain('Uploaded 1 file')
       expect(output).toContain(
-        '* [supporting\\_evidence\\.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)'
+        '* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)'
       )
 
       expect(output).toContain(
-        '[Download main form \\(CSV\\)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
+        '[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
       )
       expect(output).toMatchSnapshot()
     })
