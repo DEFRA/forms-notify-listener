@@ -172,7 +172,7 @@ function processRepeaterEntries(
 
     // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
     for (const componentDef of repeaterPage.components.filter(
-      (componentDef) => 'title' in componentDef
+      (cd) => 'title' in cd
     )) {
       const componentName = componentDef.name
       const componentField = /** @type {Component} */ (
