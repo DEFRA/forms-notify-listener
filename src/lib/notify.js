@@ -100,11 +100,10 @@ export function escapeContent(str) {
   // Rule: A `-` character surrounded by spaces or tabs has those replaced with &nbsp;
   // Since tabs are already converted, we now handle spaces around hyphens
   // Match space(s) or &nbsp; sequences around a hyphen
-  result = result.replaceAll(/( |&nbsp;)+(-)( |&nbsp;)+/g, (match) => {
-    const hyphenIndex = match.indexOf('-')
-    const beforeSpaces = match.slice(0, hyphenIndex).replaceAll(' ', '&nbsp;')
-    const afterSpaces = match.slice(hyphenIndex + 1).replaceAll(' ', '&nbsp;')
-    return `${beforeSpaces}-${afterSpaces}`
+  // Note: Uses character class [ \u00A0] (space or non-breaking space) to avoid ReDoS vulnerability
+  // that would occur with alternation like ( |&nbsp;)+
+  result = result.replaceAll(/[ \u00A0]+-[ \u00A0]+/g, (match) => {
+    return match.replaceAll(' ', '&nbsp;')
   })
 
   // Rule: Where a period `.` or comma `,` has a leading space or tab character,
