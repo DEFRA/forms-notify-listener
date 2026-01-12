@@ -14,12 +14,7 @@ import { addDays } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
-import {
-  escapeAnswer,
-  escapeFileLabel,
-  escapeSingleLineAnswer,
-  escapeSubject
-} from '~/src/lib/notify.js'
+import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
   findRepeaterPageByKey,
   formatLocationField,
@@ -48,7 +43,7 @@ export function formatter(
 
   const formModel = new FormModel(formDefinition, { basePath: '' }, {})
 
-  const formName = escapeSubject(meta.formName)
+  const formName = escapeContent(meta.formName)
   /**
    * @todo Refactor this below but the code to
    * generate the question and answers works for now
@@ -67,7 +62,7 @@ export function formatter(
   const lines = []
 
   lines.push(
-    `^ For security reasons, the links in this email expire at ${escapeAnswer(formattedExpiryDate)}\n`
+    `^ For security reasons, the links in this email expire at ${escapeContent(formattedExpiryDate)}\n`
   )
 
   if (isPreview) {
@@ -75,7 +70,7 @@ export function formatter(
   }
 
   lines.push(
-    `${formName} form received at ${escapeAnswer(formattedNow)}.\n`,
+    `${formName} form received at ${escapeContent(formattedNow)}.\n`,
     '---\n'
   )
 
@@ -96,7 +91,7 @@ export function formatter(
 
     const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
 
-    const label = escapeAnswer(field.title)
+    const label = escapeContent(field.title)
     questionLines.push(`## ${label}\n`)
 
     if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
@@ -118,7 +113,7 @@ export function formatter(
     const questionLines = /**  @type {string[]}  */ ([])
 
     if (hasRepeater(repeaterPage)) {
-      const label = escapeAnswer(repeaterPage.repeat.options.title)
+      const label = escapeContent(repeaterPage.repeat.options.title)
       const componentKey = repeaterPage.repeat.options.name
 
       questionLines.push(`## ${label}\n`)
@@ -162,10 +157,10 @@ function formatFileUploadField(answer, _field, richFormValue) {
 
   // Skip empty files
   if (!formAdapterFiles.length) {
-    return `${escapeAnswer(answer)}\n`
+    return `${escapeContent(answer)}\n`
   }
 
-  let answerEscaped = `${escapeAnswer(answer)}:\n\n`
+  let answerEscaped = `${escapeContent(answer)}:\n\n`
 
   const fileUploadString = formAdapterFiles
     .map((file) => {
@@ -195,13 +190,13 @@ function formatListFormComponent(answer, field, richFormValue) {
 
   // Skip empty values
   if (!items.length) {
-    return `${escapeAnswer(answer)}\n`
+    return `${escapeContent(answer)}\n`
   }
 
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeAnswer(item.text)
-      const value = escapeAnswer(`(${item.value})`)
+      const label = escapeContent(item.text)
+      const value = escapeContent(`(${item.value})`)
 
       let line = label
 
@@ -267,7 +262,7 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   // Default handler for all other field types
-  return `${escapeSingleLineAnswer(answer)}\n`
+  return `${escapeContent(answer)}\n`
 }
 
 /**

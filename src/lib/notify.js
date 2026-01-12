@@ -1,4 +1,3 @@
-import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import { token } from '@hapi/jwt'
 
 import { config } from '~/src/config/index.js'
@@ -39,9 +38,7 @@ const serviceId = /** @type {string} */ (
 /*
   The escaping methods below should be used for the following:
   - escapeFileLabel: used for the filename text value when used in the Markdown format of [<filename>](<url>) (escapes any spaces so Notify doesn’t translate anything)
-  - escapeSingleLineAnswer: used to wrap any answer text in triple back-ticks. This ensures the content is escaped but things like URLs still remain usable. Only suitable for single lines of text.
-  - escapeAnswer: used to characters contained within an answer which would otherwise be formatted as Markdown.
-  - escapeSubject: used to escape email subject line by putting in backslashes since the subject line doesn’t render as HTML (whereas the body does render like HTML)
+  - escapeContent: use this to escape everything that isn't a filename or file label.
 */
 
 /**
@@ -65,49 +62,62 @@ export function escapeFileLabel(str) {
 }
 
 /**
- * Prevent Markdown formatting by marking content as a 'code block'.
- *
- * NOTE: Line breaks are NOT preserved by Notify when using this method and it should be used for single lines only.
- * Also, if you have two items immediately following each other which have been escaped using this method, then
- * Notify will cause them to appear on the same line.
- *
- * WARNING: Triple backticks in the answer will be replaced with three backticks each separated by a space.
- * @param {string|number} answer - Gracefully handles null and undefined values.
+ * Advanced escape function for Markdown content with the following rules:
+ * - A `-` or `*` or `#` character at the start of a line is escaped with a backslash.
+ * - Tab characters are replaced with 4 HTML encoded spaces (`&nbsp;`).
+ * - A `-` character surrounded by spaces or tabs has those spaces or tabs replaced with HTML encoded spaces (`&nbsp;`).
+ * - ``` being the only content on a single line is replaced with ` ` `
+ * - Where a period `.` or comma `,` has a leading space or tab character, the space is converted to `&nbsp;` and tabs to 4 `&nbsp;`.
+ * - Where a Markdown link is present (`[text](url)`), a space is inserted between the square brackets and round brackets.
+ * @param {string} str - Gracefully handles null, undefined and non-string values.
+ * @returns {string}
  */
-export function escapeSingleLineAnswer(answer) {
-  if (validation.isUndefinedOrNull(answer)) {
+export function escapeContent(str) {
+  if (!validation.isString(str)) {
     return ''
   }
 
-  if (validation.isNonEmptyString(answer)) {
-    // Need to prevent the answer from ending the escape sequence in Notify.
-    answer = answer.replaceAll('```', '` ` `')
-  }
+  // Process line by line to handle start-of-line rules
+  const lines = str.split('\n')
+  const processedLines = lines.map((line) => {
+    // Rule: ``` being the only content on a single line is replaced with ` ` `
+    if (line.trim() === '```') {
+      return line.replace('```', '` ` `')
+    }
 
-  return `\`\`\`\r\n${answer}\r\n\`\`\``
-}
+    // Rule: A `-` or `*` or `#` character at the start of a line is escaped with a backslash
+    const processedLine = line.replace(/^([-*#])/, String.raw`\$1`)
 
-/**
- * Escapes the parts of an answer which would otherwise be formatted as Markdown.
- * @param {string} answer - Gracefully handles null, undefined and non-string values.
- * @returns {string}
- */
-export function escapeAnswer(answer) {
-  if (!validation.isString(answer)) {
-    return ''
-  }
-  return escapeMarkdown(answer)
-}
+    return processedLine
+  })
 
-/**
- * Escapes a subject.
- *
- * Subjects are treated differently in Notify and different escaping rules apply.
- * @param {string} subject - Gracefully handles null, undefined and non-string values.
- * @returns {string}
- */
-export function escapeSubject(subject) {
-  return escapeAnswer(subject)
+  let result = processedLines.join('\n')
+
+  // Rule: Tab characters are replaced with 4 HTML encoded spaces
+  // (Must be done before the hyphen-surrounded-by-whitespace rule)
+  result = result.replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
+
+  // Rule: A `-` character surrounded by spaces or tabs has those replaced with &nbsp;
+  // Since tabs are already converted, we now handle spaces around hyphens
+  // Match space(s) or &nbsp; sequences around a hyphen
+  result = result.replaceAll(/( |&nbsp;)+(-)( |&nbsp;)+/g, (match) => {
+    const hyphenIndex = match.indexOf('-')
+    const beforeSpaces = match.slice(0, hyphenIndex).replaceAll(' ', '&nbsp;')
+    const afterSpaces = match.slice(hyphenIndex + 1).replaceAll(' ', '&nbsp;')
+    return `${beforeSpaces}-${afterSpaces}`
+  })
+
+  // Rule: Where a period `.` or comma `,` has a leading space or tab character,
+  // the space is converted to &nbsp; (tabs already converted above)
+  result = result.replaceAll(/ ([.,])/g, '&nbsp;$1')
+
+  // Rule: Where a Markdown link is present, insert space between ] and (
+  // Match [text](url) pattern and convert to [text] (url)
+  // Also handle HTML entity encoded brackets: &rsqb; (]) and &lpar; (()
+  result = result.replaceAll(/](\()/g, '] (')
+  result = result.replaceAll(/&rsqb;(&lpar;)/gi, '&rsqb; &lpar;')
+
+  return result
 }
 
 /**

@@ -5,7 +5,7 @@ import * as Components from '@defra/forms-engine-plugin/engine/components/index.
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 
-import { escapeAnswer, escapeFileLabel } from '~/src/lib/notify.js'
+import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { getRelevantPagesForLegacy } from '~/src/service/mappers/formatters/human/v1.js'
 import {
   findRepeaterPageByKey,
@@ -71,7 +71,7 @@ function processMainEntries(formSubmissionMessage, formModel) {
     }
 
     const questionLines = /** @type {string[]} */ ([])
-    const label = escapeAnswer(field.title)
+    const label = escapeContent(field.title)
 
     // Questions use heading level 1 (#)
     questionLines.push(`# ${label}\n`)
@@ -101,7 +101,7 @@ function processRepeaterComponent(
   repeaterItems
 ) {
   const questionLines = /** @type {string[]} */ ([])
-  const componentLabel = escapeAnswer(componentField.title)
+  const componentLabel = escapeContent(componentField.title)
 
   // Question text uses heading level 1 (#)
   questionLines.push(`# ${componentLabel}\n`)
@@ -125,7 +125,7 @@ function processRepeaterComponent(
       componentField.getDisplayStringFromFormValue(componentValue)
 
     // Repeater item label uses heading level 2 (##)
-    questionLines.push(`## ${escapeAnswer(itemLabel)}\n`)
+    questionLines.push(`## ${escapeContent(itemLabel)}\n`)
 
     // Answer beneath with blank line separation
     questionLines.push(
@@ -161,7 +161,7 @@ function processRepeaterEntries(
       continue
     }
 
-    const repeaterTitle = escapeAnswer(repeaterPage.repeat.options.title)
+    const repeaterTitle = escapeContent(repeaterPage.repeat.options.title)
     const repeaterItems = /** @type {Record<string, RichFormValue>[]} */ (
       repeaterData
     )
@@ -256,7 +256,7 @@ function formatFileUploadField(answer, _field, richFormValue) {
 
   // Skip empty files
   if (!formAdapterFiles.length) {
-    return `${escapeAnswer(answer)}\n`
+    return `${escapeContent(answer)}\n`
   }
 
   // Single file: no bullet point
@@ -298,13 +298,13 @@ function formatListFormComponent(_answer, field, richFormValue) {
 
   // Single answer: no bullet point
   if (items.length === 1) {
-    return `${escapeAnswer(items[0].text)}\n`
+    return `${escapeContent(items[0].text)}\n`
   }
 
   // Multiple answers: use bullet points
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeAnswer(item.text)
+      const label = escapeContent(item.text)
       return `* ${label}\n`
     })
     .join('')
@@ -357,7 +357,7 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   // Default handler for all other field types
-  return `${escapeAnswer(answer)}\n`
+  return `${escapeContent(answer)}\n`
 }
 
 /**

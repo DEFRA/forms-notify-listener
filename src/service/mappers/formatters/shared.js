@@ -1,6 +1,6 @@
 import { hasRepeater } from '@defra/forms-model'
 
-import { escapeAnswer } from '~/src/lib/notify.js'
+import { escapeContent } from '~/src/lib/notify.js'
 
 /**
  * Finds a repeater page by its key (repeat.options.name)
@@ -24,7 +24,7 @@ export function formatMultilineTextField(answer, _field, _richFormValue) {
   // Preserve Multiline text new lines
   return answer
     .split(/(?:\r?\n)+/)
-    .map(escapeAnswer)
+    .map(escapeContent)
     .join('\n')
     .concat('\n')
 }
@@ -39,7 +39,7 @@ export function formatMultilineTextField(answer, _field, _richFormValue) {
 export function formatUkAddressField(_answer, field, richFormValue) {
   // Format UK addresses into new lines
   return (field.getContextValueFromFormValue(richFormValue) ?? [])
-    .map(escapeAnswer)
+    .map(escapeContent)
     .join('\n')
     .concat('\n')
 }
