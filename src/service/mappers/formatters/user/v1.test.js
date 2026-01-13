@@ -165,6 +165,14 @@ describe('User answers formatter v1', () => {
       expect(output).toContain('Line 1\nLine 2\nLine 3')
     })
 
+    it('should handle multiline text with triple backticks', () => {
+      const definition = buildDefinition(pizzaFormDefinition)
+      const output = formatter(pizzaMessage, definition)
+
+      // Multiline text with triple backticks should have them escaped to prevent Notify markdown interpretation
+      expect(output).toContain('Line 1\n` ` `\nLine 2\n` ` `\nLine 3')
+    })
+
     it('should maintain component order from form definition', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
       const output = formatter(exampleNotifyFormMessage, definition)

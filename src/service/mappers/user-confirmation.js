@@ -1,6 +1,5 @@
-import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
-
 import { format as dateFormat } from '~/src/helpers/date.js'
+import { escapeContent } from '~/src/lib/notify.js'
 import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
 
 const submisionGuidancePlaceholder =
@@ -48,7 +47,7 @@ ${formattedAnswers}
 
   return `
 # Form submitted
-We received your form submission for &lsquo;${formName}&rsquo; at ${formattedSubmissionDate}.
+We received your form submission for &lsquo;${escapeContent(formName)}&rsquo; at ${formattedSubmissionDate}.
 
 ## What happens next
 ${submissionGuidance ?? submisionGuidancePlaceholder}
@@ -61,7 +60,7 @@ Find a copy of your answers at the bottom of this email.
 
 Do not reply to this email. We do not monitor replies to this email address.
 
-From ${escapeMarkdown(organisation)}
+From ${escapeContent(organisation)}
 ${answersSection}
 `
 }

@@ -18,7 +18,7 @@ Text can be escaped using triple backticks. This will prevent any Markdown forma
 
 ### Previous Markdown Escape Function
 
-A previous Markdown escape function used a naive approach to escape Markdown formatting characters. It escaped all characters from a special list with a backslash. This caused issues whereby content that did not need to be escaped rendered the backslash as a literal character. Eg `2 * 2` becomes `2 \* 2`.
+A previous Markdown escape function used a naive approach to escape Markdown formatting characters. It escaped all characters from a special list with a backslash. This could cause issues, depending on the context around the character, whereby content that did not need to be escaped rendered the backslash as a literal character. Eg `2 * 2` becomes `2 \* 2`.
 
 ### New Markdown Escape Function
 
@@ -26,7 +26,7 @@ A more advanced escape function was required and has been developed with the fol
 
 - A `-` or `*` or `#` character at the start of a line is escaped with a backslash.
 - Tab characters are replaced with 4 HTML encoded spaces (`&nbsp;`).
-- A `-` character surrounded by spaces or tabs is has those spaces or tabs replaced with HTML encoded spaces (`&nbsp;`).
+- A `-` character surrounded by spaces or tabs has the immediate spaces or tabs replaced with HTML encoded spaces (`&nbsp;`).
 - ` ``` ` being the only content on a single line is replaced with `` ` ` ` ``
 - Where a period `.` or comma `,` has a leading space or tab character, then the space is converted to a HTML non-breaking space (`&nbsp;`) and the tab character is converted to 4 HTML encoded spaces.
 - Where a Markdown link is present (`[text](url)`), then this is broken up by inserting a space between the square brackets and the round brackets (eg `[text](url)` becomes `[text] (url)`).

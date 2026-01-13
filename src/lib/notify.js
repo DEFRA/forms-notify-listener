@@ -97,14 +97,10 @@ export function escapeContent(str) {
   // (Must be done before the hyphen-surrounded-by-whitespace rule)
   result = result.replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
 
-  // Rule: A `-` character surrounded by spaces or tabs has those replaced with &nbsp;
+  // Rule: A `-` character surrounded by spaces or tabs has the immediate spaces or tabs replaced with &nbsp;
   // Since tabs are already converted, we now handle spaces around hyphens
-  // Match space(s) or &nbsp; sequences around a hyphen
-  // Note: Uses character class [ \u00A0] (space or non-breaking space) to avoid ReDoS vulnerability
-  // that would occur with alternation like ( |&nbsp;)+
-  result = result.replaceAll(/[ \u00A0]+-[ \u00A0]+/g, (match) => {
-    return match.replaceAll(' ', '&nbsp;')
-  })
+  // Prevents conversion to em-dash
+  result = result.replaceAll(' - ', '&nbsp;-&nbsp;')
 
   // Rule: Where a period `.` or comma `,` has a leading space or tab character,
   // the space is converted to &nbsp; (tabs already converted above)

@@ -161,10 +161,8 @@ describe('Utils: Notify', () => {
       expect(escapeContent('word - word')).toBe('word&nbsp;-&nbsp;word')
     })
 
-    it('should replace multiple spaces around hyphens with non-breaking spaces', () => {
-      expect(escapeContent('word  -  word')).toBe(
-        'word&nbsp;&nbsp;-&nbsp;&nbsp;word'
-      )
+    it('should replace immediate spaces around hyphens with non-breaking spaces', () => {
+      expect(escapeContent('word  -  word')).toBe('word &nbsp;-&nbsp; word')
     })
 
     it('should replace triple backticks on their own line with spaced backticks', () => {

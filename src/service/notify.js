@@ -1,4 +1,3 @@
-import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import {
   getErrorMessage,
   isFeedbackForm,
@@ -83,7 +82,7 @@ export async function sendInternalEmail(
   // Get submission email personalisation
   logger.info(logTags, 'Getting personalisation data - submission email')
 
-  const formName = escapeMarkdown(messageMeta.formName)
+  const formName = messageMeta.formName
 
   const subject = messageMeta.isPreview
     ? `TEST FORM SUBMISSION: ${formName}`
@@ -145,7 +144,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
   // Get confirmation email personalisation
   logger.info(logTags, 'Getting personalisation data - user confirmation email')
 
-  const formName = escapeMarkdown(meta.formName)
+  const formName = meta.formName
 
   const [formMetadata, definitionPreConverted] = await Promise.all([
     getFormMetadata(meta.formId),
