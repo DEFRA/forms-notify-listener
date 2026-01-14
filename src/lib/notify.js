@@ -99,7 +99,7 @@ export function escapeContent(str) {
 
   // Rule: A `-` character surrounded by spaces or tabs has the immediate spaces or tabs replaced with &nbsp;
   // Since tabs are already converted, we now handle spaces around hyphens
-  // Prevents conversion to em-dash
+  // Prevents conversion to en-dash
   result = result.replaceAll(' - ', '&nbsp;-&nbsp;')
 
   // Rule: Where a period `.` or comma `,` has a leading space or tab character,

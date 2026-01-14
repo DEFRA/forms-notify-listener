@@ -10,8 +10,7 @@ export const isString = (value) => typeof value === 'string'
  * @param {unknown} value - The value to check.
  * @returns {value is string} True if the value is a non-empty string.
  */
-export const isNonEmptyString = (value) =>
-  typeof value === 'string' && value.length > 0
+export const isNonEmptyString = (value) => isString(value) && value.length > 0
 
 /**
  * Checks if a value is undefined or null.
