@@ -30,6 +30,9 @@ A more advanced escape function was required and has been developed with the fol
 - ` ``` ` being the only content on a single line is replaced with `` ` ` ` ``
 - Where a period `.` or comma `,` has a leading space or tab character, then the space is converted to a HTML non-breaking space (`&nbsp;`) and the tab character is converted to 4 HTML encoded spaces.
 - Where a Markdown link is present (`[text](url)`), then this is broken up by inserting a space between the square brackets and the round brackets (eg `[text](url)` becomes `[text] (url)`).
+- Single and double quotes are escaped with a backslash (eg `'` becomes `\'` and `"` becomes `\"`), first escaping any backslashes that would be escape characters for the quotes.
+  - WARNING: Notify only supports up to 2 consecutive backslashes before quotes without formating issues and supporting that adds needless complexity.
+  - NOTE: When escaping the backslash in `\'` for Notify, it needs to be escaped with an additional two backslashes, because Notify treats `\\'` the same as `\'` which results in no backslash in the final output.
 
 ### E-mail Body Content to Test Escaping
 

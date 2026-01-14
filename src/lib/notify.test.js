@@ -206,5 +206,40 @@ describe('Utils: Notify', () => {
     it('should handle HTML entity encoded markdown links', () => {
       expect(escapeContent('text&rsqb;&lpar;url')).toBe('text&rsqb; &lpar;url')
     })
+
+    it('should escape single quotes with a backslash', () => {
+      expect(escapeContent("it's")).toBe("it\\'s")
+    })
+
+    it('should escape double quotes with a backslash', () => {
+      expect(escapeContent('say "hello"')).toBe('say \\"hello\\"')
+    })
+
+    it('should escape both single and double quotes', () => {
+      expect(escapeContent(`"it's" a test`)).toBe(`\\"it\\'s\\" a test`)
+    })
+
+    it('should escape a backslash preceding a single quote', () => {
+      // Input: it\'s (1 backslash before quote)
+      // The backslash-quote is escaped to 4 backslashes + quote, then the quote gets escaped to backslash + quote
+      // Result: it followed by 4 backslashes + backslash + quote + s = 5 backslashes before quote
+      const input = "it\\'s"
+      const result = escapeContent(input)
+      expect(result).toBe("it\\\\\\\\\\'s")
+    })
+
+    it('should escape a backslash preceding a double quote', () => {
+      // Input: say \"hello\" (1 backslash before each quote)
+      const input = 'say \\"hello\\"'
+      const result = escapeContent(input)
+      expect(result).toBe('say \\\\\\\\\\"hello\\\\\\\\\\"')
+    })
+
+    it('should escape multiple backslash-quote sequences', () => {
+      // Input: He said: \"it\'s fine\"
+      const input = 'He said: \\"it\\\'s fine\\"'
+      const result = escapeContent(input)
+      expect(result).toBe('He said: \\\\\\\\\\"it\\\\\\\\\\\'s fine\\\\\\\\\\"')
+    })
   })
 })

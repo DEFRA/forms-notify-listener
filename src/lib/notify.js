@@ -69,6 +69,13 @@ export function escapeFileLabel(str) {
  * - ``` being the only content on a single line is replaced with ` ` `
  * - Where a period `.` or comma `,` has a leading space or tab character, the space is converted to `&nbsp;` and tabs to 4 `&nbsp;`.
  * - Where a Markdown link is present (`[text](url)`), a space is inserted between the square brackets and round brackets.
+ * - Single quotes (`'`) and double quotes (`"`) are escaped with a backslash (first escaping any backslashes that would be escape characters for the quotes).
+ *
+ * WARNING: This function has limitations and may not cover all edge cases for Notify. One known limitation is that it does not handle multiple backslashes preceding quotes
+ * because to do so would add complexity and Notify only supports up to 2 consecutive backslashes before quotes without formating issues.
+ *
+ * NOTE: When escaping the backslash in `\'` for Notify, it needs to be escaped with an additional two backslashes, because Notify treats `\\'` the same as `\'` which results
+ * in no backslash in the final output.
  * @param {string} str - Gracefully handles null, undefined and non-string values.
  * @returns {string}
  */
@@ -111,6 +118,12 @@ export function escapeContent(str) {
   // Also handle HTML entity encoded brackets: &rsqb; (]) and &lpar; (()
   result = result.replaceAll(/](\()/g, '] (')
   result = result.replaceAll(/&rsqb;(&lpar;)/gi, '&rsqb; &lpar;')
+
+  // Rule: Single and double quotes are escaped with a backslash, but escape backslashes that would be escape characters first.
+  result = result.replaceAll("\\'", String.raw`\\\\'`)
+  result = result.replaceAll('\\"', String.raw`\\\\"`)
+  result = result.replaceAll("'", String.raw`\'`)
+  result = result.replaceAll('"', String.raw`\"`)
 
   return result
 }
