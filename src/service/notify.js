@@ -25,14 +25,13 @@ export async function sendNotifyEmails(formSubmissionMessage) {
   const {
     formId,
     notificationEmail: emailAddress,
-    status,
-    versionMetadata
+    status
   } = formSubmissionMessage.meta
 
   const definitionPreConverted = await getFormDefinition(
     formId,
     status,
-    versionMetadata?.versionNumber
+    undefined // TODO re-enable once we have a proper fix for 20260115 issue: versionMetadata?.versionNumber
   )
 
   if (isFeedbackForm(definitionPreConverted)) {
