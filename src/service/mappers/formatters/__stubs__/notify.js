@@ -420,7 +420,7 @@ export const pizzaMessage = buildFormAdapterSubmissionMessage({
     main: {
       orderTypeQuestionComponentName: 'delivery',
       multilineTextField: 'Line 1\r\nLine 2\r\nLine 3',
-      multilineTextFieldTwo: 'Line 1\r\n\r\nLine 2\r\n\r\n\r\nLine 3'
+      multilineTextFieldTwo: 'Line 1\r\n```\r\nLine 2\r\n```\r\nLine 3'
     },
     repeaters: {
       // quantityRepeaterComponentName: [

@@ -1,0 +1,151 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`User answers formatter v1 formatter should match snapshot for pizza form 1`] = `
+"# Toppings
+
+## Pizza 1
+
+Ham
+
+## Pizza 2
+
+Pepperoni
+
+# Quantity
+
+## Pizza 1
+
+2
+
+## Pizza 2
+
+1
+
+# How would you like to receive your pizza?
+
+Delivery
+
+# Multiline Text field
+
+Line 1
+Line 2
+Line 3
+
+# Multiline Text field 2
+
+Line 1
+\` \` \`
+Line 2
+\` \` \`
+Line 3"
+`;
+
+exports[`User answers formatter v1 formatter should match snapshot for standard form 1`] = `
+"# What is your name?
+
+Someone
+
+# What is your address?
+
+1 Anywhere Street
+Anywhereville
+Anywhereshire
+AN1 2WH
+
+# What is your date of birth?
+
+1 January 2000
+
+# What month is it?
+
+August 2025
+
+# What is the team member\\'s name?
+
+## Team Member 1
+
+Frodo
+
+## Team Member 2
+
+Gandalf
+
+# What is the team member\\'s date of birth?
+
+## Team Member 1
+
+1 January 2000
+
+## Team Member 2
+
+1 January 2020
+
+# Who are your favourite LotR characters?
+
+* Gandalf
+* Frodo
+
+# Please add supporting evidence
+
+supporting_evidence.pdf"
+`;
+
+exports[`User answers formatter v1 legacy V1 engine forms should match snapshot for legacy V1 form 1`] = `
+"# Your age
+
+4
+
+# Country of birth
+
+England
+
+# First name
+
+John
+
+# Last name
+
+Doe
+
+# First name
+
+## person 1
+
+Jane
+
+## person 2
+
+Janet
+
+# Last name
+
+## person 1
+
+Doe
+
+## person 2
+
+Doe
+
+# When did they leave the UK?
+
+## person 1
+
+January 2000
+
+## person 2
+
+January 2000
+
+# Passport number
+
+23423
+
+# Number of people in your household
+
+543
+
+# Upload proof of address
+
+bank_statement.pdf"
+`;

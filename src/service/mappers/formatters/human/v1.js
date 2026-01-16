@@ -2,7 +2,6 @@ import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/Rep
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
-import { escapeMarkdown } from '@defra/forms-engine-plugin/engine/components/helpers/index.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
@@ -15,22 +14,17 @@ import { addDays } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
-import { escapeAnswer, escapeNotifyContent } from '~/src/lib/notify.js'
+import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+import {
+  findRepeaterPageByKey,
+  formatLocationField,
+  formatMultilineTextField,
+  formatUkAddressField
+} from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
 
 const FILE_EXPIRY_OFFSET = 90
-
-/**
- *
- * @param {string} key
- * @param {FormDefinition} formDefinition
- */
-function findRepeaterPageByKey(key, formDefinition) {
-  return formDefinition.pages.find((page) => {
-    return hasRepeater(page) && page.repeat.options.name === key
-  })
-}
 
 /**
  * Human readable notify formatter v1
@@ -49,7 +43,7 @@ export function formatter(
 
   const formModel = new FormModel(formDefinition, { basePath: '' }, {})
 
-  const formName = escapeMarkdown(meta.formName)
+  const formName = escapeContent(meta.formName)
   /**
    * @todo Refactor this below but the code to
    * generate the question and answers works for now
@@ -68,7 +62,7 @@ export function formatter(
   const lines = []
 
   lines.push(
-    `^ For security reasons, the links in this email expire at ${escapeMarkdown(formattedExpiryDate)}\n`
+    `^ For security reasons, the links in this email expire at ${escapeContent(formattedExpiryDate)}\n`
   )
 
   if (isPreview) {
@@ -76,7 +70,7 @@ export function formatter(
   }
 
   lines.push(
-    `${formName} form received at ${escapeMarkdown(formattedNow)}.\n`,
+    `${formName} form received at ${escapeContent(formattedNow)}.\n`,
     '---\n'
   )
 
@@ -97,7 +91,7 @@ export function formatter(
 
     const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
 
-    const label = escapeMarkdown(field.title)
+    const label = escapeContent(field.title)
     questionLines.push(`## ${label}\n`)
 
     if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
@@ -119,14 +113,12 @@ export function formatter(
     const questionLines = /**  @type {string[]}  */ ([])
 
     if (hasRepeater(repeaterPage)) {
-      const label = escapeMarkdown(repeaterPage.repeat.options.title)
+      const label = escapeContent(repeaterPage.repeat.options.title)
       const componentKey = repeaterPage.repeat.options.name
 
       questionLines.push(`## ${label}\n`)
 
-      const repeaterFilename = escapeMarkdown(
-        escapeNotifyContent(`Download ${label} (CSV)`)
-      )
+      const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
       questionLines.push(
         `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
         '---\n'
@@ -143,7 +135,7 @@ export function formatter(
     }
   }
 
-  const mainResultFilename = escapeMarkdown('Download main form (CSV)')
+  const mainResultFilename = escapeFileLabel('Download main form (CSV)')
   lines.push(
     `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
   )
@@ -165,16 +157,14 @@ function formatFileUploadField(answer, _field, richFormValue) {
 
   // Skip empty files
   if (!formAdapterFiles.length) {
-    return `${escapeMarkdown(answer)}\n`
+    return `${escapeContent(answer)}\n`
   }
 
-  let answerEscaped = `${escapeMarkdown(answer)}:\n\n`
+  let answerEscaped = `${escapeContent(answer)}:\n\n`
 
   const fileUploadString = formAdapterFiles
     .map((file) => {
-      const fileUploadFilename = escapeMarkdown(
-        escapeNotifyContent(file.fileName)
-      )
+      const fileUploadFilename = escapeFileLabel(file.fileName)
       return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
     })
     .join('')
@@ -200,13 +190,13 @@ function formatListFormComponent(answer, field, richFormValue) {
 
   // Skip empty values
   if (!items.length) {
-    return `${escapeMarkdown(answer)}\n`
+    return `${escapeContent(answer)}\n`
   }
 
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeMarkdown(item.text)
-      const value = escapeMarkdown(`(${item.value})`)
+      const label = escapeContent(item.text)
+      const value = escapeContent(`(${item.value})`)
 
       let line = label
 
@@ -224,49 +214,6 @@ function formatListFormComponent(answer, field, richFormValue) {
     .join('')
 
   return formattedItems
-}
-
-/**
- * Format multiline text field
- * @param {string} answer
- * @param {Component} _field
- * @param {RichFormValue} _richFormValue
- * @returns {string}
- */
-function formatMultilineTextField(answer, _field, _richFormValue) {
-  // Preserve Multiline text new lines
-  return answer
-    .split(/(?:\r?\n)+/)
-    .map(escapeMarkdown)
-    .join('\n')
-    .concat('\n')
-}
-
-/**
- * Format UK address field
- * @param {string} _answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatUkAddressField(_answer, field, richFormValue) {
-  // Format UK addresses into new lines
-  return (field.getContextValueFromFormValue(richFormValue) ?? [])
-    .map(escapeMarkdown)
-    .join('\n')
-    .concat('\n')
-}
-
-/**
- * Format location coordinate fields (Easting/Northing or Lat/Long)
- * @param {string} _answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatLocationField(_answer, field, richFormValue) {
-  const contextValue = field.getContextValueFromFormValue(richFormValue)
-  return contextValue ? `${contextValue}\n` : ''
 }
 
 /**
@@ -315,7 +262,7 @@ function generateFieldLine(answer, field, richFormValue) {
   }
 
   // Default handler for all other field types
-  return `${escapeAnswer(answer)}\n`
+  return `${escapeContent(answer)}\n`
 }
 
 /**
@@ -386,7 +333,7 @@ function mapFormAdapterFileToFileState(file) {
         contentLength: 0,
         fileStatus: FileStatus.complete,
         fileId: file.fileId,
-        filename: escapeNotifyContent(file.fileName)
+        filename: escapeFileLabel(file.fileName)
       }
     },
     uploadStatus: UploadStatus.ready,
