@@ -37,6 +37,7 @@ describe('user-confirmation', () => {
       `
 # Form submitted
 ^ Your reference number: 576-225-943
+
 We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
 ## What happens next
