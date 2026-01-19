@@ -182,6 +182,34 @@ describe('Page controller helpers', () => {
       expect(output).toMatchSnapshot()
     })
 
+    it('should return a valid human readable v1 response with reference number', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        },
+        options: {
+          showReferenceNumber: true
+        }
+      })
+      const formatter = getFormatter('human', '1')
+      const output = formatter(
+        buildFormAdapterSubmissionMessage({
+          ...exampleNotifyFormMessage,
+          meta: buildFormAdapterSubmissionMessageMetaStub({
+            ...exampleNotifyFormMessage.meta,
+            isPreview: true
+          })
+        }),
+        definition,
+        '1'
+      )
+
+      expect(output).toContain('Reference number: 874-C7C-D60')
+      expect(output).toMatchSnapshot()
+    })
+
     it('should return a valid human readable v1 response in Draft mode', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,

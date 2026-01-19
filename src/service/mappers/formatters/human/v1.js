@@ -74,6 +74,12 @@ export function formatter(
     '---\n'
   )
 
+  if (formDefinition.options?.showReferenceNumber) {
+    lines.push(
+      `^ Reference number: ${formSubmissionMessage.meta.referenceNumber}\n`
+    )
+  }
+
   const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
