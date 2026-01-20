@@ -312,3 +312,74 @@ Uploaded 1 file:
 Thanks,
 Defra"
 `;
+
+exports[`Page controller helpers format should return a valid human readable v1 response with reference number 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+
+This is a test of the Example notify form live form.
+
+Example notify form form received at 12:00am on 2 April 2025.
+
+---
+
+^ Reference number: 874-C7C-D60
+
+## What is your name?
+
+Someone
+
+---
+
+## Additional details
+
+---
+
+## What is your address?
+
+1 Anywhere Street
+Anywhereville
+Anywhereshire
+AN1 2WH
+
+---
+
+## What is your date of birth?
+
+1 January 2000
+
+---
+
+## What month is it?
+
+August 2025
+
+---
+
+## Team Member
+
+[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)
+
+---
+
+## Who are your favourite LotR characters?
+
+* Gandalf
+* Frodo
+
+---
+
+## Please add supporting evidence
+
+Uploaded 1 file:
+
+* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
+
+
+
+Thanks,
+Defra"
+`;

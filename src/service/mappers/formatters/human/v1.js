@@ -27,6 +27,17 @@ const designerUrl = config.get('designerUrl')
 const FILE_EXPIRY_OFFSET = 90
 
 /**
+ * @param {FormDefinition} definition
+ * @param {FormAdapterSubmissionMessage} message
+ * @param {string[]} lines
+ */
+export function handleReferenceNumber(definition, message, lines) {
+  if (definition.options?.showReferenceNumber) {
+    lines.push(`^ Reference number: ${message.meta.referenceNumber}\n`)
+  }
+}
+
+/**
  * Human readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
@@ -73,6 +84,8 @@ export function formatter(
     `${formName} form received at ${escapeContent(formattedNow)}.\n`,
     '---\n'
   )
+
+  handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
   const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
