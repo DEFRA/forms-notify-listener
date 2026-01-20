@@ -33,6 +33,7 @@ A more advanced escape function was required and has been developed with the fol
 - Single and double quotes are escaped with a backslash (eg `'` becomes `\'` and `"` becomes `\"`), first escaping any backslashes that would be escape characters for the quotes.
   - WARNING: Notify only supports up to 2 consecutive backslashes before quotes without formating issues and supporting that adds needless complexity.
   - NOTE: When escaping the backslash in `\'` for Notify, it needs to be escaped with an additional two backslashes, because Notify treats `\\'` the same as `\'` which results in no backslash in the final output.
+- A number followed by a period at the start of a line is escaped with a backslash (eg `1.` becomes `\1.`).
 
 ### E-mail Body Content to Test Escaping
 
@@ -102,5 +103,14 @@ _ abc _ def abc_ def abc _def abc_def abc	_	def
 
 ## Exclamation (!)
 ! abc ! def abc! def abc !def abc!def abc	!	def
+
+## Numbered List
+1.1 First item
+
+2. Second item
+
+3.2	Third item
+
+  4. Fourth item with leading spaces
 `
 ```

@@ -241,5 +241,65 @@ describe('Utils: Notify', () => {
       const result = escapeContent(input)
       expect(result).toBe('He said: \\\\\\\\\\"it\\\\\\\\\\\'s fine\\\\\\\\\\"')
     })
+
+    it('should escape period after number at start of line', () => {
+      expect(escapeContent('1.1 abc')).toBe('1\\.1 abc')
+    })
+
+    it('should escape period after number at start of line with no following content', () => {
+      expect(escapeContent('3.')).toBe('3\\.')
+    })
+
+    it('should not escape period when space between number and period at start of line', () => {
+      expect(escapeContent('1 . abc')).toBe('1&nbsp;. abc')
+    })
+
+    it('should not escape number-period sequence in the middle of text', () => {
+      expect(escapeContent('abc 1.1 hello')).toBe('abc 1.1 hello')
+    })
+
+    it('should escape number-period on multiple lines', () => {
+      expect(escapeContent('1. first\n2. second\n3. third')).toBe(
+        '1\\. first\n2\\. second\n3\\. third'
+      )
+    })
+
+    it('should escape multi-digit number followed by period at start of line', () => {
+      expect(escapeContent('123.456')).toBe('123\\.456')
+    })
+
+    it('should escape hyphen with leading spaces', () => {
+      expect(escapeContent('  - list item')).toBe('  \\- list item')
+    })
+
+    it('should escape hyphen with leading tab', () => {
+      expect(escapeContent('\t- list item')).toBe(
+        '&nbsp;&nbsp;&nbsp;&nbsp;\\- list item'
+      )
+    })
+
+    it('should escape asterisk with leading spaces', () => {
+      expect(escapeContent('   *bold')).toBe('   \\*bold')
+    })
+
+    it('should escape hash with leading spaces', () => {
+      expect(escapeContent('  #heading')).toBe('  \\#heading')
+    })
+
+    it('should escape number-period with leading spaces', () => {
+      expect(escapeContent('  1. item')).toBe('  1\\. item')
+    })
+
+    it('should escape number-period with leading tab', () => {
+      expect(escapeContent('\t1. item')).toBe(
+        '&nbsp;&nbsp;&nbsp;&nbsp;1\\. item'
+      )
+    })
+
+    it('should escape indented numbered list across multiple lines', () => {
+      expect(escapeContent('  1. first\n  2. second')).toBe(
+        '  1\\. first\n  2\\. second'
+      )
+    })
   })
 })

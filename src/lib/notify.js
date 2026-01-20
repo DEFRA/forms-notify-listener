@@ -63,7 +63,8 @@ export function escapeFileLabel(str) {
 
 /**
  * Advanced escape function for Markdown content with the following rules:
- * - A `-` or `*` or `#` character at the start of a line is escaped with a backslash.
+ * - A `-` or `*` or `#` character at the start of a line (ignoring leading whitespace) is escaped with a backslash.
+ * - A number immediately followed by a period at the start of a line (ignoring leading whitespace) has the period escaped with a backslash (e.g., `1.` becomes `1\.`).
  * - Tab characters are replaced with 4 HTML encoded spaces (`&nbsp;`).
  * - A `-` character surrounded by spaces or tabs has those spaces or tabs replaced with HTML encoded spaces (`&nbsp;`).
  * - ``` being the only content on a single line is replaced with ` ` `
@@ -92,8 +93,14 @@ export function escapeContent(str) {
       return line.replace('```', '` ` `')
     }
 
-    // Rule: A `-` or `*` or `#` character at the start of a line is escaped with a backslash
-    const processedLine = line.replace(/^([-*#])/, String.raw`\$1`)
+    // Rule: A `-` or `*` or `#` character at the start of a line (allowing leading whitespace) is escaped with a backslash
+    let processedLine = line.replace(/^([ \t]*)([-*#])/, String.raw`$1\$2`)
+
+    // Rule: A number immediately followed by a period at the start of a line (allowing leading whitespace) has the period escaped
+    processedLine = processedLine.replace(
+      /^([ \t]*)(\d+)\./,
+      String.raw`$1$2\.`
+    )
 
     return processedLine
   })
