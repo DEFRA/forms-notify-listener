@@ -338,8 +338,16 @@ describe('Page controller helpers', () => {
         }
       })
 
+      const messageWithNoPayments = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          payments: undefined
+        }
+      })
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(exampleNotifyFormMessage, definition, '1')
+      const output = formatter(messageWithNoPayments, definition, '1')
 
       expect(output).not.toContain('# Payment details')
       expect(output).not.toContain('## Payment for')

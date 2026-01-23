@@ -16,6 +16,7 @@ import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
+  extractPaymentDetails,
   findRepeaterPageByKey,
   formatLocationField,
   formatMultilineTextField,
@@ -463,42 +464,8 @@ export function getRelevantPagesForLegacy(
 }
 
 /**
- * Extracts payment details from the submission message if a payment exists
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @returns {{ description: string, amount: number, dateOfPayment: string } | undefined}
- */
-function extractPaymentDetails(formSubmissionMessage) {
-  const { payments } = formSubmissionMessage.data
-
-  if (!payments || Object.keys(payments).length === 0) {
-    return undefined
-  }
-
-  // Get the first payment (forms typically have one payment)
-  const paymentKey = Object.keys(payments)[0]
-  const payment = payments[paymentKey]
-
-  if (!payment) {
-    return undefined
-  }
-
-  // Format the date of payment
-  let dateOfPayment = ''
-  if (payment.createdAt) {
-    const date = new Date(payment.createdAt)
-    dateOfPayment = `${dateFormat(date, 'h:mmaaa')} on ${dateFormat(date, 'd MMMM yyyy')}`
-  }
-
-  return {
-    description: payment.description,
-    amount: payment.amount,
-    dateOfPayment
-  }
-}
-
-/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, FormAdapterPayment, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
