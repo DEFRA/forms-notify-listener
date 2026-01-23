@@ -153,6 +153,20 @@ export function formatter(
     `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
   )
 
+  // Add payment details section if payment exists
+  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+  if (paymentDetails) {
+    lines.push('---\n')
+    lines.push('# Payment details\n')
+    lines.push('## Payment for\n')
+    lines.push(`${escapeContent(paymentDetails.description)}\n`)
+    lines.push('## Total amount\n')
+    lines.push(`£${paymentDetails.amount}\n`)
+    lines.push('## Date of payment\n')
+    lines.push(`${escapeContent(paymentDetails.dateOfPayment)}\n`)
+    lines.push('---\n')
+  }
+
   lines.push('\n', 'Thanks,', 'Defra')
 
   return lines.join('\n')
@@ -449,8 +463,42 @@ export function getRelevantPagesForLegacy(
 }
 
 /**
+ * Extracts payment details from the submission message if a payment exists
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {{ description: string, amount: number, dateOfPayment: string } | undefined}
+ */
+function extractPaymentDetails(formSubmissionMessage) {
+  const { payments } = formSubmissionMessage.data
+
+  if (!payments || Object.keys(payments).length === 0) {
+    return undefined
+  }
+
+  // Get the first payment (forms typically have one payment)
+  const paymentKey = Object.keys(payments)[0]
+  const payment = payments[paymentKey]
+
+  if (!payment) {
+    return undefined
+  }
+
+  // Format the date of payment
+  let dateOfPayment = ''
+  if (payment.createdAt) {
+    const date = new Date(payment.createdAt)
+    dateOfPayment = `${dateFormat(date, 'h:mmaaa')} on ${dateFormat(date, 'd MMMM yyyy')}`
+  }
+
+  return {
+    description: payment.description,
+    amount: payment.amount,
+    dateOfPayment
+  }
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, FormAdapterPayment, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */

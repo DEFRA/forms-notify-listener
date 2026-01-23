@@ -178,4 +178,135 @@ From Defra
 `
     )
   })
+
+  describe('payment details', () => {
+    test('should include payment success section when payment exists', () => {
+      const formName = 'My Form Name'
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData({
+        submissionGuidance: 'Some submission guidance'
+      })
+
+      const messageWithPayment = buildFormAdapterSubmissionMessage({
+        data: {
+          main: {},
+          repeaters: {},
+          files: {},
+          payments: {
+            paymentComponent: {
+              paymentId: 'pay_abc123',
+              reference: 'REF-123-456',
+              amount: 300,
+              description: 'Application fee',
+              createdAt: '2025-11-10T17:01:29.000Z'
+            }
+          }
+        }
+      })
+
+      const result = getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        messageWithPayment,
+        formDefinition
+      )
+
+      expect(result).toContain('# Your payment of £300 was successful')
+      expect(result).toContain('## Payment for')
+      expect(result).toContain('Application fee')
+      expect(result).toContain('## Total amount')
+      expect(result).toContain('£300')
+      expect(result).toContain('## Date of payment')
+      expect(result).toContain('5:01pm on 10 November 2025')
+    })
+
+    test('should not include payment section when no payment exists', () => {
+      const formName = 'My Form Name'
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData({
+        submissionGuidance: 'Some submission guidance'
+      })
+
+      const result = getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinition
+      )
+
+      expect(result).not.toContain('# Your payment of')
+      expect(result).not.toContain('## Payment for')
+      expect(result).not.toContain('## Total amount')
+      expect(result).not.toContain('## Date of payment')
+    })
+
+    test('should not include payment section when payments object is empty', () => {
+      const formName = 'My Form Name'
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData({
+        submissionGuidance: 'Some submission guidance'
+      })
+
+      const messageWithEmptyPayments = buildFormAdapterSubmissionMessage({
+        data: {
+          main: {},
+          repeaters: {},
+          files: {},
+          payments: {}
+        }
+      })
+
+      const result = getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        messageWithEmptyPayments,
+        formDefinition
+      )
+
+      expect(result).not.toContain('# Your payment of')
+    })
+
+    test('should place payment section after submission text and before what happens next', () => {
+      const formName = 'My Form Name'
+      const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+      const metadata = buildMetaData({
+        submissionGuidance: 'Some submission guidance'
+      })
+
+      const messageWithPayment = buildFormAdapterSubmissionMessage({
+        data: {
+          main: {},
+          repeaters: {},
+          files: {},
+          payments: {
+            paymentComponent: {
+              paymentId: 'pay_abc123',
+              reference: 'REF-123-456',
+              amount: 50,
+              description: 'Processing fee',
+              createdAt: '2025-11-10T10:30:00.000Z'
+            }
+          }
+        }
+      })
+
+      const result = getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        messageWithPayment,
+        formDefinition
+      )
+
+      const submissionTextIndex = result.indexOf('We received your form')
+      const paymentIndex = result.indexOf('# Your payment of £50 was successful')
+      const whatHappensNextIndex = result.indexOf('## What happens next')
+
+      expect(paymentIndex).toBeGreaterThan(submissionTextIndex)
+      expect(paymentIndex).toBeLessThan(whatHappensNextIndex)
+    })
+  })
 })
