@@ -302,7 +302,9 @@ From Defra
       )
 
       const submissionTextIndex = result.indexOf('We received your form')
-      const paymentIndex = result.indexOf('# Your payment of £50 was successful')
+      const paymentIndex = result.indexOf(
+        '# Your payment of £50 was successful'
+      )
       const whatHappensNextIndex = result.indexOf('## What happens next')
 
       expect(paymentIndex).toBeGreaterThan(submissionTextIndex)
