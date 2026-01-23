@@ -1,5 +1,6 @@
 import { hasRepeater } from '@defra/forms-model'
 
+import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
 
 /**
@@ -57,7 +58,30 @@ export function formatLocationField(_answer, field, richFormValue) {
 }
 
 /**
+ * Extracts payment details from the submission message if a payment exists.
+ * Forms only have one payment component.
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {{ description: string, amount: number, dateOfPayment: string } | undefined}
+ */
+export function extractPaymentDetails(formSubmissionMessage) {
+  const payment = Object.values(formSubmissionMessage.data.payments ?? {})[0]
+
+  if (!payment) {
+    return undefined
+  }
+
+  const date = new Date(payment.createdAt)
+  const dateOfPayment = `${dateFormat(date, 'h:mmaaa')} on ${dateFormat(date, 'd MMMM yyyy')}`
+
+  return {
+    description: payment.description,
+    amount: payment.amount,
+    dateOfPayment
+  }
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
- * @import { RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
