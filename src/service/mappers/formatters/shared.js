@@ -64,7 +64,7 @@ export function formatLocationField(_answer, field, richFormValue) {
  * @returns {{ description: string, amount: number, dateOfPayment: string } | undefined}
  */
 export function extractPaymentDetails(formSubmissionMessage) {
-  const payment = Object.values(formSubmissionMessage.data.payments ?? {})[0]
+  const payment = formSubmissionMessage.data.payment
 
   if (!payment) {
     return undefined

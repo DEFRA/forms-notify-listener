@@ -305,14 +305,12 @@ describe('Page controller helpers', () => {
         ...exampleNotifyFormMessage,
         data: {
           ...exampleNotifyFormMessage.data,
-          payments: {
-            paymentComponent: {
-              paymentId: 'pay_abc123',
-              reference: 'REF-123-456',
-              amount: 150,
-              description: 'Application fee',
-              createdAt: '2025-11-10T17:01:29.000Z'
-            }
+          payment: {
+            paymentId: 'pay_abc123',
+            reference: 'REF-123-456',
+            amount: 150,
+            description: 'Application fee',
+            createdAt: '2025-11-10T17:01:29.000Z'
           }
         }
       })
@@ -338,16 +336,16 @@ describe('Page controller helpers', () => {
         }
       })
 
-      const messageWithNoPayments = buildFormAdapterSubmissionMessage({
+      const messageWithNoPayment = buildFormAdapterSubmissionMessage({
         ...exampleNotifyFormMessage,
         data: {
           ...exampleNotifyFormMessage.data,
-          payments: undefined
+          payment: undefined
         }
       })
 
       const formatter = getFormatter('human', '1')
-      const output = formatter(messageWithNoPayments, definition, '1')
+      const output = formatter(messageWithNoPayment, definition, '1')
 
       expect(output).not.toContain('# Payment details')
       expect(output).not.toContain('## Payment for')
@@ -355,7 +353,7 @@ describe('Page controller helpers', () => {
       expect(output).not.toContain('## Date of payment')
     })
 
-    it('should not include payment details section when payments object is empty', () => {
+    it('should not include payment details section when payment is undefined', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,
         output: {
@@ -364,16 +362,16 @@ describe('Page controller helpers', () => {
         }
       })
 
-      const messageWithEmptyPayments = buildFormAdapterSubmissionMessage({
+      const messageWithNoPayment = buildFormAdapterSubmissionMessage({
         ...exampleNotifyFormMessage,
         data: {
           ...exampleNotifyFormMessage.data,
-          payments: {}
+          payment: undefined
         }
       })
 
       const formatter = getFormatter('human', '1')
-      const output = formatter(messageWithEmptyPayments, definition, '1')
+      const output = formatter(messageWithNoPayment, definition, '1')
 
       expect(output).not.toContain('# Payment details')
     })

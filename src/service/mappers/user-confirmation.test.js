@@ -192,14 +192,12 @@ From Defra
           main: {},
           repeaters: {},
           files: {},
-          payments: {
-            paymentComponent: {
-              paymentId: 'pay_abc123',
-              reference: 'REF-123-456',
-              amount: 300,
-              description: 'Application fee',
-              createdAt: '2025-11-10T17:01:29.000Z'
-            }
+          payment: {
+            paymentId: 'pay_abc123',
+            reference: 'REF-123-456',
+            amount: 300,
+            description: 'Application fee',
+            createdAt: '2025-11-10T17:01:29.000Z'
           }
         }
       })
@@ -249,12 +247,11 @@ From Defra
         submissionGuidance: 'Some submission guidance'
       })
 
-      const messageWithEmptyPayments = buildFormAdapterSubmissionMessage({
+      const messageWithNoPayment = buildFormAdapterSubmissionMessage({
         data: {
           main: {},
           repeaters: {},
-          files: {},
-          payments: {}
+          files: {}
         }
       })
 
@@ -262,7 +259,7 @@ From Defra
         formName,
         submissionDate,
         metadata,
-        messageWithEmptyPayments,
+        messageWithNoPayment,
         formDefinition
       )
 
@@ -281,14 +278,12 @@ From Defra
           main: {},
           repeaters: {},
           files: {},
-          payments: {
-            paymentComponent: {
-              paymentId: 'pay_abc123',
-              reference: 'REF-123-456',
-              amount: 50,
-              description: 'Processing fee',
-              createdAt: '2025-11-10T10:30:00.000Z'
-            }
+          payment: {
+            paymentId: 'pay_abc123',
+            reference: 'REF-123-456',
+            amount: 50,
+            description: 'Processing fee',
+            createdAt: '2025-11-10T10:30:00.000Z'
           }
         }
       })
