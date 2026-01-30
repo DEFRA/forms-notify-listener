@@ -50,15 +50,17 @@ function appendPaymentSection(formSubmissionMessage, lines) {
     return
   }
 
-  lines.push('---\n')
-  lines.push('# Payment details\n')
-  lines.push('## Payment for\n')
-  lines.push(`${escapeContent(paymentDetails.description)}\n`)
-  lines.push('## Total amount\n')
-  lines.push(`£${paymentDetails.amount}\n`)
-  lines.push('## Date of payment\n')
-  lines.push(`${escapeContent(paymentDetails.dateOfPayment)}\n`)
-  lines.push('---\n')
+  lines.push(
+    '---\n',
+    '# Payment details\n',
+    '## Payment for\n',
+    `${escapeContent(paymentDetails.description)}\n`,
+    '## Total amount\n',
+    `£${paymentDetails.amount}\n`,
+    '## Date of payment\n',
+    `${escapeContent(paymentDetails.dateOfPayment)}\n`,
+    '---\n'
+  )
 }
 
 /**
