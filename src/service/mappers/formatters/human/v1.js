@@ -16,6 +16,7 @@ import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
+  extractPaymentDetails,
   findRepeaterPageByKey,
   formatLocationField,
   formatMultilineTextField,
@@ -34,6 +35,121 @@ const FILE_EXPIRY_OFFSET = 90
 export function handleReferenceNumber(definition, message, lines) {
   if (definition.options?.showReferenceNumber) {
     lines.push(`^ Reference number: ${message.meta.referenceNumber}\n`)
+  }
+}
+
+/**
+ * Appends the payment details section to the email lines if payment exists
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {string[]} lines
+ */
+function appendPaymentSection(formSubmissionMessage, lines) {
+  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+
+  if (!paymentDetails) {
+    return
+  }
+
+  lines.push(
+    '---\n',
+    '# Payment details\n',
+    '## Payment for\n',
+    `${escapeContent(paymentDetails.description)}\n`,
+    '## Total amount\n',
+    `£${paymentDetails.amount}\n`,
+    '## Date of payment\n',
+    `${escapeContent(paymentDetails.dateOfPayment)}\n`,
+    '---\n'
+  )
+}
+
+/**
+ * Process main form entries and add them to the component map
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormModel} formModel
+ * @param {Map<string, string[]>} componentMap
+ */
+function processMainEntries(formSubmissionMessage, formModel, componentMap) {
+  const mainEntries = Object.entries({
+    ...formSubmissionMessage.data.main,
+    ...formSubmissionMessage.data.files
+  })
+
+  for (const [key, richFormValue] of mainEntries) {
+    const questionLines = /** @type {string[]} */ ([])
+    const field = formModel.componentMap.get(key)
+
+    let mappedRichFormValue = richFormValue
+
+    if (field instanceof FileUploadField) {
+      mappedRichFormValue = richFormValue.map(mapFormAdapterFileToFileState)
+    }
+
+    const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
+
+    const label = escapeContent(field.title)
+    questionLines.push(`## ${label}\n`)
+
+    if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
+      const answerLine = generateFieldLine(answer, field, richFormValue)
+      questionLines.push(answerLine)
+    }
+
+    questionLines.push('---\n')
+    componentMap.set(key, questionLines)
+  }
+}
+
+/**
+ * Process repeater entries and add them to the component map
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} formDefinition
+ * @param {Map<string, string[]>} componentMap
+ */
+function processRepeaterEntries(
+  formSubmissionMessage,
+  formDefinition,
+  componentMap
+) {
+  const repeaterEntries = Object.entries(
+    formSubmissionMessage.result.files.repeaters
+  )
+
+  for (const [key, fileId] of repeaterEntries) {
+    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
+
+    if (!hasRepeater(repeaterPage)) {
+      continue
+    }
+
+    const label = escapeContent(repeaterPage.repeat.options.title)
+    const componentKey = repeaterPage.repeat.options.name
+    const questionLines = /** @type {string[]} */ ([])
+
+    questionLines.push(`## ${label}\n`)
+
+    const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
+    questionLines.push(
+      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
+      '---\n'
+    )
+    componentMap.set(componentKey, questionLines)
+  }
+}
+
+/**
+ * Append component lines to the output in the correct order
+ * @param {string[]} order
+ * @param {Map<string, string[]>} componentMap
+ * @param {string[]} lines
+ */
+function appendComponentLines(order, componentMap, lines) {
+  for (const key of order) {
+    const componentLines = componentMap.get(key)
+
+    if (componentLines) {
+      lines.push(...componentLines)
+    }
   }
 }
 
@@ -87,71 +203,17 @@ export function formatter(
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
-  const mainEntries = Object.entries({
-    ...formSubmissionMessage.data.main,
-    ...formSubmissionMessage.data.files
-  })
-
-  for (const [key, richFormValue] of mainEntries) {
-    const questionLines = /** @type {string[]} */ ([])
-    const field = formModel.componentMap.get(key)
-
-    let mappedRichFormValue = richFormValue
-
-    if (field instanceof FileUploadField) {
-      mappedRichFormValue = richFormValue.map(mapFormAdapterFileToFileState)
-    }
-
-    const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
-
-    const label = escapeContent(field.title)
-    questionLines.push(`## ${label}\n`)
-
-    if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
-      const answerLine = generateFieldLine(answer, field, richFormValue)
-      questionLines.push(answerLine)
-    }
-
-    questionLines.push('---\n')
-    componentMap.set(key, questionLines)
-  }
-
-  const repeaterEntries = Object.entries(
-    formSubmissionMessage.result.files.repeaters
-  )
-
-  for (const [key, fileId] of repeaterEntries) {
-    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-    const questionLines = /**  @type {string[]}  */ ([])
-
-    if (hasRepeater(repeaterPage)) {
-      const label = escapeContent(repeaterPage.repeat.options.title)
-      const componentKey = repeaterPage.repeat.options.name
-
-      questionLines.push(`## ${label}\n`)
-
-      const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
-      questionLines.push(
-        `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
-        '---\n'
-      )
-      componentMap.set(componentKey, questionLines)
-    }
-  }
-
-  for (const key of order) {
-    const componentLines = componentMap.get(key)
-
-    if (componentLines) {
-      lines.push(...componentLines)
-    }
-  }
+  processMainEntries(formSubmissionMessage, formModel, componentMap)
+  processRepeaterEntries(formSubmissionMessage, formDefinition, componentMap)
+  appendComponentLines(order, componentMap, lines)
 
   const mainResultFilename = escapeFileLabel('Download main form (CSV)')
   lines.push(
     `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
   )
+
+  // Add payment details section if payment exists
+  appendPaymentSection(formSubmissionMessage, lines)
 
   lines.push('\n', 'Thanks,', 'Defra')
 

@@ -1,9 +1,34 @@
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
+import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
 import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
 
 const submisionGuidancePlaceholder =
   "Define this text in the 'What happens next' section of the form overview"
+
+/**
+ * Generates the payment success section for the form filler email
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {string}
+ */
+function getPaymentSection(formSubmissionMessage) {
+  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+
+  if (!paymentDetails) {
+    return ''
+  }
+
+  return `
+# Your payment of £${paymentDetails.amount} was successful
+## Payment for
+${escapeContent(paymentDetails.description)}
+## Total amount
+£${paymentDetails.amount}
+## Date of payment
+${escapeContent(paymentDetails.dateOfPayment)}
+---
+`
+}
 
 /**
  * @param {string} formName
@@ -49,10 +74,13 @@ ${formattedAnswers}
 `
   }
 
+  // Generate payment section if payment exists
+  const paymentSection = getPaymentSection(formSubmissionMessage)
+
   return `
 # Form submitted
 ${referenceNumber}We received your form submission for &lsquo;${escapeContent(formName)}&rsquo; at ${formattedSubmissionDate}.
-
+${paymentSection}
 ## What happens next
 ${submissionGuidance ?? submisionGuidancePlaceholder}
 

@@ -290,4 +290,90 @@ describe('Page controller helpers', () => {
       ])
     })
   })
+
+  describe('payment details', () => {
+    it('should include payment details section when payment exists', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+
+      const messageWithPayment = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          payment: {
+            paymentId: 'pay_abc123',
+            reference: 'REF-123-456',
+            amount: 150,
+            description: 'Application fee',
+            createdAt: '2025-11-10T17:01:29.000Z'
+          }
+        }
+      })
+
+      const formatter = getFormatter('human', '1')
+      const output = formatter(messageWithPayment, definition, '1')
+
+      expect(output).toContain('# Payment details')
+      expect(output).toContain('## Payment for')
+      expect(output).toContain('Application fee')
+      expect(output).toContain('## Total amount')
+      expect(output).toContain('£150')
+      expect(output).toContain('## Date of payment')
+      expect(output).toContain('5:01pm on 10 November 2025')
+    })
+
+    it('should not include payment details section when no payment exists', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+
+      const messageWithNoPayment = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          payment: undefined
+        }
+      })
+
+      const formatter = getFormatter('human', '1')
+      const output = formatter(messageWithNoPayment, definition, '1')
+
+      expect(output).not.toContain('# Payment details')
+      expect(output).not.toContain('## Payment for')
+      expect(output).not.toContain('## Total amount')
+      expect(output).not.toContain('## Date of payment')
+    })
+
+    it('should not include payment details section when payment is undefined', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+
+      const messageWithNoPayment = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          payment: undefined
+        }
+      })
+
+      const formatter = getFormatter('human', '1')
+      const output = formatter(messageWithNoPayment, definition, '1')
+
+      expect(output).not.toContain('# Payment details')
+    })
+  })
 })
