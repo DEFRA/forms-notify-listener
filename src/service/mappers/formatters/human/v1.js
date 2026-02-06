@@ -212,10 +212,11 @@ export function formatter(
 
   const mainResultFilename = escapeFileLabel('Download main form (CSV)')
   lines.push(
-    `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
+    `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`,
+    '\n',
+    'Thanks,',
+    'Defra'
   )
-
-  lines.push('\n', 'Thanks,', 'Defra')
 
   return lines.join('\n')
 }
