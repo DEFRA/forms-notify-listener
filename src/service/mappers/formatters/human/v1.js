@@ -207,13 +207,13 @@ export function formatter(
   processRepeaterEntries(formSubmissionMessage, formDefinition, componentMap)
   appendComponentLines(order, componentMap, lines)
 
+  // Add payment details section if payment exists
+  appendPaymentSection(formSubmissionMessage, lines)
+
   const mainResultFilename = escapeFileLabel('Download main form (CSV)')
   lines.push(
     `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
   )
-
-  // Add payment details section if payment exists
-  appendPaymentSection(formSubmissionMessage, lines)
 
   lines.push('\n', 'Thanks,', 'Defra')
 
