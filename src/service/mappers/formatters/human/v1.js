@@ -51,7 +51,6 @@ function appendPaymentSection(formSubmissionMessage, lines) {
   }
 
   lines.push(
-    '---\n',
     '# Payment details\n',
     '## Payment for\n',
     `${escapeContent(paymentDetails.description)}\n`,
@@ -207,15 +206,16 @@ export function formatter(
   processRepeaterEntries(formSubmissionMessage, formDefinition, componentMap)
   appendComponentLines(order, componentMap, lines)
 
-  const mainResultFilename = escapeFileLabel('Download main form (CSV)')
-  lines.push(
-    `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`
-  )
-
   // Add payment details section if payment exists
   appendPaymentSection(formSubmissionMessage, lines)
 
-  lines.push('\n', 'Thanks,', 'Defra')
+  const mainResultFilename = escapeFileLabel('Download main form (CSV)')
+  lines.push(
+    `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`,
+    '\n',
+    'Thanks,',
+    'Defra'
+  )
 
   return lines.join('\n')
 }
