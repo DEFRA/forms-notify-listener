@@ -55,7 +55,7 @@ function appendPaymentSection(formSubmissionMessage, lines) {
     '## Payment for\n',
     `${escapeContent(paymentDetails.description)}\n`,
     '## Total amount\n',
-    `£${paymentDetails.amount}\n`,
+    `${paymentDetails.amount}\n`,
     '## Date of payment\n',
     `${escapeContent(paymentDetails.dateOfPayment)}\n`,
     '---\n'

@@ -19,11 +19,11 @@ function getPaymentSection(formSubmissionMessage) {
   }
 
   return `
-# Your payment of £${paymentDetails.amount} was successful
+# Your payment of ${paymentDetails.amount} was successful
 ## Payment for
 ${escapeContent(paymentDetails.description)}
 ## Total amount
-£${paymentDetails.amount}
+${paymentDetails.amount}
 ## Date of payment
 ${escapeContent(paymentDetails.dateOfPayment)}
 ---
