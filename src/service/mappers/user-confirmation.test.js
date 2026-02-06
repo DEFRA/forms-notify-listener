@@ -210,7 +210,7 @@ From Defra
         formDefinition
       )
 
-      expect(result).toContain('# Your payment of £300 was successful')
+      expect(result).toContain('# Your payment of £300.00 was successful')
       expect(result).toContain('## Payment for')
       expect(result).toContain('Application fee')
       expect(result).toContain('## Total amount')
@@ -298,7 +298,7 @@ From Defra
 
       const submissionTextIndex = result.indexOf('We received your form')
       const paymentIndex = result.indexOf(
-        '# Your payment of £50 was successful'
+        '# Your payment of £50.00 was successful'
       )
       const whatHappensNextIndex = result.indexOf('## What happens next')
 
