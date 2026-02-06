@@ -51,7 +51,6 @@ function appendPaymentSection(formSubmissionMessage, lines) {
   }
 
   lines.push(
-    '---\n',
     '# Payment details\n',
     '## Payment for\n',
     `${escapeContent(paymentDetails.description)}\n`,
