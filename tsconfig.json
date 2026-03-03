@@ -19,7 +19,7 @@
     "**/*.cjs",
     "**/*.js",
     "**/*.mjs",
-    ".eslintrc.*",
+    "eslint.config.*",
     ".prettierrc.*",
     ".lintstagedrc.*"
   ],
