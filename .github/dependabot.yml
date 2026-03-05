@@ -62,6 +62,12 @@ updates:
           - 'mongodb'
           - 'nunjucks'
 
+      dependencies:
+        patterns:
+          - '*'
+        update-types:
+          - patch
+
     # Schedule run every Monday, local time
     schedule:
       interval: weekly
