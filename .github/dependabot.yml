@@ -16,7 +16,6 @@ updates:
 
       lint:
         patterns:
-          - '@typescript-eslint/*'
           - 'editorconfig-checker'
           - 'eslint'
           - 'eslint-*'
@@ -34,13 +33,11 @@ updates:
       tools:
         patterns:
           - 'jest'
-          - 'nock'
           - 'tsx'
 
       types:
         patterns:
           - '@types/*'
-          - 'oidc-client-ts'
 
       forms:
         patterns:
@@ -55,22 +52,15 @@ updates:
       hapi:
         patterns:
           - '@hapi/*'
-          - 'blankie'
-          - 'blipp'
           - 'hapi-*'
-          - '*-hapi'
           - 'joi'
 
       runtime:
         patterns:
           - '@defra/hapi-tracing'
           - 'dotenv'
-          - 'ioredis'
-          - 'js-yaml'
-          - 'marked'
-          - 'minimatch'
           - 'mongodb'
-          - 'yaml'
+          - 'nunjucks'
 
     # Schedule run every Monday, local time
     schedule:
