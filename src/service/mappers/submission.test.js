@@ -87,7 +87,6 @@ describe('events', () => {
     })
 
     it('should fail if there is no MessageId', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { MessageId, ...auditEventMessageWithoutMessageId } =
         auditEventMessage
 
@@ -97,7 +96,6 @@ describe('events', () => {
     })
 
     it('should fail if there is no Body', () => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { Body, ...auditEventMessageWithoutBody } = auditEventMessage
 
       expect(() => mapSubmissionEvent(auditEventMessageWithoutBody)).toThrow(
