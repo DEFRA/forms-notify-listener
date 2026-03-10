@@ -32,15 +32,17 @@ jest.mock('nunjucks', () => {
 })
 jest.mock('~/src/config/index.js', () => ({
   config: {
-    get: jest.fn(() => {
-      return 'http://designer'
+    get: jest.fn((key) => {
+      if (key === 'designerUrl') return 'http://designer'
+      if (key === 'fileExpiryInMonths') return 9
+      return 'mock value'
     })
   }
 }))
 
 describe('Page controller helpers', () => {
   beforeAll(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-04-01T23:00:00Z')) // UTC should map to BST
+    jest.useFakeTimers().setSystemTime(new Date('2025-07-01T23:00:00Z')) // UTC should map to BST
   })
   afterAll(() => {
     jest.useRealTimers()
