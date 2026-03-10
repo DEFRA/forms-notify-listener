@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Page controller helpers format should return a valid human readable v1 response 1`] = `
-"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+"^ For security reasons, the links in this email expire at 12:00am on Friday 2 January 2026
 
 Example notify form form received at 12:00am on 2 April 2025.
 
@@ -68,7 +68,7 @@ Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response 2 1`] = `
-"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+"^ For security reasons, the links in this email expire at 12:00am on Friday 2 January 2026
 
 Pizza Form form received at 12:00am on 2 April 2025.
 
@@ -113,7 +113,7 @@ Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response for legacy graph-based forms 1`] = `
-"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+"^ For security reasons, the links in this email expire at 12:00am on Friday 2 January 2026
 
 Pizza Form form received at 12:00am on 2 April 2025.
 
@@ -178,7 +178,7 @@ Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response in Draft mode 1`] = `
-"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+"^ For security reasons, the links in this email expire at 12:00am on Friday 2 January 2026
 
 Example notify form form received at 12:00am on 2 April 2025.
 
@@ -245,7 +245,7 @@ Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response in preview mode 1`] = `
-"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+"^ For security reasons, the links in this email expire at 12:00am on Friday 2 January 2026
 
 This is a test of the Example notify form live form.
 
@@ -314,7 +314,7 @@ Defra"
 `;
 
 exports[`Page controller helpers format should return a valid human readable v1 response with reference number 1`] = `
-"^ For security reasons, the links in this email expire at 12:00am on Tuesday 1 July 2025
+"^ For security reasons, the links in this email expire at 12:00am on Friday 2 January 2026
 
 This is a test of the Example notify form live form.
 

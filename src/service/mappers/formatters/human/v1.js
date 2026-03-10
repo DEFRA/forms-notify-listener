@@ -9,7 +9,7 @@ import {
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
-import { addDays } from 'date-fns'
+import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
@@ -25,7 +25,7 @@ import {
 
 const designerUrl = config.get('designerUrl')
 
-const FILE_EXPIRY_OFFSET = 90
+const fileExpiryInMonths = config.get('fileExpiryInMonths')
 
 /**
  * @param {FormDefinition} definition
@@ -177,7 +177,7 @@ export function formatter(
   const now = new Date()
   const formattedNow = `${dateFormat(now, 'h:mmaaa')} on ${dateFormat(now, 'd MMMM yyyy')}`
 
-  const fileExpiryDate = addDays(now, FILE_EXPIRY_OFFSET)
+  const fileExpiryDate = addMonths(now, fileExpiryInMonths)
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
   const order = calculateOrder(formDefinition, formSubmissionMessage)

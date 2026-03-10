@@ -20,7 +20,11 @@ jest.mock('nunjucks', () => {
 
 jest.mock('~/src/config/index.js', () => ({
   config: {
-    get: jest.fn(() => 'http://designer')
+    get: jest.fn((key) => {
+      if (key === 'designerUrl') return 'http://designer'
+      if (key === 'fileExpiryInMonths') return 9
+      return 'mock value'
+    })
   }
 }))
 
