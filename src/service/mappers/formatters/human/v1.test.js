@@ -42,7 +42,7 @@ jest.mock('~/src/config/index.js', () => ({
 
 describe('Page controller helpers', () => {
   beforeAll(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-04-01T23:00:00Z')) // UTC should map to BST
+    jest.useFakeTimers().setSystemTime(new Date(2025, 3, 2, 0, 0, 0))
   })
   afterAll(() => {
     jest.useRealTimers()
