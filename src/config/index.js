@@ -232,7 +232,7 @@ export const config = convict({
     env: 'SQS_VISIBILITY_TIMEOUT'
   },
   fileExpiryInMonths: {
-    doc: 'The numbr of months a file link is active for',
+    doc: 'The number of months a file link is active for',
     format: Number,
     default: 9,
     env: 'FILE_EXPIRY_IN_MONTHS'
