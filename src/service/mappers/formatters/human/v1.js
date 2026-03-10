@@ -2,7 +2,6 @@ import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/Rep
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
-import { getGridRef } from '@defra/forms-engine-plugin/engine/components/helpers/gridref.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
@@ -19,6 +18,7 @@ import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
   extractPaymentDetails,
   findRepeaterPageByKey,
+  formatGeospatialField,
   formatLocationField,
   formatMultilineTextField,
   formatUkAddressField
@@ -293,43 +293,6 @@ function formatListFormComponent(answer, field, richFormValue) {
 }
 
 /**
- * Format geospatial field
- * @param {string} answer
- * @param {Component} _field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatGeospatialField(answer, _field, richFormValue) {
-  const features = /** @type {GeospatialState} */ (richFormValue)
-
-  // Skip empty
-  if (!features.length) {
-    return `${escapeContent(answer)}\n`
-  }
-
-  let answerEscaped = `${escapeContent(answer)}:\n\n`
-
-  const value = features
-    .map((feature) => {
-      const { properties, geometry } = feature
-      const { description } = properties
-      const { coordinates } = geometry
-      const flattened = coordinates.flat(2)
-
-      const points = []
-      for (let i = 0; i < flattened.length; i += 2) {
-        points.push(flattened.slice(i, i + 2).join(', '))
-      }
-
-      return `${description}:\n${getGridRef(feature)}\n${points.join('\n')}\n`
-    })
-    .join('\n')
-
-  answerEscaped += value
-  return answerEscaped
-}
-
-/**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
  */
@@ -552,6 +515,6 @@ export function getRelevantPagesForLegacy(
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse, GeospatialState } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
