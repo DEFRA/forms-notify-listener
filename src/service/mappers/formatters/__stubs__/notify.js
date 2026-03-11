@@ -402,6 +402,7 @@ export const pizzaFormDefinition = buildDefinition({
     })
   ]
 })
+
 export const pizzaMessage = buildFormAdapterSubmissionMessage({
   messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
   recordCreatedAt: new Date('2025-08-26'),
