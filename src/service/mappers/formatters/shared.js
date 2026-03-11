@@ -1,4 +1,3 @@
-import { getGridRef } from '@defra/forms-engine-plugin/engine/components/helpers/gridref.js'
 import { hasRepeater } from '@defra/forms-model'
 
 import { format as dateFormat } from '~/src/helpers/date.js'
@@ -107,7 +106,7 @@ export function formatGeospatialField(answer, _field, richFormValue) {
   const value = features
     .map((feature) => {
       const { properties, geometry } = feature
-      const { description } = properties
+      const { description, gridReference } = properties
       const { coordinates } = geometry
       const flattened = coordinates.flat(2)
 
@@ -116,7 +115,7 @@ export function formatGeospatialField(answer, _field, richFormValue) {
         points.push(flattened.slice(i, i + 2).join(', '))
       }
 
-      return `${description}:\n${getGridRef(feature)}\n${points.join('\n')}\n`
+      return `${description}:\n${gridReference}\n${points.join('\n')}\n`
     })
     .join('\n')
 
