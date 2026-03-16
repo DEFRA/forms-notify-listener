@@ -115,7 +115,7 @@ export class EmailContentCreator {
     for (const [key, repeaterData] of repeaterEntries) {
       const repeaterPage = findRepeaterPageByKey(key, formDefinition)
 
-      if (!hasRepeater(repeaterPage)) {
+      if (!hasRepeater(repeaterPage) || !hasComponents(repeaterPage)) {
         continue
       }
 
@@ -123,10 +123,6 @@ export class EmailContentCreator {
       const repeaterItems = /** @type {Record<string, RichFormValue>[]} */ (
         repeaterData
       )
-
-      if (!hasComponents(repeaterPage)) {
-        continue
-      }
 
       // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
       for (const componentDef of repeaterPage.components.filter(
@@ -137,19 +133,17 @@ export class EmailContentCreator {
           formModel.componentMap.get(componentName)
         )
 
-        if (!componentField) {
-          continue
+        if (componentField) {
+          const questionLines = this.processRepeaterComponent(
+            repeaterTitle,
+            componentField,
+            componentName,
+            repeaterItems
+          )
+
+          // Store with a unique key for this component within the repeater
+          componentMap.set(`${key}__${componentName}`, questionLines)
         }
-
-        const questionLines = this.processRepeaterComponent(
-          repeaterTitle,
-          componentField,
-          componentName,
-          repeaterItems
-        )
-
-        // Store with a unique key for this component within the repeater
-        componentMap.set(`${key}__${componentName}`, questionLines)
       }
     }
 
@@ -195,10 +189,9 @@ export class EmailContentCreator {
         componentField.getDisplayStringFromFormValue(componentValue)
 
       // Repeater item label uses heading level 2 (##)
-      questionLines.push(`## ${escapeContent(itemLabel)}\n`)
-
       // Answer beneath with blank line separation
       questionLines.push(
+        `## ${escapeContent(itemLabel)}\n`,
         this.generateFieldLine(componentAnswer, componentField, componentValue)
       )
     }
