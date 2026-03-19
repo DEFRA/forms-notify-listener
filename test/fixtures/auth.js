@@ -2,8 +2,6 @@ import { Roles, Scopes } from '@defra/forms-model'
 import { token } from '@hapi/jwt'
 import { DateTime, Duration } from 'luxon'
 
-import { config } from '~/src/config/index.js'
-
 const issuedAt = DateTime.now().minus({ minutes: 30 })
 const expiresAt = DateTime.now().plus({ minutes: 30 })
 
@@ -34,7 +32,7 @@ export function profile(options) {
  */
 export function user(token, roles = []) {
   return /** @satisfies {UserCredentials} */ ({
-    id: config.get('useEntitlementApi') ? (token.oid ?? token.sub) : token.sub,
+    id: token.oid ?? token.sub,
     email: token.email,
     displayName: token.name ?? '',
     issuedAt: issuedAt.toUTC().toISO(),

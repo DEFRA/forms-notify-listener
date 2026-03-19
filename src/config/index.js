@@ -181,23 +181,11 @@ export const config = convict({
       'https://login.microsoftonline.com/770a2450-0227-4c62-90c7-4e38537f1102/v2.0',
     env: 'OIDC_VERIFY_ISS'
   },
-  roleEditorGroupId: {
-    doc: 'The AD security group the access token needs to claim membership of',
-    format: String,
-    default: '9af646c4-fa14-4606-8ebf-ec187ac03386',
-    env: 'ROLE_EDITOR_GROUP_ID'
-  },
   entitlementUrl: {
     doc: 'Forms entitlements API URL',
     format: String,
     default: 'http://localhost:3004',
     env: 'ENTITLEMENT_URL'
-  },
-  useEntitlementApi: {
-    doc: 'Feature flag to enable entitlement API for fetching scopes',
-    format: Boolean,
-    default: false,
-    env: 'FEATURE_FLAG_USE_ENTITLEMENT_API'
   },
   tracing: {
     header: {

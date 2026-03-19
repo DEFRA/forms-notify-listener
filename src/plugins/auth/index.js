@@ -3,16 +3,11 @@ import Jwt from '@hapi/jwt'
 
 import { config } from '~/src/config/index.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
-import {
-  getDefaultScopes,
-  getUserScopes
-} from '~/src/service/entitlements/service.js'
+import { getUserScopes } from '~/src/service/entitlements/service.js'
 
 const oidcJwksUri = config.get('oidcJwksUri')
 const oidcVerifyAud = config.get('oidcVerifyAud')
 const oidcVerifyIss = config.get('oidcVerifyIss')
-const roleEditorGroupId = config.get('roleEditorGroupId')
-const useEntitlementApi = config.get('useEntitlementApi')
 
 const logger = createLogger()
 
@@ -80,23 +75,8 @@ async function validateUserCredentials(artifacts) {
 
   const processedGroups = processGroupsClaim(groupsClaim, oid)
 
-  if (!useEntitlementApi && !processedGroups.includes(roleEditorGroupId)) {
-    logger.warn(
-      `[authGroupNotFound] Auth: User ${oid}: Authorisation failed. Required group "${roleEditorGroupId}" not found`
-    )
-    return {
-      isValid: false
-    }
-  }
-
-  let userScopes = []
-
-  if (useEntitlementApi) {
-    const authToken = artifacts.token
-    userScopes = await getUserScopes(oid, authToken)
-  } else {
-    userScopes = getDefaultScopes()
-  }
+  const authToken = artifacts.token
+  const userScopes = await getUserScopes(oid, authToken)
 
   return {
     isValid: true,
