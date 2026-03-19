@@ -1,7 +1,7 @@
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
 import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
-import { formatter } from '~/src/service/mappers/formatters/user/v1.js'
+import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
 
 const submisionGuidancePlaceholder =
   "Define this text in the 'What happens next' section of the form overview"
@@ -63,7 +63,10 @@ export function getUserConfirmationEmailBody(
 
   // Generate the answers section if submission data is provided
   let answersSection = ''
-  const formattedAnswers = formatter(formSubmissionMessage, formDefinition)
+  const formattedAnswers = userAnswersFormatter(
+    formSubmissionMessage,
+    formDefinition
+  )
   if (formattedAnswers) {
     answersSection = `
 ---

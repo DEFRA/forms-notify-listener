@@ -1,18 +1,21 @@
+import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
+import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
+import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
+import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import { hasRepeater } from '@defra/forms-model'
+import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
+import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
-import { EmailContentCreator } from '~/src/service/mappers/formatters/email-content-creator.js'
 import {
-  calculateOrder,
   extractPaymentDetails,
   findRepeaterPageByKey,
   formatLocationField,
@@ -23,17 +26,6 @@ import {
 const designerUrl = config.get('designerUrl')
 
 const fileExpiryInMonths = config.get('fileExpiryInMonths')
-
-/**
- * Map of component types to their formatting handlers
- */
-const fieldHandlers = new Map([
-  [Components.FileUploadField, formatFileUploadField],
-  [Components.MultilineTextField, formatMultilineTextField],
-  [Components.UkAddressField, formatUkAddressField],
-  [Components.EastingNorthingField, formatLocationField],
-  [Components.LatLongField, formatLocationField]
-])
 
 /**
  * @param {FormDefinition} definition
@@ -71,12 +63,53 @@ function appendPaymentSection(formSubmissionMessage, lines) {
 }
 
 /**
- * Process repeater entries and add file links to the component map
+ * Process main form entries and add them to the component map
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormModel} formModel
+ * @param {Map<string, string[]>} componentMap
+ */
+function processMainEntries(formSubmissionMessage, formModel, componentMap) {
+  const mainEntries = Object.entries({
+    ...formSubmissionMessage.data.main,
+    ...formSubmissionMessage.data.files
+  })
+
+  for (const [key, richFormValue] of mainEntries) {
+    const questionLines = /** @type {string[]} */ ([])
+    const field = formModel.componentMap.get(key)
+
+    let mappedRichFormValue = richFormValue
+
+    if (field instanceof FileUploadField) {
+      mappedRichFormValue = richFormValue.map(mapFormAdapterFileToFileState)
+    }
+
+    const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
+
+    const label = escapeContent(field.title)
+    questionLines.push(`## ${label}\n`)
+
+    if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
+      const answerLine = generateFieldLine(answer, field, richFormValue)
+      questionLines.push(answerLine)
+    }
+
+    questionLines.push('---\n')
+    componentMap.set(key, questionLines)
+  }
+}
+
+/**
+ * Process repeater entries and add them to the component map
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
+ * @param {Map<string, string[]>} componentMap
  */
-function processRepeaterFiles(formSubmissionMessage, formDefinition) {
-  const components = new Map()
+function processRepeaterEntries(
+  formSubmissionMessage,
+  formDefinition,
+  componentMap
+) {
   const repeaterEntries = Object.entries(
     formSubmissionMessage.result.files.repeaters
   )
@@ -99,9 +132,8 @@ function processRepeaterFiles(formSubmissionMessage, formDefinition) {
       `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
       '---\n'
     )
-    components.set(componentKey, questionLines)
+    componentMap.set(componentKey, questionLines)
   }
-  return components
 }
 
 /**
@@ -149,6 +181,7 @@ export function formatter(
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
   const order = calculateOrder(formDefinition, formSubmissionMessage)
+  const componentMap = new Map()
   /**
    * @type {string[]}
    */
@@ -169,36 +202,9 @@ export function formatter(
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
-  const creator = new EmailContentCreator(
-    fieldHandlers,
-    formatListFormComponent,
-    () => false,
-    mapFormAdapterFileToFileState
-  )
-
-  const mainComponentsMap = creator.processMainEntries(
-    formSubmissionMessage,
-    formModel
-  )
-  const repeaterComponentsMap = creator.processRepeaterEntries(
-    formSubmissionMessage,
-    formDefinition,
-    formModel
-  )
-
-  const componentMap = new Map([...mainComponentsMap, ...repeaterComponentsMap])
-
+  processMainEntries(formSubmissionMessage, formModel, componentMap)
+  processRepeaterEntries(formSubmissionMessage, formDefinition, componentMap)
   appendComponentLines(order, componentMap, lines)
-
-  const repeaterFilesMap = processRepeaterFiles(
-    formSubmissionMessage,
-    formDefinition
-  )
-  appendComponentLines(
-    Array.from(repeaterFilesMap.keys()),
-    repeaterFilesMap,
-    lines
-  )
 
   // Add payment details section if payment exists
   appendPaymentSection(formSubmissionMessage, lines)
@@ -286,6 +292,111 @@ function formatListFormComponent(answer, field, richFormValue) {
 }
 
 /**
+ * Map of component types to their formatting handlers
+ * Using Map to preserve class constructor references
+ */
+const fieldHandlers = new Map([
+  [Components.FileUploadField, formatFileUploadField],
+  [Components.MultilineTextField, formatMultilineTextField],
+  [Components.UkAddressField, formatUkAddressField],
+  [Components.EastingNorthingField, formatLocationField],
+  [Components.LatLongField, formatLocationField]
+])
+
+/**
+ * Check if field is a list component and return appropriate handler
+ * @param {Component} field
+ * @returns {((answer: string, field: Component, richFormValue: RichFormValue) => string) | null}
+ */
+function getListComponentHandler(field) {
+  if (field instanceof ListFormComponent && field instanceof FormComponent) {
+    return formatListFormComponent
+  }
+  return null
+}
+
+/**
+ *
+ * @param {string} answer
+ * @param {Component} field
+ * @param {RichFormValue} richFormValue
+ * @returns {string}
+ */
+function generateFieldLine(answer, field, richFormValue) {
+  // Check list component first (special case with multiple inheritance)
+  const listHandler = getListComponentHandler(field)
+  if (listHandler) {
+    return listHandler(answer, field, richFormValue)
+  }
+
+  // Iterate through registered handlers
+  for (const [Type, handler] of fieldHandlers) {
+    if (field instanceof Type) {
+      return handler(answer, field, richFormValue)
+    }
+  }
+
+  // Default handler for all other field types
+  return `${escapeContent(answer)}\n`
+}
+
+/**
+ * Calculate the order of components for human readable output
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {string[]}
+ */
+function calculateOrder(formDefinition, formSubmissionMessage) {
+  if (formDefinition.engine === Engine.V1) {
+    return getRelevantPagesForLegacy(formDefinition, formSubmissionMessage)
+  }
+
+  return formDefinition.pages.flatMap((page) => {
+    if (hasComponents(page)) {
+      if (hasRepeater(page)) {
+        return [page.repeat.options.name]
+      }
+      return page.components.map((component) => component.name)
+    }
+    return []
+  })
+}
+
+/**
+ *
+ * @param {Record<string, FormStateValue>} subfieldObject
+ * @param {[string, FormValue|null]} entry
+ * @returns {Record<string, FormStateValue>}
+ */
+function handleSubfields(subfieldObject, [key, value]) {
+  if (typeof value === 'object' && value !== null) {
+    const subValues = Object.entries(value).reduce((acc2, [key2, value2]) => {
+      if (value2 === undefined) {
+        return acc2
+      }
+      return {
+        ...acc2,
+        [`${key}__${key2}`]: value2
+      }
+    }, {})
+
+    return {
+      ...subfieldObject,
+      ...subValues
+    }
+  }
+
+  if (value === undefined) {
+    return subfieldObject
+  }
+
+  return {
+    ...subfieldObject,
+    [key]: value
+  }
+}
+
+/**
  *
  * @param {FormAdapterFile} file
  * @returns {FileState}
@@ -313,7 +424,95 @@ function mapFormAdapterFileToFileState(file) {
 }
 
 /**
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ */
+export function mapValueToState(formSubmissionMessage) {
+  const mainEntries = Object.entries(formSubmissionMessage.data.main)
+  const main = mainEntries.reduce(handleSubfields, {})
+
+  const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
+  const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
+    const values = value.map((repeater, idx) => {
+      const idxStr = `${idx}`
+      return {
+        ...Object.entries(repeater).reduce(handleSubfields, {}),
+        itemId:
+          `a581accd-e989-4500-87da-f3929c192dba`.slice(0, 0 - idxStr.length) +
+          idxStr
+      }
+    })
+
+    return {
+      ...repeaterObject,
+      [key]: values
+    }
+  }, {})
+
+  const fileEntries = Object.entries(formSubmissionMessage.data.files)
+  const files = fileEntries.reduce((fileObject, [key, value]) => {
+    const componentFiles = value.map(mapFormAdapterFileToFileState)
+    return {
+      ...fileObject,
+      [key]: componentFiles
+    }
+  }, {})
+
+  return {
+    $$__referenceNumber: 'REFERENCE_NUMBER',
+    ...main,
+    ...repeaters,
+    ...files
+  }
+}
+
+/**
+ *
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ */
+export function getRelevantPagesForLegacy(
+  formDefinition,
+  formSubmissionMessage
+) {
+  const model = new FormModel(formDefinition, { basePath: '' })
+  const state = mapValueToState(formSubmissionMessage)
+
+  const context = model.getFormContext(
+    {
+      query: {
+        force: true
+      },
+      params: {
+        path: 'summary'
+      }
+    },
+    state
+  )
+
+  const { relevantPages } = context
+  const typedRelevantPages = /** @type {PageControllerClass[]} */ (
+    relevantPages
+  )
+
+  return typedRelevantPages.reduce((order, page) => {
+    const { collection } = page
+
+    if (page instanceof RepeatPageController) {
+      return [...order, page.repeat.options.name]
+    } else {
+      return [
+        ...order,
+        ...collection.fields.map(
+          /** @type {(f: Component) => string} */ ((f) => f.name)
+        )
+      ]
+    }
+  }, [])
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
- * @import { FileState, FormAdapterSubmissionMessage, FormAdapterFile, FormValue, FormStateValue, RichFormValue, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
