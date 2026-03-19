@@ -7,6 +7,7 @@ import { ProxyAgent } from 'proxy-agent'
 import { config } from '~/src/config/index.js'
 import { failAction } from '~/src/helpers/fail-action.js'
 import { requestLogger } from '~/src/helpers/logging/request-logger.js'
+import { auth } from '~/src/plugins/auth/index.js'
 import { router } from '~/src/plugins/router.js'
 import { prepareSecureContext } from '~/src/secure-context.js'
 import { runTask } from '~/src/tasks/receive-messages.js'
@@ -28,6 +29,9 @@ export async function createServer() {
   const server = hapi.server({
     port: config.get('port'),
     routes: {
+      auth: {
+        mode: 'required'
+      },
       validate: {
         options: {
           abortEarly: false
@@ -59,6 +63,7 @@ export async function createServer() {
     prepareSecureContext(server)
   }
 
+  await server.register(auth)
   await server.register(router)
 
   await runTask()

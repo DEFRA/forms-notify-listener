@@ -187,6 +187,18 @@ export const config = convict({
     default: '9af646c4-fa14-4606-8ebf-ec187ac03386',
     env: 'ROLE_EDITOR_GROUP_ID'
   },
+  entitlementUrl: {
+    doc: 'Forms entitlements API URL',
+    format: String,
+    default: 'http://localhost:3004',
+    env: 'ENTITLEMENT_URL'
+  },
+  useEntitlementApi: {
+    doc: 'Feature flag to enable entitlement API for fetching scopes',
+    format: Boolean,
+    default: false,
+    env: 'FEATURE_FLAG_USE_ENTITLEMENT_API'
+  },
   tracing: {
     header: {
       doc: 'CDP tracing header name',
@@ -230,6 +242,12 @@ export const config = convict({
     format: Number,
     default: 30,
     env: 'SQS_VISIBILITY_TIMEOUT'
+  },
+  sqsEventsDlqUrl: {
+    doc: 'SQS deadletter queue ARN',
+    format: String,
+    default: '',
+    env: 'EVENTS_SQS_DLQ_ARN'
   },
   fileExpiryInMonths: {
     doc: 'The number of months a file link is active for',
