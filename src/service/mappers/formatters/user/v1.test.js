@@ -15,6 +15,8 @@ import {
 import {
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
+  geospatialFormDefinition,
+  geospatialMessage,
   pizzaFormDefinition,
   pizzaMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
@@ -470,6 +472,35 @@ describe('User answers formatter v1', () => {
       expect(output).not.toContain(
         'Please enter the details for each team member.'
       )
+    })
+
+    it('should handle geospatial fields', () => {
+      const definition = geospatialFormDefinition
+      const output = formatter(geospatialMessage, definition)
+
+      expect(output).toBe(`# Geospatial features of the site
+
+Added 3 locations:
+
+The quadrangle:
+TQ 29035 79656
+-0.14302739537203024, 51.50123314524271
+-0.14246620384719222, 51.50069106195494
+-0.1416921465718417, 51.50101631270161
+-0.14226301381148687, 51.50155839212027
+-0.14302739537203024, 51.50123314524271
+
+St James' Park:
+TQ 29684 79849
+-0.13295710945470773, 51.50270750157188
+
+Constitution Hill:
+TQ 28521 79799
+-0.14971510866865856, 51.50252738875241
+-0.14045925603909382, 51.50222886009584
+-0.14007559375386336, 51.50201988887275
+-0.14007559375386336, 51.501691503585704
+-0.1408908761094949, 51.50022866765107`)
     })
   })
 
