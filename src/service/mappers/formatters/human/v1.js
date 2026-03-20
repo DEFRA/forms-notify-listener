@@ -1,6 +1,7 @@
 import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
+import { GeospatialField } from '@defra/forms-engine-plugin/engine/components/GeospatialField.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
@@ -8,7 +9,12 @@ import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
+import {
+  ComponentType,
+  Engine,
+  hasComponents,
+  hasRepeater
+} from '@defra/forms-model'
 import { addDays } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -91,13 +97,38 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
     questionLines.push(`## ${label}\n`)
 
     if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
-      const answerLine = generateFieldLine(answer, field, richFormValue)
+      let answerLine = generateFieldLine(answer, field, richFormValue)
+
+      const pageId = field.page?.id
+      const componentId = field.id
+
+      if (field instanceof GeospatialField && pageId && componentId) {
+        const referenceNumber = formSubmissionMessage.meta.referenceNumber
+        const link = generateGeospatialMapLink(
+          referenceNumber,
+          pageId,
+          componentId
+        )
+        answerLine += link
+      }
+
       questionLines.push(answerLine)
     }
 
     questionLines.push('---\n')
     componentMap.set(key, questionLines)
   }
+}
+
+/**
+ * Generates a link to designer to view a geospatial map
+ * @param {string} referenceNumber
+ * @param {string} pageId
+ * @param {string} componentId
+ * @returns {string}
+ */
+function generateGeospatialMapLink(referenceNumber, pageId, componentId) {
+  return `\n[View map](${designerUrl}/submission/${referenceNumber}/map-review/${pageId}/${componentId})\n`
 }
 
 /**
@@ -130,9 +161,32 @@ function processRepeaterEntries(
 
     const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
     questionLines.push(
-      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
-      '---\n'
+      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
     )
+
+    const geospatialRepeaterComponents = repeaterPage.components.filter(
+      (component) => component.type === ComponentType.GeospatialField
+    )
+    const pageId = repeaterPage.id
+
+    if (pageId && geospatialRepeaterComponents.length) {
+      questionLines.push(
+        ...geospatialRepeaterComponents
+          .map((component) =>
+            component.id
+              ? generateGeospatialMapLink(
+                  formSubmissionMessage.meta.referenceNumber,
+                  pageId,
+                  component.id
+                )
+              : ''
+          )
+          .filter((link) => link !== '')
+      )
+    }
+
+    questionLines.push('---\n')
+
     componentMap.set(componentKey, questionLines)
   }
 }

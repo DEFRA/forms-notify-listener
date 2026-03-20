@@ -106,7 +106,8 @@ export function formatGeospatialField(answer, _field, richFormValue) {
   const value = features
     .map((feature) => {
       const { properties, geometry } = feature
-      const { description, gridReference } = properties
+      const { description, coordinateGridReference, centroidGridReference } =
+        properties
       const { coordinates } = geometry
       const flattened = coordinates.flat(2)
 
@@ -114,6 +115,12 @@ export function formatGeospatialField(answer, _field, richFormValue) {
       for (let i = 0; i < flattened.length; i += 2) {
         points.push(flattened.slice(i, i + 2).join(', '))
       }
+
+      // For polygons use the grid reference of the centroid
+      const gridReference =
+        feature.geometry.type === 'Polygon'
+          ? centroidGridReference
+          : coordinateGridReference
 
       return `${description}:\n${gridReference}\n${points.join('\n')}\n`
     })
