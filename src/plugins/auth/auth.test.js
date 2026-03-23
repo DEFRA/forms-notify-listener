@@ -129,8 +129,7 @@ describe('auth plugin', () => {
       const artifacts = /** @type {any} */ ({
         decoded: {
           payload: {
-            oid: 'test-oid',
-            groups: JSON.stringify(['editor-group-id'])
+            oid: 'test-oid'
           }
         }
       })
@@ -139,8 +138,7 @@ describe('auth plugin', () => {
         isValid: true,
         credentials: {
           user: {
-            oid: 'test-oid',
-            groups: ['editor-group-id']
+            oid: 'test-oid'
           },
           scope: ['form-delete', 'form-edit', 'form-read']
         }
