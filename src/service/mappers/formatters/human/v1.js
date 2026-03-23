@@ -1,4 +1,3 @@
-import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
@@ -23,7 +22,8 @@ import {
   formatListFormComponentInternal,
   formatLocationField,
   formatMultilineTextField,
-  formatUkAddressField
+  formatUkAddressField,
+  getRelevantPagesForLegacy
 } from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
@@ -280,40 +280,6 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
 
 /**
  *
- * @param {Record<string, FormStateValue>} subfieldObject
- * @param {[string, FormValue|null]} entry
- * @returns {Record<string, FormStateValue>}
- */
-function handleSubfields(subfieldObject, [key, value]) {
-  if (typeof value === 'object' && value !== null) {
-    const subValues = Object.entries(value).reduce((acc2, [key2, value2]) => {
-      if (value2 === undefined) {
-        return acc2
-      }
-      return {
-        ...acc2,
-        [`${key}__${key2}`]: value2
-      }
-    }, {})
-
-    return {
-      ...subfieldObject,
-      ...subValues
-    }
-  }
-
-  if (value === undefined) {
-    return subfieldObject
-  }
-
-  return {
-    ...subfieldObject,
-    [key]: value
-  }
-}
-
-/**
- *
  * @param {FormAdapterFile} file
  * @returns {FileState}
  */
@@ -340,95 +306,7 @@ function mapFormAdapterFileToFileState(file) {
 }
 
 /**
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- */
-export function mapValueToState(formSubmissionMessage) {
-  const mainEntries = Object.entries(formSubmissionMessage.data.main)
-  const main = mainEntries.reduce(handleSubfields, {})
-
-  const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
-  const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
-    const values = value.map((repeater, idx) => {
-      const idxStr = `${idx}`
-      return {
-        ...Object.entries(repeater).reduce(handleSubfields, {}),
-        itemId:
-          `a581accd-e989-4500-87da-f3929c192dba`.slice(0, 0 - idxStr.length) +
-          idxStr
-      }
-    })
-
-    return {
-      ...repeaterObject,
-      [key]: values
-    }
-  }, {})
-
-  const fileEntries = Object.entries(formSubmissionMessage.data.files)
-  const files = fileEntries.reduce((fileObject, [key, value]) => {
-    const componentFiles = value.map(mapFormAdapterFileToFileState)
-    return {
-      ...fileObject,
-      [key]: componentFiles
-    }
-  }, {})
-
-  return {
-    $$__referenceNumber: 'REFERENCE_NUMBER',
-    ...main,
-    ...repeaters,
-    ...files
-  }
-}
-
-/**
- *
- * @param {FormDefinition} formDefinition
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- */
-export function getRelevantPagesForLegacy(
-  formDefinition,
-  formSubmissionMessage
-) {
-  const model = new FormModel(formDefinition, { basePath: '' })
-  const state = mapValueToState(formSubmissionMessage)
-
-  const context = model.getFormContext(
-    {
-      query: {
-        force: true
-      },
-      params: {
-        path: 'summary'
-      }
-    },
-    state
-  )
-
-  const { relevantPages } = context
-  const typedRelevantPages = /** @type {PageControllerClass[]} */ (
-    relevantPages
-  )
-
-  return typedRelevantPages.reduce((order, page) => {
-    const { collection } = page
-
-    if (page instanceof RepeatPageController) {
-      return [...order, page.repeat.options.name]
-    } else {
-      return [
-        ...order,
-        ...collection.fields.map(
-          /** @type {(f: Component) => string} */ ((f) => f.name)
-        )
-      ]
-    }
-  }, [])
-}
-
-/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
- * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */

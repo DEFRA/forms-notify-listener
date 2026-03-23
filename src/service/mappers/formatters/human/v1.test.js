@@ -15,10 +15,6 @@ import {
   pizzaFormDefinition,
   pizzaMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
-import {
-  getRelevantPagesForLegacy,
-  mapValueToState
-} from '~/src/service/mappers/formatters/human/v1.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 
 jest.mock('nunjucks', () => {
@@ -48,71 +44,6 @@ describe('Page controller helpers', () => {
     jest.useRealTimers()
   })
 
-  describe('mapValueToState', () => {
-    it('should map adaptor v2 message to state', () => {
-      const message = {
-        ...legacyGraphFormMessage,
-        data: {
-          ...legacyGraphFormMessage.data,
-          main: {
-            ...legacyGraphFormMessage.data.main,
-            dateComponent: {
-              day: 1,
-              month: 1,
-              year: 2020
-            }
-          }
-        }
-      }
-      expect(mapValueToState(message)).toEqual({
-        $$__referenceNumber: 'REFERENCE_NUMBER',
-        BuYlIg: 'John',
-        zFwSsz: 'Doe',
-        RRApmV: 'GB-ENG',
-        CsWVsY: 4,
-        VFhEJu: '23423',
-        wqTVdv: 543,
-        wGNLPw: [
-          {
-            IrwAyV: 'Jane',
-            MWVjbY: 'Doe',
-            dImeLi__month: 1,
-            dImeLi__year: 2000,
-            itemId: 'a581accd-e989-4500-87da-f3929c192db0'
-          },
-          {
-            IrwAyV: 'Janet',
-            MWVjbY: 'Doe',
-            dImeLi__month: 1,
-            dImeLi__year: 2000,
-            itemId: 'a581accd-e989-4500-87da-f3929c192db1'
-          }
-        ],
-        dateComponent__day: 1,
-        dateComponent__month: 1,
-        dateComponent__year: 2020,
-        fileUploadComponent: [
-          {
-            uploadId: 'f1ee2837-7581-4cb0-8113-134527250fee',
-            status: {
-              uploadStatus: 'ready',
-              metadata: {
-                retrievalKey: ''
-              },
-              form: {
-                file: {
-                  fileId: '2c39f4bf-2ccc-4b73-8e0e-c91549b56989',
-                  filename: 'bank_statement.pdf',
-                  fileStatus: 'complete',
-                  contentLength: 0
-                }
-              }
-            }
-          }
-        ]
-      })
-    })
-  })
   describe('format', () => {
     it('should return a valid human readable v1 response', () => {
       const definition = buildDefinition({
@@ -261,35 +192,6 @@ describe('Page controller helpers', () => {
       const output = formatter(legacyGraphFormMessage, definition, '1')
 
       expect(output).toMatchSnapshot()
-    })
-  })
-
-  describe('getRelevantPagesForLegacy', () => {
-    it('should get Relevant Pages For Legacy', () => {
-      const pages = getRelevantPagesForLegacy(
-        legacyGraphFormDefinition,
-        legacyGraphFormMessage
-      )
-      const proofOfAddress = 'fileUploadComponent'
-      const yourAge = 'CsWVsY'
-      const countryOfBirth = 'RRApmV'
-      const passportNumber = 'VFhEJu'
-
-      const numberOfPeople = 'wqTVdv'
-      const firstName = 'BuYlIg'
-      const lastName = 'zFwSsz'
-      const person = 'wGNLPw'
-
-      expect(pages).toEqual([
-        yourAge,
-        countryOfBirth,
-        firstName,
-        lastName,
-        person,
-        passportNumber,
-        numberOfPeople,
-        proofOfAddress
-      ])
     })
   })
 
