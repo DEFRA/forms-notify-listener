@@ -1,4 +1,5 @@
 import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
+import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
   FileStatus,
@@ -6,8 +7,11 @@ import {
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 
+import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+
+const designerUrl = config.get('designerUrl')
 
 /**
  * Finds a repeater page by its key (repeat.options.name)
@@ -288,6 +292,122 @@ function handleSubfields(subfieldObject, [key, value]) {
     ...subfieldObject,
     [key]: value
   }
+}
+
+/**
+ * Append component lines to the output in the correct order
+ * @param {string[]} order
+ * @param {Map<string, string[]>} componentMap
+ * @param {string[]} lines
+ */
+export function appendComponentLines(order, componentMap, lines) {
+  for (const key of order) {
+    const componentLines = componentMap.get(key)
+
+    if (componentLines) {
+      lines.push(...componentLines)
+    }
+  }
+}
+
+/**
+ * Format list form component field - for uinternal submission email
+ * @param {string} answer
+ * @param {Component} field
+ * @param {RichFormValue} richFormValue
+ * @returns {string}
+ */
+export function formatListFormComponentInternal(answer, field, richFormValue) {
+  return formatListFormComponent(answer, field, richFormValue, true)
+}
+
+/**
+ * Format list form component field - for user confirmation email
+ * @param {string} answer
+ * @param {Component} field
+ * @param {RichFormValue} richFormValue
+ * @returns {string}
+ */
+export function formatListFormComponentUser(answer, field, richFormValue) {
+  return formatListFormComponent(answer, field, richFormValue, false)
+}
+
+/**
+ * Format list form component field
+ * @param {string} answer
+ * @param {Component} field
+ * @param {RichFormValue} richFormValue
+ * @param {boolean} includeCodeValue
+ * @returns {string}
+ */
+function formatListFormComponent(
+  answer,
+  field,
+  richFormValue,
+  includeCodeValue
+) {
+  const values = new Set(
+    [field.getContextValueFromFormValue(richFormValue)].flat()
+  )
+  const items = field.items.filter((/** @type {{ value: any }} */ { value }) =>
+    values.has(value)
+  )
+
+  // Skip empty values
+  if (!items.length) {
+    return `${escapeContent(answer)}\n`
+  }
+
+  const formattedItems = items
+    .map((/** @type {any} */ item) => {
+      const label = escapeContent(item.text)
+      const value = escapeContent(`(${item.value})`)
+
+      let line = label
+
+      // Prepend bullet points for checkboxes only
+      if (field instanceof Components.CheckboxesField) {
+        line = `* ${line}`
+      }
+
+      // Append raw values in parentheses
+      // e.g. `* None of the above (false)`
+      return `${item.value}`.toLowerCase() === item.text.toLowerCase() ||
+        !includeCodeValue
+        ? `${line}\n`
+        : `${line} ${value}\n`
+    })
+    .join('')
+
+  return formattedItems
+}
+
+/**
+ * Format file upload field
+ * @param {string} answer
+ * @param {Component} _field
+ * @param {RichFormValue} richFormValue
+ * @returns {string}
+ */
+export function formatFileUploadFieldInternal(answer, _field, richFormValue) {
+  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (richFormValue)
+
+  // Skip empty files
+  if (!formAdapterFiles.length) {
+    return `${escapeContent(answer)}\n`
+  }
+
+  let answerEscaped = `${escapeContent(answer)}:\n\n`
+
+  const fileUploadString = formAdapterFiles
+    .map((file) => {
+      const fileUploadFilename = escapeFileLabel(file.fileName)
+      return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
+    })
+    .join('')
+
+  answerEscaped += fileUploadString
+  return answerEscaped
 }
 
 /**

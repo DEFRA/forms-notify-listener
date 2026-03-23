@@ -16,8 +16,11 @@ import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
+  appendComponentLines,
   extractPaymentDetails,
   findRepeaterPageByKey,
+  formatFileUploadFieldInternal,
+  formatListFormComponentInternal,
   formatLocationField,
   formatMultilineTextField,
   formatUkAddressField
@@ -137,22 +140,6 @@ function processRepeaterEntries(
 }
 
 /**
- * Append component lines to the output in the correct order
- * @param {string[]} order
- * @param {Map<string, string[]>} componentMap
- * @param {string[]} lines
- */
-function appendComponentLines(order, componentMap, lines) {
-  for (const key of order) {
-    const componentLines = componentMap.get(key)
-
-    if (componentLines) {
-      lines.push(...componentLines)
-    }
-  }
-}
-
-/**
  * Human readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
@@ -221,82 +208,11 @@ export function formatter(
 }
 
 /**
- * Format file upload field
- * @param {string} answer
- * @param {Component} _field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatFileUploadField(answer, _field, richFormValue) {
-  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (richFormValue)
-
-  // Skip empty files
-  if (!formAdapterFiles.length) {
-    return `${escapeContent(answer)}\n`
-  }
-
-  let answerEscaped = `${escapeContent(answer)}:\n\n`
-
-  const fileUploadString = formAdapterFiles
-    .map((file) => {
-      const fileUploadFilename = escapeFileLabel(file.fileName)
-      return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
-    })
-    .join('')
-
-  answerEscaped += fileUploadString
-  return answerEscaped
-}
-
-/**
- * Format list form component field
- * @param {string} answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatListFormComponent(answer, field, richFormValue) {
-  const values = new Set(
-    [field.getContextValueFromFormValue(richFormValue)].flat()
-  )
-  const items = field.items.filter((/** @type {{ value: any }} */ { value }) =>
-    values.has(value)
-  )
-
-  // Skip empty values
-  if (!items.length) {
-    return `${escapeContent(answer)}\n`
-  }
-
-  const formattedItems = items
-    .map((/** @type {any} */ item) => {
-      const label = escapeContent(item.text)
-      const value = escapeContent(`(${item.value})`)
-
-      let line = label
-
-      // Prepend bullet points for checkboxes only
-      if (field instanceof Components.CheckboxesField) {
-        line = `* ${line}`
-      }
-
-      // Append raw values in parentheses
-      // e.g. `* None of the above (false)`
-      return `${item.value}`.toLowerCase() === item.text.toLowerCase()
-        ? `${line}\n`
-        : `${line} ${value}\n`
-    })
-    .join('')
-
-  return formattedItems
-}
-
-/**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
  */
 const fieldHandlers = new Map([
-  [Components.FileUploadField, formatFileUploadField],
+  [Components.FileUploadField, formatFileUploadFieldInternal],
   [Components.MultilineTextField, formatMultilineTextField],
   [Components.UkAddressField, formatUkAddressField],
   [Components.EastingNorthingField, formatLocationField],
@@ -310,7 +226,7 @@ const fieldHandlers = new Map([
  */
 function getListComponentHandler(field) {
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent
+    return formatListFormComponentInternal
   }
   return null
 }

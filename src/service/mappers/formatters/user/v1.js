@@ -6,6 +6,7 @@ import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { EmailContentCreator } from '~/src/service/mappers/formatters/email-content-creator.js'
 import {
   calculateOrder,
+  formatListFormComponentUser,
   formatLocationField,
   formatMultilineTextField,
   formatUkAddressField
@@ -91,7 +92,7 @@ export function formatter(formSubmissionMessage, formDefinition) {
   // Process main entries and repeater entries
   const creator = new EmailContentCreator(
     fieldHandlers,
-    formatListFormComponent,
+    formatListFormComponentUser,
     shouldSkipField,
     undefined
   )
@@ -140,43 +141,6 @@ function formatFileUploadField(answer, _field, richFormValue) {
     .join('')
 
   return fileList
-}
-
-/**
- * Format list form component field (radio, checkbox, select)
- * Uses bullet points only for multiple answers, plain text for single answers
- * @param {string} _answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatListFormComponent(_answer, field, richFormValue) {
-  const values = new Set(
-    [field.getContextValueFromFormValue(richFormValue)].flat()
-  )
-  const items = field.items.filter((/** @type {{ value: any }} */ { value }) =>
-    values.has(value)
-  )
-
-  // Skip empty values
-  if (!items.length) {
-    return ''
-  }
-
-  // Single answer: no bullet point
-  if (items.length === 1) {
-    return `${escapeContent(items[0].text)}\n`
-  }
-
-  // Multiple answers: use bullet points
-  const formattedItems = items
-    .map((/** @type {any} */ item) => {
-      const label = escapeContent(item.text)
-      return `* ${label}\n`
-    })
-    .join('')
-
-  return formattedItems
 }
 
 /**
