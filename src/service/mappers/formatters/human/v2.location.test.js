@@ -28,7 +28,7 @@ jest.mock('~/src/config/index.js', () => ({
   }
 }))
 
-describe('Location field formatting in Human V1', () => {
+describe('Location field formatting in Human V2', () => {
   beforeAll(() => {
     jest.useFakeTimers().setSystemTime(new Date('2025-04-01T23:00:00Z'))
   })
@@ -90,10 +90,10 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
-      expect(output).toContain('## What is your location?')
+      expect(output).toContain('# What is your location?')
       expect(output).toContain('Northing: 654321')
       expect(output).toContain('Easting: 123456')
       expect(output).not.toContain('654321, 123456')
@@ -142,10 +142,10 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
-      expect(output).toContain('## What is your location?')
+      expect(output).toContain('# What is your location?')
       expect(output).not.toContain('Northing:')
       expect(output).not.toContain('Easting:')
     })
@@ -199,10 +199,10 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
-      expect(output).toContain('## What are your coordinates?')
+      expect(output).toContain('# What are your coordinates?')
       expect(output).toContain('Latitude: 51.51945')
       expect(output).toContain('Longitude: -0.127758')
       expect(output).not.toContain('51.51945, -0.127758')
@@ -251,10 +251,10 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
-      expect(output).toContain('## What are your coordinates?')
+      expect(output).toContain('# What are your coordinates?')
       expect(output).not.toContain('Lat:')
       expect(output).not.toContain('Long:')
     })
@@ -304,10 +304,10 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
-      expect(output).toContain('## What is your OS grid reference?')
+      expect(output).toContain('# What is your OS grid reference?')
       expect(output).toContain('TQ123456')
     })
 
@@ -354,10 +354,10 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
-      expect(output).toContain('## What is your National Grid field number?')
+      expect(output).toContain('# What is your National Grid field number?')
       expect(output).toContain('NG12345678')
     })
   })
@@ -431,25 +431,25 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(formSubmissionMessage, formDefinition, '1')
 
       // Check Easting and Northing
-      expect(output).toContain('## Easting and Northing')
+      expect(output).toContain('# Easting and Northing')
       expect(output).toContain('Northing: 654321')
       expect(output).toContain('Easting: 123456')
 
       // Check Latitude and Longitude
-      expect(output).toContain('## Latitude and Longitude')
+      expect(output).toContain('# Latitude and Longitude')
       expect(output).toContain('Latitude: 51.51945')
       expect(output).toContain('Longitude: -0.127758')
 
       // Check OS Grid Reference
-      expect(output).toContain('## OS Grid Reference')
+      expect(output).toContain('# OS Grid Reference')
       expect(output).toContain('TQ123456')
 
       // Check National Grid Field Number
-      expect(output).toContain('## National Grid Field Number')
+      expect(output).toContain('# National Grid Field Number')
       expect(output).toContain('NG12345678')
     })
   })
