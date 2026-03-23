@@ -17,13 +17,13 @@ import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
   appendComponentLines,
   extractPaymentDetails,
-  findRepeaterPageByKey,
   formatFileUploadFieldInternal,
   formatListFormComponentInternal,
   formatLocationField,
   formatMultilineTextField,
   formatUkAddressField,
-  getRelevantPagesForLegacy
+  getRelevantPagesForLegacy,
+  processRepeaterFilesInternal
 } from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
@@ -69,9 +69,9 @@ function appendPaymentSection(formSubmissionMessage, lines) {
  * Process main form entries and add them to the component map
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormModel} formModel
- * @param {Map<string, string[]>} componentMap
  */
-function processMainEntries(formSubmissionMessage, formModel, componentMap) {
+function processMainEntries(formSubmissionMessage, formModel) {
+  const componentMap = new Map()
   const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
@@ -100,43 +100,7 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
     questionLines.push('---\n')
     componentMap.set(key, questionLines)
   }
-}
-
-/**
- * Process repeater entries and add them to the component map
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @param {FormDefinition} formDefinition
- * @param {Map<string, string[]>} componentMap
- */
-function processRepeaterEntries(
-  formSubmissionMessage,
-  formDefinition,
-  componentMap
-) {
-  const repeaterEntries = Object.entries(
-    formSubmissionMessage.result.files.repeaters
-  )
-
-  for (const [key, fileId] of repeaterEntries) {
-    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-    if (!hasRepeater(repeaterPage)) {
-      continue
-    }
-
-    const label = escapeContent(repeaterPage.repeat.options.title)
-    const componentKey = repeaterPage.repeat.options.name
-    const questionLines = /** @type {string[]} */ ([])
-
-    questionLines.push(`## ${label}\n`)
-
-    const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
-    questionLines.push(
-      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
-      '---\n'
-    )
-    componentMap.set(componentKey, questionLines)
-  }
+  return componentMap
 }
 
 /**
@@ -168,7 +132,6 @@ export function formatter(
   const formattedExpiryDate = `${dateFormat(fileExpiryDate, 'h:mmaaa')} on ${dateFormat(fileExpiryDate, 'eeee d MMMM yyyy')}`
 
   const order = calculateOrder(formDefinition, formSubmissionMessage)
-  const componentMap = new Map()
   /**
    * @type {string[]}
    */
@@ -189,8 +152,12 @@ export function formatter(
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
-  processMainEntries(formSubmissionMessage, formModel, componentMap)
-  processRepeaterEntries(formSubmissionMessage, formDefinition, componentMap)
+  const mainComponentsMap = processMainEntries(formSubmissionMessage, formModel)
+  const repeaterComponentsMap = processRepeaterFilesInternal(
+    formSubmissionMessage,
+    formDefinition
+  )
+  const componentMap = new Map([...mainComponentsMap, ...repeaterComponentsMap])
   appendComponentLines(order, componentMap, lines)
 
   // Add payment details section if payment exists

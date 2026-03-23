@@ -411,6 +411,43 @@ export function formatFileUploadFieldInternal(answer, _field, richFormValue) {
 }
 
 /**
+ * Process repeater entries and add file links to the component map
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} formDefinition
+ */
+export function processRepeaterFilesInternal(
+  formSubmissionMessage,
+  formDefinition
+) {
+  const components = new Map()
+  const repeaterEntries = Object.entries(
+    formSubmissionMessage.result.files.repeaters
+  )
+
+  for (const [key, fileId] of repeaterEntries) {
+    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
+
+    if (!hasRepeater(repeaterPage)) {
+      continue
+    }
+
+    const label = escapeContent(repeaterPage.repeat.options.title)
+    const componentKey = repeaterPage.repeat.options.name
+    const questionLines = /** @type {string[]} */ ([])
+
+    questionLines.push(`## ${label}\n`)
+
+    const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
+    questionLines.push(
+      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
+      '---\n'
+    )
+    components.set(componentKey, questionLines)
+  }
+  return components
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FileState, FormValue, FormStateValue, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'

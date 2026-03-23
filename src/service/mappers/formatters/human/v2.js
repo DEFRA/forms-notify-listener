@@ -4,7 +4,6 @@ import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import { hasRepeater } from '@defra/forms-model'
 import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -15,12 +14,12 @@ import {
   appendComponentLines,
   calculateOrder,
   extractPaymentDetails,
-  findRepeaterPageByKey,
   formatFileUploadFieldInternal,
   formatListFormComponentInternal,
   formatLocationField,
   formatMultilineTextField,
-  formatUkAddressField
+  formatUkAddressField,
+  processRepeaterFilesInternal
 } from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
@@ -71,40 +70,6 @@ function appendPaymentSection(formSubmissionMessage, lines) {
     `${escapeContent(paymentDetails.dateOfPayment)}\n`,
     '---\n'
   )
-}
-
-/**
- * Process repeater entries and add file links to the component map
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @param {FormDefinition} formDefinition
- */
-function processRepeaterFiles(formSubmissionMessage, formDefinition) {
-  const components = new Map()
-  const repeaterEntries = Object.entries(
-    formSubmissionMessage.result.files.repeaters
-  )
-
-  for (const [key, fileId] of repeaterEntries) {
-    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-    if (!hasRepeater(repeaterPage)) {
-      continue
-    }
-
-    const label = escapeContent(repeaterPage.repeat.options.title)
-    const componentKey = repeaterPage.repeat.options.name
-    const questionLines = /** @type {string[]} */ ([])
-
-    questionLines.push(`## ${label}\n`)
-
-    const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
-    questionLines.push(
-      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`,
-      '---\n'
-    )
-    components.set(componentKey, questionLines)
-  }
-  return components
 }
 
 /**
@@ -177,7 +142,7 @@ export function formatter(
 
   appendComponentLines(order, componentMap, lines)
 
-  const repeaterFilesMap = processRepeaterFiles(
+  const repeaterFilesMap = processRepeaterFilesInternal(
     formSubmissionMessage,
     formDefinition
   )
