@@ -8,6 +8,7 @@ import { mockClient } from 'aws-sdk-client-mock'
 
 import 'aws-sdk-client-mock-jest'
 import {
+  deleteDlqMessage,
   deleteEventMessage,
   receiveDlqMessages,
   receiveEventMessages,
@@ -86,6 +87,24 @@ describe('event', () => {
       await redriveDlqMessages()
       expect(snsMock).toHaveReceivedCommandWith(StartMessageMoveTaskCommand, {
         SourceArn: expect.any(String)
+      })
+    })
+  })
+
+  describe('deleteDlqMessage', () => {
+    it('should delete event message', async () => {
+      /**
+       * @type {DeleteMessageCommandOutput}
+       */
+      const deleteResult = {
+        $metadata: {}
+      }
+
+      snsMock.on(DeleteMessageCommand).resolves(deleteResult)
+      await deleteDlqMessage(messageStub.ReceiptHandle)
+      expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
+        QueueUrl: expect.any(String),
+        ReceiptHandle: receiptHandle
       })
     })
   })
