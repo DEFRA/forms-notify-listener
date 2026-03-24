@@ -20,8 +20,7 @@ jest.mock('~/src/messaging/event.js')
 jest.mock('~/src/helpers/logging/logger.js')
 jest.mock('~/src/config/index.js', () => ({
   config: {
-    get: jest.fn((key) => {
-      if (key === 'roleEditorGroupId') return 'editor-group-id'
+    get: jest.fn(() => {
       return 'mock-value'
     })
   }

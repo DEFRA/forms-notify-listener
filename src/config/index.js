@@ -181,11 +181,11 @@ export const config = convict({
       'https://login.microsoftonline.com/770a2450-0227-4c62-90c7-4e38537f1102/v2.0',
     env: 'OIDC_VERIFY_ISS'
   },
-  roleEditorGroupId: {
-    doc: 'The AD security group the access token needs to claim membership of',
+  entitlementUrl: {
+    doc: 'Forms entitlements API URL',
     format: String,
-    default: '9af646c4-fa14-4606-8ebf-ec187ac03386',
-    env: 'ROLE_EDITOR_GROUP_ID'
+    default: 'http://localhost:3004',
+    env: 'ENTITLEMENT_URL'
   },
   tracing: {
     header: {
@@ -230,6 +230,12 @@ export const config = convict({
     format: Number,
     default: 30,
     env: 'SQS_VISIBILITY_TIMEOUT'
+  },
+  sqsEventsDlqArn: {
+    doc: 'SQS deadletter queue ARN',
+    format: String,
+    default: '',
+    env: 'EVENTS_SQS_DLQ_ARN'
   },
   fileExpiryInMonths: {
     doc: 'The number of months a file link is active for',
