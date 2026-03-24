@@ -507,7 +507,7 @@ describe('notify', () => {
       expect(getFormDefinition).toHaveBeenCalledWith(
         formId,
         FormStatus.Live,
-        undefined // TODO re-enable once we have a proper fix for 20260115 issue: versionNumber
+        versionNumber
       )
     })
 
