@@ -58,6 +58,20 @@ export function redriveDlqMessages() {
 
 /**
  * Delete event message
+ * @param {string} receiptHandle
+ * @returns {Promise<DeleteMessageCommandOutput>}
+ */
+export function deleteDlqMessage(receiptHandle) {
+  const command = new DeleteMessageCommand({
+    QueueUrl: deadLetterQueueUrl,
+    ReceiptHandle: receiptHandle
+  })
+
+  return sqsClient.send(command)
+}
+
+/**
+ * Delete event message
  * @param {Message} message
  * @returns {Promise<DeleteMessageCommandOutput>}
  */
