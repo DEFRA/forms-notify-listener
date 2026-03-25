@@ -12,6 +12,8 @@ import {
 import {
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
+  geospatialFormDefinition,
+  geospatialMessage,
   pizzaFormDefinition,
   pizzaMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
@@ -113,6 +115,7 @@ describe('Page controller helpers', () => {
       })
     })
   })
+
   describe('format', () => {
     it('should return a valid human readable v1 response', () => {
       const definition = buildDefinition({
@@ -153,6 +156,9 @@ describe('Page controller helpers', () => {
       expect(output).toContain(
         '* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)'
       )
+      expect(output).toContain('## Geospatial features of the site')
+
+      expect(output).toContain('## Sites')
 
       expect(output).toContain(
         '[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
@@ -261,6 +267,38 @@ describe('Page controller helpers', () => {
       const output = formatter(legacyGraphFormMessage, definition, '1')
 
       expect(output).toMatchSnapshot()
+    })
+
+    it('should handle geospatial fields', () => {
+      const definition = geospatialFormDefinition
+      const formatter = getFormatter('human', '1')
+      const output = formatter(geospatialMessage, definition)
+
+      expect(output).toContain(`# Geospatial features of the site
+
+Added 3 locations:
+
+The quadrangle:
+TQ 29035 79656
+-0.14302739537203024, 51.50123314524271
+-0.14246620384719222, 51.50069106195494
+-0.1416921465718417, 51.50101631270161
+-0.14226301381148687, 51.50155839212027
+-0.14302739537203024, 51.50123314524271
+
+St James' Park:
+TQ 29684 79849
+-0.13295710945470773, 51.50270750157188
+
+Constitution Hill:
+TQ 28521 79799
+-0.14971510866865856, 51.50252738875241
+-0.14045925603909382, 51.50222886009584
+-0.14007559375386336, 51.50201988887275
+-0.14007559375386336, 51.501691503585704
+-0.1408908761094949, 51.50022866765107
+
+[View map](http://designer/submission/874-C7C-D60/map-review/ffefd409-f3f4-49fe-882e-6e89f44631b1/8ea12a71-83d0-43d9-9761-dcb3208a30d1)`)
     })
   })
 
