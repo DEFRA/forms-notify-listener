@@ -1,14 +1,11 @@
 import { Scopes } from '@defra/forms-model'
 import Joi from 'joi'
 
-import { createLogger } from '~/src/helpers/logging/logger.js'
 import {
   deleteDlqMessage,
   receiveDlqMessages,
   redriveDlqMessages
 } from '~/src/messaging/event.js'
-
-const logger = createLogger()
 
 const OK_RESPONSE = 200
 
@@ -24,10 +21,7 @@ export default [
     method: 'GET',
     path: '/admin/deadletter/view',
     async handler(_request, h) {
-      logger.info('About to get DLQ messages')
       const messages = await receiveDlqMessages()
-      logger.info(`Got messages ${JSON.stringify(messages)}`)
-      logger.info('Finished getting DLQ messages')
       return h.response({ messages: messages.Messages ?? [] }).code(OK_RESPONSE)
     },
     options: {

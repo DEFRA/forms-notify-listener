@@ -5,7 +5,6 @@ import {
 } from '@aws-sdk/client-sqs'
 
 import { config } from '~/src/config/index.js'
-import { createLogger } from '~/src/helpers/logging/logger.js'
 import { sqsClient } from '~/src/messaging/sqs.js'
 
 export const receiveMessageTimeout = config.get('receiveMessageTimeout')
@@ -14,8 +13,6 @@ const deadLetterQueueUrl = `${queueUrl}-deadletter`
 const deadLetterQueueArn = config.get('sqsEventsDlqArn')
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
 const visibilityTimeout = config.get('visibilityTimeout')
-
-const logger = createLogger()
 
 /**
  * @type {ReceiveMessageCommandInput}
@@ -40,7 +37,6 @@ export function receiveEventMessages() {
  * @returns {Promise<ReceiveMessageResult>}
  */
 export function receiveDlqMessages() {
-  logger.info(`receiveDlqMessages QueueUrl: ${deadLetterQueueUrl}`)
   const command = new ReceiveMessageCommand({
     QueueUrl: deadLetterQueueUrl,
     MaxNumberOfMessages: 10,
