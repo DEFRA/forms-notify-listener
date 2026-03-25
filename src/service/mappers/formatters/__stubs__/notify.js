@@ -378,7 +378,7 @@ export const exampleNotifyFormMessage = buildFormAdapterSubmissionMessage({
             {
               type: 'Feature',
               properties: {
-                description: 'p',
+                description: 'Point',
                 coordinateGridReference: 'SD 57403 26671',
                 centroidGridReference: 'SD 57403 26671'
               },
