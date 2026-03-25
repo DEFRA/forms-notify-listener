@@ -1,7 +1,6 @@
 import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
-import { GeospatialField } from '@defra/forms-engine-plugin/engine/components/GeospatialField.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
@@ -24,7 +23,7 @@ import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
   extractPaymentDetails,
   findRepeaterPageByKey,
-  formatGeospatialField,
+  formatGeospatialField as sharedFormatGeospatialField,
   formatLocationField,
   formatMultilineTextField,
   formatUkAddressField
@@ -97,21 +96,12 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
     questionLines.push(`## ${label}\n`)
 
     if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
-      let answerLine = generateFieldLine(answer, field, richFormValue)
-
-      const pageId = field.page?.id
-      const componentId = field.id
-
-      if (field instanceof GeospatialField && pageId && componentId) {
-        const referenceNumber = formSubmissionMessage.meta.referenceNumber
-        const link = generateGeospatialMapLink(
-          referenceNumber,
-          pageId,
-          componentId
-        )
-        answerLine += link
-      }
-
+      const answerLine = generateFieldLine(
+        answer,
+        field,
+        richFormValue,
+        formSubmissionMessage
+      )
       questionLines.push(answerLine)
     }
 
@@ -347,6 +337,34 @@ function formatListFormComponent(answer, field, richFormValue) {
 }
 
 /**
+ * Format geospatial field
+ * @param {string} answer
+ * @param {Component} field
+ * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {string}
+ */
+function formatGeospatialField(
+  answer,
+  field,
+  richFormValue,
+  formSubmissionMessage
+) {
+  let answerLine = sharedFormatGeospatialField(answer, field, richFormValue)
+
+  const pageId = field.page?.id
+  const componentId = field.id
+
+  if (pageId && componentId) {
+    const referenceNumber = formSubmissionMessage.meta.referenceNumber
+    const link = generateGeospatialMapLink(referenceNumber, pageId, componentId)
+    answerLine += link
+  }
+
+  return answerLine
+}
+
+/**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
  */
@@ -376,10 +394,16 @@ function getListComponentHandler(field) {
  * @param {string} answer
  * @param {Component} field
  * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {string}
  */
-function generateFieldLine(answer, field, richFormValue) {
-  // Check list component first (special case with multiple inheritance)
+function generateFieldLine(
+  answer,
+  field,
+  richFormValue,
+  formSubmissionMessage
+) {
+  // Check list component first (special case with multiple inheriance)
   const listHandler = getListComponentHandler(field)
   if (listHandler) {
     return listHandler(answer, field, richFormValue)
@@ -388,7 +412,7 @@ function generateFieldLine(answer, field, richFormValue) {
   // Iterate through registered handlers
   for (const [Type, handler] of fieldHandlers) {
     if (field instanceof Type) {
-      return handler(answer, field, richFormValue)
+      return handler(answer, field, richFormValue, formSubmissionMessage)
     }
   }
 
