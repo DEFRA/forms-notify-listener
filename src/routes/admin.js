@@ -28,7 +28,7 @@ export default [
       const messages = await receiveDlqMessages()
       logger.info(`Got messages ${JSON.stringify(messages)}`)
       logger.info('Finished getting DLQ messages')
-      return h.response({ messages: messages.Messages }).code(OK_RESPONSE)
+      return h.response({ messages: messages.Messages ?? [] }).code(OK_RESPONSE)
     },
     options: {
       auth: {
