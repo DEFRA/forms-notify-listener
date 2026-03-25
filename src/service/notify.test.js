@@ -47,6 +47,7 @@ jest.mock('~/src/config/index.js', () => ({
     get: jest.fn((key) => {
       if (key === 'notifyTemplateId') return 'notify-template-id-1'
       if (key === 'notifyReplyToId') return 'notify-reply-to-id-1'
+      if (key === 'fileExpiryInMonths') return 9
       return 'mock-value'
     })
   }
