@@ -68,7 +68,8 @@ describe('event', () => {
       await receiveDlqMessages()
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
-        VisibilityTimeout: 5
+        VisibilityTimeout: 1,
+        WaitTimeSeconds: 0
       })
     })
   })
