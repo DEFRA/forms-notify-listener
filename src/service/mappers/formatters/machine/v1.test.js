@@ -60,6 +60,8 @@ describe('Page controller helpers', () => {
           hTFiWF: '1 Anywhere Street,Anywhereville,Anywhereshire,AN1 2WH',
           zznFWF: '2000-01-01',
           KGSRJU: '2025-08',
+          geOSpa:
+            '4eba054d-43ad-47a7-9992-186f0c804c99,a3d9f35c-a9fb-4e50-80f1-6144ce534e09,62ef0bb2-c4ce-4d76-bd26-4f0e7cfe5a41',
           hVcHQv: 'Gandalf,Frodo'
         },
         repeaters: {
@@ -71,6 +73,11 @@ describe('Page controller helpers', () => {
             {
               repeaterComponentName: 'Gandalf',
               repeaterComponentDate: '2020-01-01'
+            }
+          ],
+          gAZbPt: [
+            {
+              rXmTGb: 'f8930383-fb1f-4f92-bdc2-a7e599e7bff2'
             }
           ]
         },

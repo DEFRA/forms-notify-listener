@@ -6,6 +6,7 @@ import {
   buildDefinition,
   buildFileUploadComponent,
   buildFileUploadPage,
+  buildGeospatialFieldComponent,
   buildList,
   buildListItem,
   buildMonthYearFieldComponent,
@@ -182,6 +183,36 @@ export const exampleNotifyFormDefinition = buildDefinition({
       ],
       id: '2ed8aef4-f559-46e6-8beb-767c92e5f36d'
     }),
+    buildQuestionPage({
+      title: 'Geospatial page',
+      path: '/geospatial',
+      components: [
+        buildGeospatialFieldComponent({
+          name: 'geOSpa'
+        })
+      ],
+      id: '85179507-9057-410c-b5d4-0e148eb976d2'
+    }),
+    buildRepeaterPage({
+      title: 'Sites',
+      path: '/geospatial-repeater',
+      components: [
+        buildGeospatialFieldComponent({
+          name: 'rXmTGb'
+        })
+      ],
+      id: 'e9016eb6-8436-428b-b5ad-cd5fd8e563c3',
+      repeat: {
+        options: {
+          name: 'gAZbPt',
+          title: 'Sites'
+        },
+        schema: {
+          min: 1,
+          max: 6
+        }
+      }
+    }),
     buildSummaryPage({
       id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
       title: 'Summary',
@@ -273,7 +304,62 @@ export const exampleNotifyFormMessage = buildFormAdapterSubmissionMessage({
       KGSRJU: { month: 8, year: 2025 },
       hVcHQv: ['Gandalf', 'Frodo'],
       JHCHVE: 'Someone', // moved from first position to test ordering,
-      ADDDTS: null
+      ADDDTS: null,
+      geOSpa: [
+        {
+          id: '4eba054d-43ad-47a7-9992-186f0c804c99',
+          type: 'Feature',
+          properties: {
+            description: 'The quadrangle',
+            coordinateGridReference: 'TQ 28989 79667',
+            centroidGridReference: 'TQ 29035 79656'
+          },
+          geometry: {
+            coordinates: [
+              [
+                [-0.14302739537203024, 51.50123314524271],
+                [-0.14246620384719222, 51.50069106195494],
+                [-0.1416921465718417, 51.50101631270161],
+                [-0.14226301381148687, 51.50155839212027],
+                [-0.14302739537203024, 51.50123314524271]
+              ]
+            ],
+            type: 'Polygon'
+          }
+        },
+        {
+          type: 'Feature',
+          properties: {
+            description: "St James' Park",
+            coordinateGridReference: 'TQ 29684 79849',
+            centroidGridReference: 'TQ 29684 79849'
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [-0.13295710945470773, 51.50270750157188]
+          },
+          id: 'a3d9f35c-a9fb-4e50-80f1-6144ce534e09'
+        },
+        {
+          id: '62ef0bb2-c4ce-4d76-bd26-4f0e7cfe5a41',
+          type: 'Feature',
+          properties: {
+            description: 'Constitution Hill',
+            coordinateGridReference: 'TQ 28521 79799',
+            centroidGridReference: 'TQ 29042 79725'
+          },
+          geometry: {
+            coordinates: [
+              [-0.14971510866865856, 51.50252738875241],
+              [-0.14045925603909382, 51.50222886009584],
+              [-0.14007559375386336, 51.50201988887275],
+              [-0.14007559375386336, 51.501691503585704],
+              [-0.1408908761094949, 51.50022866765107]
+            ],
+            type: 'LineString'
+          }
+        }
+      ]
     },
     repeaters: {
       repeaterOptionName: [
@@ -284,6 +370,25 @@ export const exampleNotifyFormMessage = buildFormAdapterSubmissionMessage({
         {
           repeaterComponentName: 'Gandalf',
           repeaterComponentDate: { day: 1, month: 1, year: 2020 }
+        }
+      ],
+      gAZbPt: [
+        {
+          rXmTGb: [
+            {
+              type: 'Feature',
+              properties: {
+                description: 'Point',
+                coordinateGridReference: 'SD 57403 26671',
+                centroidGridReference: 'SD 57403 26671'
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: [-2.6471947, 53.7346808]
+              },
+              id: 'f8930383-fb1f-4f92-bdc2-a7e599e7bff2'
+            }
+          ]
         }
       ]
     },
@@ -302,7 +407,8 @@ export const exampleNotifyFormMessage = buildFormAdapterSubmissionMessage({
     files: {
       main: '818d567d-ee05-4a7a-8c49-d5c54fb09b16',
       repeaters: {
-        repeaterOptionName: 'e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9'
+        repeaterOptionName: 'e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9',
+        gAZbPt: 'd24a5133-a4cc-4a9a-8453-0a51e123dcd4'
       }
     }
   }
@@ -402,6 +508,7 @@ export const pizzaFormDefinition = buildDefinition({
     })
   ]
 })
+
 export const pizzaMessage = buildFormAdapterSubmissionMessage({
   messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
   recordCreatedAt: new Date('2025-08-26'),
@@ -458,6 +565,108 @@ export const pizzaMessage = buildFormAdapterSubmissionMessage({
       repeaters: {
         pizzaOrderRepeaterOptionName: '11111111-1111-1111-1111-111111111111'
       }
+    }
+  }
+})
+
+export const geospatialFormDefinition = buildDefinition({
+  name: 'Geospatial',
+  startPage: '/geospatial',
+  pages: [
+    buildQuestionPage({
+      title: 'Geospatial page',
+      path: '/geospatial',
+      components: [
+        buildGeospatialFieldComponent({
+          name: 'GeospatialField'
+        })
+      ]
+    }),
+    buildSummaryPage()
+  ],
+  sections: [],
+  lists: []
+})
+
+export const geospatialMessage = buildFormAdapterSubmissionMessage({
+  messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
+  recordCreatedAt: new Date('2025-08-26'),
+  meta: {
+    schemaVersion: FormAdapterSubmissionSchemaVersion.V1,
+    timestamp: new Date('2025-08-28T11:01:59.347Z'),
+    formName: 'Geospatial',
+    formId: FORM_ID,
+    formSlug: 'geospatial',
+    status: FormStatus.Live,
+    isPreview: false,
+    notificationEmail: 'enrique.chase@defra.gov.uk',
+    referenceNumber: '874-C7C-D60'
+  },
+  data: {
+    main: {
+      GeospatialField: [
+        {
+          id: '4eba054d-43ad-47a7-9992-186f0c804c99',
+          type: 'Feature',
+          properties: {
+            description: 'The quadrangle',
+            coordinateGridReference: 'TQ 28989 79667',
+            centroidGridReference: 'TQ 29035 79656'
+          },
+          geometry: {
+            coordinates: [
+              [
+                [-0.14302739537203024, 51.50123314524271],
+                [-0.14246620384719222, 51.50069106195494],
+                [-0.1416921465718417, 51.50101631270161],
+                [-0.14226301381148687, 51.50155839212027],
+                [-0.14302739537203024, 51.50123314524271]
+              ]
+            ],
+            type: 'Polygon'
+          }
+        },
+        {
+          type: 'Feature',
+          properties: {
+            description: "St James' Park",
+            coordinateGridReference: 'TQ 29684 79849',
+            centroidGridReference: 'TQ 29684 79849'
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [-0.13295710945470773, 51.50270750157188]
+          },
+          id: 'a3d9f35c-a9fb-4e50-80f1-6144ce534e09'
+        },
+        {
+          id: '62ef0bb2-c4ce-4d76-bd26-4f0e7cfe5a41',
+          type: 'Feature',
+          properties: {
+            description: 'Constitution Hill',
+            coordinateGridReference: 'TQ 28521 79799',
+            centroidGridReference: 'TQ 29042 79725'
+          },
+          geometry: {
+            coordinates: [
+              [-0.14971510866865856, 51.50252738875241],
+              [-0.14045925603909382, 51.50222886009584],
+              [-0.14007559375386336, 51.50201988887275],
+              [-0.14007559375386336, 51.501691503585704],
+              [-0.1408908761094949, 51.50022866765107]
+            ],
+            type: 'LineString'
+          }
+        }
+      ]
+    },
+    repeaters: {},
+    files: {}
+  },
+  result: {
+    files: {
+      main: '00000000-0000-0000-0000-000000000000',
+      repeaters: {}
     }
   }
 })

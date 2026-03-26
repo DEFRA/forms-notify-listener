@@ -9,6 +9,7 @@ import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { getRelevantPagesForLegacy } from '~/src/service/mappers/formatters/human/v1.js'
 import {
   findRepeaterPageByKey,
+  formatGeospatialField,
   formatLocationField,
   formatMultilineTextField,
   formatUkAddressField
@@ -320,7 +321,8 @@ const fieldHandlers = new Map([
   [Components.MultilineTextField, formatMultilineTextField],
   [Components.UkAddressField, formatUkAddressField],
   [Components.EastingNorthingField, formatLocationField],
-  [Components.LatLongField, formatLocationField]
+  [Components.LatLongField, formatLocationField],
+  [Components.GeospatialField, formatGeospatialField]
 ])
 
 /**

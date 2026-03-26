@@ -87,7 +87,51 @@ export function extractPaymentDetails(formSubmissionMessage) {
 }
 
 /**
+ * Format geospatial field
+ * @param {string} answer
+ * @param {Component} _field
+ * @param {RichFormValue} richFormValue
+ * @returns {string}
+ */
+export function formatGeospatialField(answer, _field, richFormValue) {
+  const features = /** @type {GeospatialState} */ (richFormValue)
+
+  // Skip empty
+  if (!features.length) {
+    return `${escapeContent(answer)}\n`
+  }
+
+  let answerEscaped = `${escapeContent(answer)}:\n\n`
+
+  const value = features
+    .map((feature) => {
+      const { properties, geometry } = feature
+      const { description, coordinateGridReference, centroidGridReference } =
+        properties
+      const { coordinates } = geometry
+      const flattened = coordinates.flat(2)
+
+      const points = []
+      for (let i = 0; i < flattened.length; i += 2) {
+        points.push(flattened.slice(i, i + 2).join(', '))
+      }
+
+      // For polygons use the grid reference of the centroid
+      const gridReference =
+        feature.geometry.type === 'Polygon'
+          ? centroidGridReference
+          : coordinateGridReference
+
+      return `${description}:\n${gridReference}\n${points.join('\n')}\n`
+    })
+    .join('\n')
+
+  answerEscaped += value
+  return answerEscaped
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
- * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, GeospatialState, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
