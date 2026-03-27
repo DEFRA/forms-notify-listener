@@ -18,12 +18,12 @@ export async function getFormDefinition(formId, formStatus, versionNumber) {
 
   const statusPath = formStatus === FormStatus.Draft ? FormStatus.Draft : ''
   const formUrl =
-    versionNumber !== undefined
-      ? new URL(
+    versionNumber === undefined
+      ? new URL(`/forms/${formId}/definition/${statusPath}`, managerUrl)
+      : new URL(
           `/forms/${formId}/versions/${versionNumber}/definition`,
           managerUrl
         )
-      : new URL(`/forms/${formId}/definition/${statusPath}`, managerUrl)
 
   const { body } = await getJson(formUrl)
 

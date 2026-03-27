@@ -9,63 +9,75 @@ const isTest = process.env.NODE_ENV === 'test'
 const DEFAULT_MESSAGE_TIMEOUT = 30
 
 export const config = convict({
+  /**@type {SchemaObj<string>} */
   env: {
     doc: 'The application environment.',
     format: ['production', 'development', 'test'],
-    default: 'development',
+    default: null,
     env: 'NODE_ENV'
   },
+  /**@type {SchemaObj<string>} */
   host: {
     doc: 'The IP address to bind',
     format: String,
     default: '0.0.0.0',
     env: 'HOST'
   },
+  /**@type {SchemaObj<number>} */
   port: {
     doc: 'The port to bind.',
     format: 'port',
-    default: 3006,
+    default: null,
     env: 'PORT'
   },
+  /**@type {SchemaObj<string>} */
   serviceName: {
     doc: 'Api Service Name',
     format: String,
     default: 'forms-notify-listener'
   },
-  serviceVersion: /** @satisfies {SchemaObj<string | null>} */ ({
+
+  serviceVersion: /** @type {SchemaObj<string | null>} */ ({
     doc: 'The service version, this variable is injected into your docker container in CDP environments',
     format: String,
     nullable: true,
     default: null,
     env: 'SERVICE_VERSION'
   }),
+  /**@type {SchemaObj<string>} */
   cdpEnvironment: {
     doc: 'The CDP environment the app is running in. With the addition of "local" for local development',
     format: ['local', 'dev', 'test', 'perf-test', 'prod', 'ext-test'],
     default: 'local',
     env: 'ENVIRONMENT'
   },
+  /**@type {SchemaObj<string>} */
   root: {
     doc: 'Project root',
     format: String,
     default: cwd()
   },
+  /**@type {SchemaObj<Boolean>} */
   isProduction: {
     doc: 'If this application running in the production environment',
     format: Boolean,
     default: isProduction
   },
+  /**@type {SchemaObj<Boolean>} */
+
   isDevelopment: {
     doc: 'If this application running in the development environment',
     format: Boolean,
     default: isDev
   },
+  /**@type {SchemaObj<Boolean>} */
   isTest: {
     doc: 'If this application running in the test environment',
     format: Boolean,
     default: isTest
   },
   log: {
+    /**@type {SchemaObj<Boolean>} */
     enabled: {
       doc: 'Is logging enabled',
       format: Boolean,
@@ -84,6 +96,7 @@ export const config = convict({
       default: isProduction ? 'ecs' : 'pino-pretty',
       env: 'LOG_FORMAT'
     }),
+    /**@type {SchemaObj<string[]>} */
     redact: {
       doc: 'Log paths to redact',
       format: Array,
@@ -92,6 +105,7 @@ export const config = convict({
         : ['req', 'res', 'responseTime']
     }
   },
+  /**@type {SchemaObj<string | null>} */
   httpProxy: {
     doc: 'HTTP Proxy',
     format: String,
@@ -99,10 +113,11 @@ export const config = convict({
     default: null,
     env: 'HTTP_PROXY'
   },
+  /**@type {SchemaObj<string>} */
   httpsProxy: {
     doc: 'HTTPS Proxy',
     format: String,
-    default: '',
+    default: null,
     env: 'CDP_HTTPS_PROXY'
   },
 
@@ -132,25 +147,28 @@ export const config = convict({
   /**
    * API integrations
    */
+  /**@type {SchemaObj<string>} */
   designerUrl: {
     doc: 'URL to call Forms Designer',
     format: String,
-    default: '',
+    default: null,
     env: 'DESIGNER_URL'
   },
+  /**@type {SchemaObj<string>} */
   managerUrl: {
     doc: 'URL to call Forms Manager API',
     format: String,
-    default: '',
+    default: null,
     env: 'MANAGER_URL'
   },
+  /**@type {SchemaObj<Boolean>} */
   isSecureContextEnabled: {
     doc: 'Enable Secure Context',
     format: Boolean,
     default: isProduction,
     env: 'ENABLE_SECURE_CONTEXT'
   },
-
+  /**@type {SchemaObj<Boolean>} */
   isMetricsEnabled: {
     doc: 'Enable metrics reporting',
     format: Boolean,
@@ -161,6 +179,8 @@ export const config = convict({
    * @todo We plan to replace `node-convict` with `joi` and remove all defaults.
    * These OIDC/roles are for the DEV application in the DEFRA tenant.
    */
+  /**@type {SchemaObj<string>} */
+
   oidcJwksUri: {
     doc: 'The URI that defines the OIDC json web key set',
     format: String,
@@ -168,12 +188,14 @@ export const config = convict({
       'https://login.microsoftonline.com/770a2450-0227-4c62-90c7-4e38537f1102/discovery/v2.0/keys',
     env: 'OIDC_JWKS_URI'
   },
+  /**@type {SchemaObj<string>} */
   oidcVerifyAud: {
     doc: 'The audience used for verifying the OIDC JWT',
     format: String,
     default: 'ec32e5c5-75fa-460a-a359-e3e5a4a8f10e',
     env: 'OIDC_VERIFY_AUD'
   },
+  /**@type {SchemaObj<string>} */
   oidcVerifyIss: {
     doc: 'The issuer used for verifying the OIDC JWT',
     format: String,
@@ -181,13 +203,16 @@ export const config = convict({
       'https://login.microsoftonline.com/770a2450-0227-4c62-90c7-4e38537f1102/v2.0',
     env: 'OIDC_VERIFY_ISS'
   },
+  /**@type {SchemaObj<string>} */
+
   entitlementUrl: {
     doc: 'Forms entitlements API URL',
     format: String,
-    default: 'http://localhost:3004',
+    default: null,
     env: 'ENTITLEMENT_URL'
   },
   tracing: {
+    /**@type {SchemaObj<string>} */
     header: {
       doc: 'CDP tracing header name',
       format: String,
@@ -195,48 +220,56 @@ export const config = convict({
       env: 'TRACING_HEADER'
     }
   },
+  /**@type {SchemaObj<string>} */
   awsRegion: {
     doc: 'AWS region',
     format: String,
     default: 'eu-west-2',
     env: 'AWS_REGION'
   },
+  /**@type {SchemaObj<string>} */
   sqsEndpoint: {
     doc: 'The SQS endpoint, if required (e.g. a local development dev service)',
     format: String,
-    default: '',
+    default: null,
     env: 'SQS_ENDPOINT'
   },
+  /**@type {SchemaObj<string>} */
   sqsEventsQueueUrl: {
     doc: 'SQS queue URL',
     format: String,
-    default: '',
+    default: null,
     env: 'EVENTS_SQS_QUEUE_URL'
   },
+  /**@type {SchemaObj<number>} */
   receiveMessageTimeout: {
     doc: 'The wait time between each poll in milliseconds',
     format: Number,
     default: DEFAULT_MESSAGE_TIMEOUT * 1000,
     env: 'RECEIVE_MESSAGE_TIMEOUT_MS'
   },
+  /**@type {SchemaObj<number>} */
   maxNumberOfMessages: {
     doc: 'The maximum number of messages to be received from queue at a time',
     format: Number,
     default: 10,
     env: 'SQS_MAX_NUMBER_OF_MESSAGES'
   },
+  /**@type {SchemaObj<number>} */
   visibilityTimeout: {
     doc: 'The number of seconds that a message is hidden from other consumers after being retrieved from the queue.',
     format: Number,
     default: 30,
     env: 'SQS_VISIBILITY_TIMEOUT'
   },
+  /**@type {SchemaObj<string>} */
   sqsEventsDlqArn: {
     doc: 'SQS deadletter queue ARN',
     format: String,
-    default: '',
+    default: null,
     env: 'EVENTS_SQS_DLQ_ARN'
   },
+  /**@type {SchemaObj<number>} */
   fileExpiryInMonths: {
     doc: 'The number of months a file link is active for',
     format: Number,
