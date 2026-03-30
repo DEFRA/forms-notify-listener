@@ -1,0 +1,681 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Page controller helpers format should return a valid human readable v2 response 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Thursday 2 April 2026
+
+Example notify form form received at 12:00am on 2 July 2025.
+
+---
+
+## What is your name?
+
+Someone
+
+---
+
+## Additional details
+
+---
+
+## What is your address?
+
+1 Anywhere Street
+Anywhereville
+Anywhereshire
+AN1 2WH
+
+---
+
+## What is your date of birth?
+
+1 January 2000
+
+---
+
+## What month is it?
+
+August 2025
+
+---
+
+# What is the team member\\'s name?
+
+## Team Member 1
+
+Frodo
+
+## Team Member 2
+
+Gandalf
+
+# What is the team member\\'s date of birth?
+
+## Team Member 1
+
+1 January 2000
+
+## Team Member 2
+
+1 January 2020
+
+## Team Member
+
+[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)
+
+---
+
+## Who are your favourite LotR characters?
+
+* Gandalf
+* Frodo
+
+---
+
+## Please add supporting evidence
+
+Uploaded 1 file:
+
+* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)
+
+---
+
+## Geospatial features of the site
+
+Added 3 locations:
+
+The quadrangle:
+TQ 29035 79656
+-0.14302739537203024, 51.50123314524271
+-0.14246620384719222, 51.50069106195494
+-0.1416921465718417, 51.50101631270161
+-0.14226301381148687, 51.50155839212027
+-0.14302739537203024, 51.50123314524271
+
+St James' Park:
+TQ 29684 79849
+-0.13295710945470773, 51.50270750157188
+
+Constitution Hill:
+TQ 28521 79799
+-0.14971510866865856, 51.50252738875241
+-0.14045925603909382, 51.50222886009584
+-0.14007559375386336, 51.50201988887275
+-0.14007559375386336, 51.501691503585704
+-0.1408908761094949, 51.50022866765107
+
+[View map](http://designer/submission/874-C7C-D60/map-review/85179507-9057-410c-b5d4-0e148eb976d2/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+# Geospatial features of the site
+
+## Sites 1
+
+Added 1 location:
+
+Point:
+SD 57403 26671
+-2.6471947, 53.7346808
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+## Sites
+
+[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)
+
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
+
+
+
+Thanks,
+Defra"
+`;
+
+exports[`Page controller helpers format should return a valid human readable v2 response 2 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Thursday 2 April 2026
+
+Pizza Form form received at 12:00am on 2 July 2025.
+
+---
+
+# Toppings
+
+## Pizza 1
+
+Ham
+
+## Pizza 2
+
+Pepperoni
+
+# Quantity
+
+## Pizza 1
+
+2
+
+## Pizza 2
+
+1
+
+## Pizza
+
+[Download&nbsp;Pizza&nbsp;(CSV)](http://designer/file-download/11111111-1111-1111-1111-111111111111)
+
+---
+
+## How would you like to receive your pizza?
+
+Delivery
+
+---
+
+## Multiline Text field
+
+Line 1
+Line 2
+Line 3
+
+---
+
+## Multiline Text field 2
+
+Line 1
+\` \` \`
+Line 2
+\` \` \`
+Line 3
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/00000000-0000-0000-0000-000000000000)
+
+
+
+Thanks,
+Defra"
+`;
+
+exports[`Page controller helpers format should return a valid human readable v2 response for legacy graph-based forms 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Thursday 2 April 2026
+
+Pizza Form form received at 12:00am on 2 July 2025.
+
+---
+
+## Your age
+
+4
+
+---
+
+## Country of birth
+
+England (GB-ENG)
+
+---
+
+## First name
+
+John
+
+---
+
+## Last name
+
+Doe
+
+---
+
+## person
+
+[Download&nbsp;person&nbsp;(CSV)](http://designer/file-download/11111111-1111-1111-1111-111111111111)
+
+---
+
+## Passport number
+
+23423
+
+---
+
+## Number of people in your household
+
+543
+
+---
+
+## Upload proof of address
+
+Uploaded 1 file:
+
+* [bank_statement.pdf](http://designer/file-download/2c39f4bf-2ccc-4b73-8e0e-c91549b56989)
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/00000000-0000-0000-0000-000000000000)
+
+
+
+Thanks,
+Defra"
+`;
+
+exports[`Page controller helpers format should return a valid human readable v2 response in Draft mode 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Thursday 2 April 2026
+
+Example notify form form received at 12:00am on 2 July 2025.
+
+---
+
+## What is your name?
+
+Someone
+
+---
+
+## Additional details
+
+---
+
+## What is your address?
+
+1 Anywhere Street
+Anywhereville
+Anywhereshire
+AN1 2WH
+
+---
+
+## What is your date of birth?
+
+1 January 2000
+
+---
+
+## What month is it?
+
+August 2025
+
+---
+
+# What is the team member\\'s name?
+
+## Team Member 1
+
+Frodo
+
+## Team Member 2
+
+Gandalf
+
+# What is the team member\\'s date of birth?
+
+## Team Member 1
+
+1 January 2000
+
+## Team Member 2
+
+1 January 2020
+
+## Team Member
+
+[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)
+
+---
+
+## Who are your favourite LotR characters?
+
+* Gandalf
+* Frodo
+
+---
+
+## Please add supporting evidence
+
+Uploaded 1 file:
+
+* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)
+
+---
+
+## Geospatial features of the site
+
+Added 3 locations:
+
+The quadrangle:
+TQ 29035 79656
+-0.14302739537203024, 51.50123314524271
+-0.14246620384719222, 51.50069106195494
+-0.1416921465718417, 51.50101631270161
+-0.14226301381148687, 51.50155839212027
+-0.14302739537203024, 51.50123314524271
+
+St James' Park:
+TQ 29684 79849
+-0.13295710945470773, 51.50270750157188
+
+Constitution Hill:
+TQ 28521 79799
+-0.14971510866865856, 51.50252738875241
+-0.14045925603909382, 51.50222886009584
+-0.14007559375386336, 51.50201988887275
+-0.14007559375386336, 51.501691503585704
+-0.1408908761094949, 51.50022866765107
+
+[View map](http://designer/submission/874-C7C-D60/map-review/85179507-9057-410c-b5d4-0e148eb976d2/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+# Geospatial features of the site
+
+## Sites 1
+
+Added 1 location:
+
+Point:
+SD 57403 26671
+-2.6471947, 53.7346808
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+## Sites
+
+[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)
+
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
+
+
+
+Thanks,
+Defra"
+`;
+
+exports[`Page controller helpers format should return a valid human readable v2 response in preview mode 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Thursday 2 April 2026
+
+This is a test of the Example notify form live form.
+
+Example notify form form received at 12:00am on 2 July 2025.
+
+---
+
+## What is your name?
+
+Someone
+
+---
+
+## Additional details
+
+---
+
+## What is your address?
+
+1 Anywhere Street
+Anywhereville
+Anywhereshire
+AN1 2WH
+
+---
+
+## What is your date of birth?
+
+1 January 2000
+
+---
+
+## What month is it?
+
+August 2025
+
+---
+
+# What is the team member\\'s name?
+
+## Team Member 1
+
+Frodo
+
+## Team Member 2
+
+Gandalf
+
+# What is the team member\\'s date of birth?
+
+## Team Member 1
+
+1 January 2000
+
+## Team Member 2
+
+1 January 2020
+
+## Team Member
+
+[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)
+
+---
+
+## Who are your favourite LotR characters?
+
+* Gandalf
+* Frodo
+
+---
+
+## Please add supporting evidence
+
+Uploaded 1 file:
+
+* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)
+
+---
+
+## Geospatial features of the site
+
+Added 3 locations:
+
+The quadrangle:
+TQ 29035 79656
+-0.14302739537203024, 51.50123314524271
+-0.14246620384719222, 51.50069106195494
+-0.1416921465718417, 51.50101631270161
+-0.14226301381148687, 51.50155839212027
+-0.14302739537203024, 51.50123314524271
+
+St James' Park:
+TQ 29684 79849
+-0.13295710945470773, 51.50270750157188
+
+Constitution Hill:
+TQ 28521 79799
+-0.14971510866865856, 51.50252738875241
+-0.14045925603909382, 51.50222886009584
+-0.14007559375386336, 51.50201988887275
+-0.14007559375386336, 51.501691503585704
+-0.1408908761094949, 51.50022866765107
+
+[View map](http://designer/submission/874-C7C-D60/map-review/85179507-9057-410c-b5d4-0e148eb976d2/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+# Geospatial features of the site
+
+## Sites 1
+
+Added 1 location:
+
+Point:
+SD 57403 26671
+-2.6471947, 53.7346808
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+## Sites
+
+[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)
+
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
+
+
+
+Thanks,
+Defra"
+`;
+
+exports[`Page controller helpers format should return a valid human readable v2 response with reference number 1`] = `
+"^ For security reasons, the links in this email expire at 12:00am on Thursday 2 April 2026
+
+This is a test of the Example notify form live form.
+
+Example notify form form received at 12:00am on 2 July 2025.
+
+---
+
+^ Reference number: 874-C7C-D60
+
+## What is your name?
+
+Someone
+
+---
+
+## Additional details
+
+---
+
+## What is your address?
+
+1 Anywhere Street
+Anywhereville
+Anywhereshire
+AN1 2WH
+
+---
+
+## What is your date of birth?
+
+1 January 2000
+
+---
+
+## What month is it?
+
+August 2025
+
+---
+
+# What is the team member\\'s name?
+
+## Team Member 1
+
+Frodo
+
+## Team Member 2
+
+Gandalf
+
+# What is the team member\\'s date of birth?
+
+## Team Member 1
+
+1 January 2000
+
+## Team Member 2
+
+1 January 2020
+
+## Team Member
+
+[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)
+
+---
+
+## Who are your favourite LotR characters?
+
+* Gandalf
+* Frodo
+
+---
+
+## Please add supporting evidence
+
+Uploaded 1 file:
+
+* [supporting_evidence.pdf](http://designer/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd)
+
+---
+
+## Geospatial features of the site
+
+Added 3 locations:
+
+The quadrangle:
+TQ 29035 79656
+-0.14302739537203024, 51.50123314524271
+-0.14246620384719222, 51.50069106195494
+-0.1416921465718417, 51.50101631270161
+-0.14226301381148687, 51.50155839212027
+-0.14302739537203024, 51.50123314524271
+
+St James' Park:
+TQ 29684 79849
+-0.13295710945470773, 51.50270750157188
+
+Constitution Hill:
+TQ 28521 79799
+-0.14971510866865856, 51.50252738875241
+-0.14045925603909382, 51.50222886009584
+-0.14007559375386336, 51.50201988887275
+-0.14007559375386336, 51.501691503585704
+-0.1408908761094949, 51.50022866765107
+
+[View map](http://designer/submission/874-C7C-D60/map-review/85179507-9057-410c-b5d4-0e148eb976d2/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+# Geospatial features of the site
+
+## Sites 1
+
+Added 1 location:
+
+Point:
+SD 57403 26671
+-2.6471947, 53.7346808
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+## Sites
+
+[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)
+
+
+[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)
+
+---
+
+[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)
+
+
+
+Thanks,
+Defra"
+`;

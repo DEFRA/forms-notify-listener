@@ -1,34 +1,23 @@
 import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
-import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
-import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
-import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import {
-  ComponentType,
-  Engine,
-  hasComponents,
-  hasRepeater
-} from '@defra/forms-model'
+import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+import { generateFieldLine } from '~/src/service/mappers/formatters/human/v2-common.js'
 import {
-  extractPaymentDetails,
-  findRepeaterPageByKey,
-  formatGeospatialField as sharedFormatGeospatialField,
-  formatLocationField,
-  formatMultilineTextField,
-  formatUkAddressField,
-  generateGeospatialMapLink
-} from '~/src/service/mappers/formatters/shared.js'
+  processRepeaterEntries,
+  processRepeaterFiles
+} from '~/src/service/mappers/formatters/human/v2-repeater.js'
+import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -112,67 +101,6 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
 }
 
 /**
- * Process repeater entries and add them to the component map
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @param {FormDefinition} formDefinition
- * @param {Map<string, string[]>} componentMap
- */
-function processRepeaterFiles(
-  formSubmissionMessage,
-  formDefinition,
-  componentMap
-) {
-  const repeaterEntries = Object.entries(
-    formSubmissionMessage.result.files.repeaters
-  )
-
-  for (const [key, fileId] of repeaterEntries) {
-    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-    if (!hasRepeater(repeaterPage)) {
-      continue
-    }
-
-    const label = escapeContent(repeaterPage.repeat.options.title)
-    const componentKey = repeaterPage.repeat.options.name
-    const questionLines = /** @type {string[]} */ ([])
-
-    questionLines.push(`## ${label}\n`)
-
-    const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
-    questionLines.push(
-      `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
-    )
-
-    const geospatialRepeaterComponents = repeaterPage.components.filter(
-      (component) => component.type === ComponentType.GeospatialField
-    )
-    const pageId = repeaterPage.id
-
-    if (pageId && geospatialRepeaterComponents.length) {
-      questionLines.push(
-        ...geospatialRepeaterComponents
-          .map((component) =>
-            component.id
-              ? generateGeospatialMapLink(
-                  formSubmissionMessage.meta.referenceNumber,
-                  pageId,
-                  component.id,
-                  designerUrl
-                )
-              : ''
-          )
-          .filter((link) => link !== '')
-      )
-    }
-
-    questionLines.push('---\n')
-
-    componentMap.set(componentKey, questionLines)
-  }
-}
-
-/**
  * Append component lines to the output in the correct order
  * @param {string[]} order
  * @param {Map<string, string[]>} componentMap
@@ -206,10 +134,6 @@ export function formatter(
   const formModel = new FormModel(formDefinition, { basePath: '' }, {})
 
   const formName = escapeContent(meta.formName)
-  /**
-   * @todo Refactor this below but the code to
-   * generate the question and answers works for now
-   */
   const now = new Date()
   const formattedNow = `${dateFormat(now, 'h:mmaaa')} on ${dateFormat(now, 'd MMMM yyyy')}`
 
@@ -239,6 +163,12 @@ export function formatter(
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
   processMainEntries(formSubmissionMessage, formModel, componentMap)
+  processRepeaterEntries(
+    formSubmissionMessage,
+    formDefinition,
+    formModel,
+    componentMap
+  )
   processRepeaterFiles(formSubmissionMessage, formDefinition, componentMap)
   appendComponentLines(order, componentMap, lines)
 
@@ -257,166 +187,6 @@ export function formatter(
 }
 
 /**
- * Format file upload field
- * @param {string} answer
- * @param {Component} _field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatFileUploadField(answer, _field, richFormValue) {
-  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (richFormValue)
-
-  // Skip empty files
-  if (!formAdapterFiles.length) {
-    return `${escapeContent(answer)}\n`
-  }
-
-  let answerEscaped = `${escapeContent(answer)}:\n\n`
-
-  const fileUploadString = formAdapterFiles
-    .map((file) => {
-      const fileUploadFilename = escapeFileLabel(file.fileName)
-      return `* [${fileUploadFilename}](${designerUrl}/file-download/${file.fileId})\n`
-    })
-    .join('')
-
-  answerEscaped += fileUploadString
-  return answerEscaped
-}
-
-/**
- * Format list form component field
- * @param {string} answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @returns {string}
- */
-function formatListFormComponent(answer, field, richFormValue) {
-  const values = new Set(
-    [field.getContextValueFromFormValue(richFormValue)].flat()
-  )
-  const items = field.items.filter((/** @type {{ value: any }} */ { value }) =>
-    values.has(value)
-  )
-
-  // Skip empty values
-  if (!items.length) {
-    return `${escapeContent(answer)}\n`
-  }
-
-  const formattedItems = items
-    .map((/** @type {any} */ item) => {
-      const label = escapeContent(item.text)
-      const value = escapeContent(`(${item.value})`)
-
-      let line = label
-
-      // Prepend bullet points for checkboxes only
-      if (field instanceof Components.CheckboxesField) {
-        line = `* ${line}`
-      }
-
-      // Append raw values in parentheses
-      // e.g. `* None of the above (false)`
-      return `${item.value}`.toLowerCase() === item.text.toLowerCase()
-        ? `${line}\n`
-        : `${line} ${value}\n`
-    })
-    .join('')
-
-  return formattedItems
-}
-
-/**
- * Format geospatial field
- * @param {string} answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @returns {string}
- */
-function formatGeospatialField(
-  answer,
-  field,
-  richFormValue,
-  formSubmissionMessage
-) {
-  let answerLine = sharedFormatGeospatialField(answer, field, richFormValue)
-
-  const pageId = field.page?.id
-  const componentId = field.id
-
-  if (pageId && componentId) {
-    const referenceNumber = formSubmissionMessage.meta.referenceNumber
-    const link = generateGeospatialMapLink(
-      referenceNumber,
-      pageId,
-      componentId,
-      designerUrl
-    )
-    answerLine += link
-  }
-
-  return answerLine
-}
-
-/**
- * Map of component types to their formatting handlers
- * Using Map to preserve class constructor references
- */
-const fieldHandlers = new Map([
-  [Components.FileUploadField, formatFileUploadField],
-  [Components.MultilineTextField, formatMultilineTextField],
-  [Components.UkAddressField, formatUkAddressField],
-  [Components.EastingNorthingField, formatLocationField],
-  [Components.LatLongField, formatLocationField],
-  [Components.GeospatialField, formatGeospatialField]
-])
-
-/**
- * Check if field is a list component and return appropriate handler
- * @param {Component} field
- * @returns {((answer: string, field: Component, richFormValue: RichFormValue) => string) | null}
- */
-function getListComponentHandler(field) {
-  if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent
-  }
-  return null
-}
-
-/**
- *
- * @param {string} answer
- * @param {Component} field
- * @param {RichFormValue} richFormValue
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @returns {string}
- */
-function generateFieldLine(
-  answer,
-  field,
-  richFormValue,
-  formSubmissionMessage
-) {
-  // Check list component first (special case with multiple inheriance)
-  const listHandler = getListComponentHandler(field)
-  if (listHandler) {
-    return listHandler(answer, field, richFormValue)
-  }
-
-  // Iterate through registered handlers
-  for (const [Type, handler] of fieldHandlers) {
-    if (field instanceof Type) {
-      return handler(answer, field, richFormValue, formSubmissionMessage)
-    }
-  }
-
-  // Default handler for all other field types
-  return `${escapeContent(answer)}\n`
-}
-
-/**
  * Calculate the order of components for human readable output
  * @param {FormDefinition} formDefinition
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -430,7 +200,12 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
   return formDefinition.pages.flatMap((page) => {
     if (hasComponents(page)) {
       if (hasRepeater(page)) {
-        return [page.repeat.options.name]
+        // For repeaters, return a key for each component within the repeater
+        // along with the repeater itself
+        const repeaterName = page.repeat.options.name
+        return page.components
+          .map((component) => `${repeaterName}__${component.name}`)
+          .concat([repeaterName])
       }
       return page.components.map((component) => component.name)
     }
@@ -589,6 +364,6 @@ export function getRelevantPagesForLegacy(
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */

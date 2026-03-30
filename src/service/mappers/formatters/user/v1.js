@@ -415,7 +415,6 @@ function calculateOrderForLegacy(formDefinition, formSubmissionMessage) {
 
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
- * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormValue, FormStateValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
