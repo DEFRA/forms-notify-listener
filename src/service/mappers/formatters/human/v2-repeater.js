@@ -1,4 +1,4 @@
-import { ComponentType, hasComponents, hasRepeater } from '@defra/forms-model'
+import { ComponentType, hasRepeater } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
@@ -145,42 +145,38 @@ export function processRepeaterEntries(
   const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
 
   for (const [key, repeaterData] of repeaterEntries) {
-    const repeaterPage = findRepeaterPageByKey(key, formDefinition)
-
-    if (!hasRepeater(repeaterPage)) {
-      continue
-    }
+    const repeaterPage = /** @type {PageRepeat} */ (
+      findRepeaterPageByKey(key, formDefinition)
+    )
 
     const repeaterTitle = escapeContent(repeaterPage.repeat.options.title)
     const repeaterItems = /** @type {Record<string, RichFormValue>[]} */ (
       repeaterData
     )
 
-    if (hasComponents(repeaterPage)) {
-      // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
-      for (const componentDef of repeaterPage.components.filter(
-        (cd) => 'title' in cd
-      )) {
-        const componentName = componentDef.name
-        const componentField = /** @type {Component} */ (
-          formModel.componentMap.get(componentName)
-        )
+    // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
+    for (const componentDef of repeaterPage.components.filter(
+      (cd) => 'title' in cd
+    )) {
+      const componentName = componentDef.name
+      const componentField = /** @type {Component} */ (
+        formModel.componentMap.get(componentName)
+      )
 
-        if (!componentField) {
-          continue
-        }
-
-        const questionLines = processRepeaterComponent(
-          repeaterTitle,
-          componentField,
-          componentName,
-          repeaterItems,
-          formSubmissionMessage
-        )
-
-        // Store with a unique key for this component within the repeater
-        componentMap.set(`${key}__${componentName}`, questionLines)
+      if (!componentField) {
+        continue
       }
+
+      const questionLines = processRepeaterComponent(
+        repeaterTitle,
+        componentField,
+        componentName,
+        repeaterItems,
+        formSubmissionMessage
+      )
+
+      // Store with a unique key for this component within the repeater
+      componentMap.set(`${key}__${componentName}`, questionLines)
     }
   }
 }
@@ -189,5 +185,5 @@ export function processRepeaterEntries(
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
- * @import { FormDefinition } from '@defra/forms-model'
+ * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
  */
