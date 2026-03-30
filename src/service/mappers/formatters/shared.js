@@ -131,6 +131,23 @@ export function formatGeospatialField(answer, _field, richFormValue) {
 }
 
 /**
+ * Generates a link to designer to view a geospatial map
+ * @param {string} referenceNumber
+ * @param {string} pageId
+ * @param {string} componentId
+ * @param {string} designerUrl
+ * @returns {string}
+ */
+export function generateGeospatialMapLink(
+  referenceNumber,
+  pageId,
+  componentId,
+  designerUrl
+) {
+  return `\n[View map](${designerUrl}/submission/${referenceNumber}/map-review/${pageId}/${componentId})\n`
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { FormAdapterSubmissionMessage, GeospatialState, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'

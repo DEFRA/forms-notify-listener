@@ -18,3 +18,17 @@ export function stringHasNonEmptyValue(str) {
 
   return str !== ''
 }
+
+/**
+ * Helper for validating the presence of strings during unit tests
+ * @param {string} str - string to search within
+ * @param {number} pos - position to start the search from
+ * @param {string} findStr - string to be found
+ */
+export function stringExistsFromPosition(str, pos, findStr) {
+  const findPos = str.indexOf(findStr, pos)
+  if (findPos === -1) {
+    throw new Error(`String not found '${findStr}'`)
+  }
+  return findPos + findStr.length
+}
