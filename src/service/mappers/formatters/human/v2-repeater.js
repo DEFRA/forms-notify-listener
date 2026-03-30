@@ -112,10 +112,9 @@ function processRepeaterComponent(
       componentField.getDisplayStringFromFormValue(componentValue)
 
     // Repeater item label uses heading level 2 (##)
-    questionLines.push(`## ${escapeContent(itemLabel)}\n`)
-
-    // Answer beneath with blank line separation
     questionLines.push(
+      `## ${escapeContent(itemLabel)}\n`,
+      // Answer beneath with blank line separation
       generateFieldLine(
         componentAnswer,
         componentField,
@@ -157,33 +156,31 @@ export function processRepeaterEntries(
       repeaterData
     )
 
-    if (!hasComponents(repeaterPage)) {
-      continue
-    }
+    if (hasComponents(repeaterPage)) {
+      // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
+      for (const componentDef of repeaterPage.components.filter(
+        (cd) => 'title' in cd
+      )) {
+        const componentName = componentDef.name
+        const componentField = /** @type {Component} */ (
+          formModel.componentMap.get(componentName)
+        )
 
-    // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
-    for (const componentDef of repeaterPage.components.filter(
-      (cd) => 'title' in cd
-    )) {
-      const componentName = componentDef.name
-      const componentField = /** @type {Component} */ (
-        formModel.componentMap.get(componentName)
-      )
+        if (!componentField) {
+          continue
+        }
 
-      if (!componentField) {
-        continue
+        const questionLines = processRepeaterComponent(
+          repeaterTitle,
+          componentField,
+          componentName,
+          repeaterItems,
+          formSubmissionMessage
+        )
+
+        // Store with a unique key for this component within the repeater
+        componentMap.set(`${key}__${componentName}`, questionLines)
       }
-
-      const questionLines = processRepeaterComponent(
-        repeaterTitle,
-        componentField,
-        componentName,
-        repeaterItems,
-        formSubmissionMessage
-      )
-
-      // Store with a unique key for this component within the repeater
-      componentMap.set(`${key}__${componentName}`, questionLines)
     }
   }
 }

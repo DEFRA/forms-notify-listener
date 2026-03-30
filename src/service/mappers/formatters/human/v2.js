@@ -134,10 +134,6 @@ export function formatter(
   const formModel = new FormModel(formDefinition, { basePath: '' }, {})
 
   const formName = escapeContent(meta.formName)
-  /**
-   * @todo Refactor this below but the code to
-   * generate the question and answers works for now
-   */
   const now = new Date()
   const formattedNow = `${dateFormat(now, 'h:mmaaa')} on ${dateFormat(now, 'd MMMM yyyy')}`
 
