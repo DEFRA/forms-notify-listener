@@ -1,4 +1,5 @@
 import { formatter as formatHumanV1 } from '~/src/service/mappers/formatters/human/v1.js'
+import { formatter as formatHumanV2 } from '~/src/service/mappers/formatters/human/v2.js'
 import { formatter as formatMachineV1 } from '~/src/service/mappers/formatters/machine/v1.js'
 import { formatter as formatMachineV2 } from '~/src/service/mappers/formatters/machine/v2.js'
 
@@ -15,7 +16,8 @@ import { formatter as formatMachineV2 } from '~/src/service/mappers/formatters/m
  */
 const formatters = {
   human: {
-    1: formatHumanV1
+    1: formatHumanV1,
+    2: formatHumanV2
   },
   machine: {
     1: formatMachineV1,

@@ -21,7 +21,7 @@ import {
 import {
   getRelevantPagesForLegacy,
   mapValueToState
-} from '~/src/service/mappers/formatters/human/v1.js'
+} from '~/src/service/mappers/formatters/human/v2.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 
 jest.mock('nunjucks', () => {
@@ -118,15 +118,15 @@ describe('Page controller helpers', () => {
   })
 
   describe('format', () => {
-    it('should return a valid human readable v1 response', () => {
+    it('should return a valid human readable v2 response', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(exampleNotifyFormMessage, definition, '1')
 
       let pos = 0
@@ -156,6 +156,24 @@ describe('Page controller helpers', () => {
       pos = stringExistsFromPosition(output, pos, '1 January 2000')
       pos = stringExistsFromPosition(output, pos, '## What month is it?')
       pos = stringExistsFromPosition(output, pos, 'August 2025')
+      pos = stringExistsFromPosition(
+        output,
+        pos,
+        "# What is the team member\\'s name?"
+      )
+      pos = stringExistsFromPosition(output, pos, '## Team Member 1')
+      pos = stringExistsFromPosition(output, pos, 'Frodo')
+      pos = stringExistsFromPosition(output, pos, '## Team Member 2')
+      pos = stringExistsFromPosition(output, pos, 'Gandalf')
+      pos = stringExistsFromPosition(
+        output,
+        pos,
+        "# What is the team member\\'s date of birth?"
+      )
+      pos = stringExistsFromPosition(output, pos, '## Team Member 1')
+      pos = stringExistsFromPosition(output, pos, '1 January 2000')
+      pos = stringExistsFromPosition(output, pos, '## Team Member 2')
+      pos = stringExistsFromPosition(output, pos, '1 January 2020')
       pos = stringExistsFromPosition(output, pos, '## Team Member')
       pos = stringExistsFromPosition(
         output,
@@ -185,9 +203,7 @@ describe('Page controller helpers', () => {
         pos,
         '## Geospatial features of the site'
       )
-
       pos = stringExistsFromPosition(output, pos, '## Sites')
-
       stringExistsFromPosition(
         output,
         pos,
@@ -196,15 +212,15 @@ describe('Page controller helpers', () => {
       expect(output).toMatchSnapshot()
     })
 
-    it('should return a valid human readable v1 response in preview mode', () => {
+    it('should return a valid human readable v2 response in preview mode', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(
         buildFormAdapterSubmissionMessage({
           ...exampleNotifyFormMessage,
@@ -220,18 +236,18 @@ describe('Page controller helpers', () => {
       expect(output).toMatchSnapshot()
     })
 
-    it('should return a valid human readable v1 response with reference number', () => {
+    it('should return a valid human readable v2 response with reference number', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         },
         options: {
           showReferenceNumber: true
         }
       })
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(
         buildFormAdapterSubmissionMessage({
           ...exampleNotifyFormMessage,
@@ -248,15 +264,15 @@ describe('Page controller helpers', () => {
       expect(output).toMatchSnapshot()
     })
 
-    it('should return a valid human readable v1 response in Draft mode', () => {
+    it('should return a valid human readable v2 response in Draft mode', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(
         buildFormAdapterSubmissionMessage({
           ...exampleNotifyFormMessage,
@@ -272,36 +288,36 @@ describe('Page controller helpers', () => {
       expect(output).toMatchSnapshot()
     })
 
-    it('should return a valid human readable v1 response 2', () => {
+    it('should return a valid human readable v2 response 2', () => {
       const definition = buildDefinition({
         ...pizzaFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
-      const formatter = getFormatter('human', '1')
-      const output = formatter(pizzaMessage, definition, '1')
+      const formatter = getFormatter('human', '2')
+      const output = formatter(pizzaMessage, definition, '2')
       expect(output).toMatchSnapshot()
     })
 
-    it('should return a valid human readable v1 response for legacy graph-based forms', () => {
+    it('should return a valid human readable v2 response for legacy graph-based forms', () => {
       const definition = buildDefinition({
         ...legacyGraphFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
-      const formatter = getFormatter('human', '1')
-      const output = formatter(legacyGraphFormMessage, definition, '1')
+      const formatter = getFormatter('human', '2')
+      const output = formatter(legacyGraphFormMessage, definition, '2')
 
       expect(output).toMatchSnapshot()
     })
 
     it('should handle geospatial fields', () => {
       const definition = geospatialFormDefinition
-      const formatter = getFormatter('human', '1')
+      const formatter = getFormatter('human', '2')
       const output = formatter(geospatialMessage, definition)
 
       expect(output).toContain(`# Geospatial features of the site
@@ -367,7 +383,7 @@ TQ 28521 79799
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
 
@@ -385,8 +401,8 @@ TQ 28521 79799
         }
       })
 
-      const formatter = getFormatter('human', '1')
-      const output = formatter(messageWithPayment, definition, '1')
+      const formatter = getFormatter('human', '2')
+      const output = formatter(messageWithPayment, definition, '2')
 
       expect(output).toContain('# Payment details')
       expect(output).toContain('## Payment for')
@@ -402,7 +418,7 @@ TQ 28521 79799
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
 
@@ -414,8 +430,8 @@ TQ 28521 79799
         }
       })
 
-      const formatter = getFormatter('human', '1')
-      const output = formatter(messageWithNoPayment, definition, '1')
+      const formatter = getFormatter('human', '2')
+      const output = formatter(messageWithNoPayment, definition, '2')
 
       expect(output).not.toContain('# Payment details')
       expect(output).not.toContain('## Payment for')
@@ -428,7 +444,7 @@ TQ 28521 79799
         ...exampleNotifyFormDefinition,
         output: {
           audience: 'human',
-          version: '1'
+          version: '2'
         }
       })
 
@@ -440,8 +456,8 @@ TQ 28521 79799
         }
       })
 
-      const formatter = getFormatter('human', '1')
-      const output = formatter(messageWithNoPayment, definition, '1')
+      const formatter = getFormatter('human', '2')
+      const output = formatter(messageWithNoPayment, definition, '2')
 
       expect(output).not.toContain('# Payment details')
     })
