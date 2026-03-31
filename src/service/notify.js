@@ -114,7 +114,7 @@ export async function sendInternalEmail(
     const errMsg = getErrorMessage(err)
     logger.error(
       err,
-      `[emailSendFailed] Error sending internal submission email - templateId: ${templateId} - ${errMsg}`
+      `[emailSendFailed] Error sending internal submission email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
     )
 
     throw err
@@ -185,7 +185,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
     const errMsg = getErrorMessage(err)
     logger.error(
       err,
-      `[emailSendFailed] Error sending user confirmation email - templateId: ${templateId} - ${errMsg}`
+      `[emailSendFailed] Error sending user confirmation email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
     )
 
     throw err
