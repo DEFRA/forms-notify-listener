@@ -1,10 +1,7 @@
-import {
-  getErrorMessage,
-  isFeedbackForm,
-  replaceCustomControllers
-} from '@defra/forms-model'
+import { isFeedbackForm, replaceCustomControllers } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
+import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
 import { createLogger } from '~/src/helpers/logging/logger.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
@@ -111,7 +108,7 @@ export async function sendInternalEmail(
 
     logger.info(logTags, 'Internal submission email sent successfully')
   } catch (err) {
-    const errMsg = getErrorMessage(err)
+    const errMsg = getBoomErrorMessage(err)
     logger.error(
       err,
       `[emailSendFailed] Error sending internal submission email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
@@ -182,7 +179,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 
     logger.info(logTags, 'User confirmation email sent successfully')
   } catch (err) {
-    const errMsg = getErrorMessage(err)
+    const errMsg = getBoomErrorMessage(err)
     logger.error(
       err,
       `[emailSendFailed] Error sending user confirmation email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
