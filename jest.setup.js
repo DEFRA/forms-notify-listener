@@ -1,7 +1,6 @@
 process.env.MANAGER_URL = 'http://manager'
 process.env.DESIGNER_URL = 'http://designer'
 process.env.PORT = '3006'
-process.env.CDP_HTTPS_PROXY = ''
 process.env.ENTITLEMENT_URL = 'http://entitlements'
 process.env.SQS_ENDPOINT = 'http://localhost:4566'
 process.env.EVENTS_SQS_QUEUE_URL =

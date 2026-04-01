@@ -224,7 +224,7 @@ export const config = convict({
   awsRegion: {
     doc: 'AWS region',
     format: String,
-    default: 'eu-west-2',
+    default: null,
     env: 'AWS_REGION'
   },
   /**@type {SchemaObj<string>} */
