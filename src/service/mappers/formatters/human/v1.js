@@ -346,7 +346,12 @@ function formatGeospatialField(
   const pageId = field.page?.id
   const componentId = field.id
 
-  if (pageId && componentId) {
+  if (
+    pageId &&
+    componentId &&
+    Array.isArray(richFormValue) &&
+    richFormValue.length > 0
+  ) {
     const referenceNumber = formSubmissionMessage.meta.referenceNumber
     const link = generateGeospatialMapLink(
       referenceNumber,
