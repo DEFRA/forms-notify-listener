@@ -1,11 +1,14 @@
 import { FormStatus } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
+import { createLogger } from '~/src/helpers/logging/logger.js'
 import { getJson } from '~/src/lib/fetch.js'
 
 const managerUrl = config.get('managerUrl')
+const logger = createLogger()
+
 /**
- * Gets the form definition from the Forms Manager API∂
+ * Gets the form definition from the Forms Manager API
  * @param {string} formId
  * @param {FormStatus} formStatus
  * @param {number|undefined} versionNumber - Optional specific version to fetch
@@ -16,16 +19,27 @@ export async function getFormDefinition(formId, formStatus, versionNumber) {
     throw new Error('Missing MANAGER_URL')
   }
 
-  const statusPath = formStatus === FormStatus.Draft ? FormStatus.Draft : ''
-  const formUrl =
-    versionNumber !== undefined
-      ? new URL(
+  if (versionNumber !== undefined) {
+    try {
+      const { body } = await getJson(
+        new URL(
           `/forms/${formId}/versions/${versionNumber}/definition`,
           managerUrl
         )
-      : new URL(`/forms/${formId}/definition/${statusPath}`, managerUrl)
+      )
+      return body
+    } catch (err) {
+      logger.warn(
+        err,
+        `[getFormDefinition] Version ${versionNumber} not found for form ${formId}, falling back to current definition`
+      )
+    }
+  }
 
-  const { body } = await getJson(formUrl)
+  const statusPath = formStatus === FormStatus.Draft ? FormStatus.Draft : ''
+  const { body } = await getJson(
+    new URL(`/forms/${formId}/definition/${statusPath}`, managerUrl)
+  )
 
   return body
 }

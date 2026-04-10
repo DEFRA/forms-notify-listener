@@ -4,6 +4,14 @@ import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 import { getJson } from '~/src/lib/fetch.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 jest.mock('~/src/lib/fetch.js')
+jest.mock('~/src/helpers/logging/logger.js', () => ({
+  createLogger: () => ({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn()
+  })
+}))
 jest.mock('~/src/config/index.js', () => ({
   config: {
     get: jest.fn().mockReturnValueOnce('http://forms-manager')
@@ -105,6 +113,64 @@ describe('Manager', () => {
       expect(getJson).toHaveBeenCalledWith(
         expect.objectContaining({
           href: 'http://forms-manager/forms/68a890909ab460290c289409/versions/0/definition'
+        })
+      )
+      expect(definition).toEqual(expectedDefinition)
+    })
+
+    it('should fall back to current definition when versioned endpoint fails', async () => {
+      const expectedDefinition = buildDefinition()
+      const formId = '68a890909ab460290c289409'
+      const versionNumber = 5
+      jest
+        .mocked(getJson)
+        .mockRejectedValueOnce(new Error('Version not found'))
+        .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
+      const definition = await getFormDefinition(
+        formId,
+        FormStatus.Live,
+        versionNumber
+      )
+      expect(getJson).toHaveBeenCalledTimes(2)
+      expect(getJson).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          href: 'http://forms-manager/forms/68a890909ab460290c289409/versions/5/definition'
+        })
+      )
+      expect(getJson).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          href: 'http://forms-manager/forms/68a890909ab460290c289409/definition/'
+        })
+      )
+      expect(definition).toEqual(expectedDefinition)
+    })
+
+    it('should fall back to draft definition when versioned endpoint fails for draft status', async () => {
+      const expectedDefinition = buildDefinition()
+      const formId = '68a890909ab460290c289409'
+      const versionNumber = 2
+      jest
+        .mocked(getJson)
+        .mockRejectedValueOnce(new Error('Version not found'))
+        .mockResolvedValueOnce({ response: {}, body: expectedDefinition })
+      const definition = await getFormDefinition(
+        formId,
+        FormStatus.Draft,
+        versionNumber
+      )
+      expect(getJson).toHaveBeenCalledTimes(2)
+      expect(getJson).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          href: 'http://forms-manager/forms/68a890909ab460290c289409/versions/2/definition'
+        })
+      )
+      expect(getJson).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          href: 'http://forms-manager/forms/68a890909ab460290c289409/definition/draft'
         })
       )
       expect(definition).toEqual(expectedDefinition)
