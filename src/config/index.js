@@ -6,7 +6,6 @@ import convict from 'convict'
 const isProduction = process.env.NODE_ENV === 'production'
 const isDev = process.env.NODE_ENV !== 'production'
 const isTest = process.env.NODE_ENV === 'test'
-const DEFAULT_MESSAGE_TIMEOUT = Number(process.env.DEFAULT_MESSAGE_TIMEOUT)
 
 export const config = convict({
   /**@type {SchemaObj<string>} */
@@ -245,7 +244,7 @@ export const config = convict({
   receiveMessageTimeout: {
     doc: 'The wait time between each poll in milliseconds',
     format: Number,
-    default: DEFAULT_MESSAGE_TIMEOUT * 1000,
+    default: null,
     env: 'RECEIVE_MESSAGE_TIMEOUT_MS'
   },
   /**@type {SchemaObj<number>} */
