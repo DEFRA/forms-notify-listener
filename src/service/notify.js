@@ -44,7 +44,7 @@ export async function sendNotifyEmails(formSubmissionMessage) {
     [
       {
         audience: definition.output?.audience ?? 'human',
-        version: definition.output?.version ?? '1',
+        version: definition.output?.version ?? '2',
         emailAddress
       }
     ].concat(definition.outputs ?? [])
