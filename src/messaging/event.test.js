@@ -111,6 +111,19 @@ describe('event', () => {
         ReceiptHandle: receiptHandle
       })
     })
+
+    it('should throw if message not found', async () => {
+      const receivedMessage = {
+        Messages: []
+      }
+
+      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
+      await expect(() =>
+        deleteDlqMessage(messageStub.MessageId)
+      ).rejects.toThrow(
+        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
+      )
+    })
   })
 })
 
