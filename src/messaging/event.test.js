@@ -94,15 +94,18 @@ describe('event', () => {
 
   describe('deleteDlqMessage', () => {
     it('should delete event message', async () => {
-      /**
-       * @type {DeleteMessageCommandOutput}
-       */
-      const deleteResult = {
-        $metadata: {}
+      const receivedMessage = {
+        Messages: [messageStub, messageStub, messageStub]
       }
 
-      snsMock.on(DeleteMessageCommand).resolves(deleteResult)
-      await deleteDlqMessage(messageStub.ReceiptHandle)
+      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
+      await deleteDlqMessage(messageStub.MessageId)
+      expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
+        QueueUrl: expect.any(String),
+        MaxNumberOfMessages: 10,
+        VisibilityTimeout: 2,
+        WaitTimeSeconds: 0
+      })
       expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
         QueueUrl: expect.any(String),
         ReceiptHandle: receiptHandle
