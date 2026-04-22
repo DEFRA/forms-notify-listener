@@ -1,5 +1,6 @@
 import { RepeatPageController } from '@defra/forms-engine-plugin/controllers/RepeatPageController.js'
 import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
+import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
   FileStatus,
@@ -74,13 +75,21 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
     const questionLines = /** @type {string[]} */ ([])
     const field = formModel.componentMap.get(key)
 
-    let mappedRichFormValue = richFormValue
-
-    if (field instanceof FileUploadField) {
-      mappedRichFormValue = richFormValue.map(mapFormAdapterFileToFileState)
+    if (!(field instanceof FormComponent)) {
+      continue
     }
 
-    const answer = field.getDisplayStringFromFormValue(mappedRichFormValue)
+    let mappedRichFormValue = richFormValue
+
+    if (field instanceof FileUploadField && richFormValue !== null) {
+      mappedRichFormValue = /** @type {FormAdapterFile[]} */ (
+        /** @type {unknown} */ (richFormValue)
+      ).map(mapFormAdapterFileToFileState)
+    }
+
+    const answer = field.getDisplayStringFromFormValue(
+      /** @type {any} */ (mappedRichFormValue)
+    )
 
     const label = escapeContent(field.title)
     questionLines.push(`## ${label}\n`)
@@ -89,7 +98,7 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
       const answerLine = generateFieldLine(
         answer,
         field,
-        richFormValue,
+        /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
         formSubmissionMessage
       )
       questionLines.push(answerLine)
@@ -131,7 +140,11 @@ export function formatter(
   const { isPreview, status } = meta
   const files = result.files
 
-  const formModel = new FormModel(formDefinition, { basePath: '' }, {})
+  const formModel = new FormModel(
+    formDefinition,
+    { basePath: '' },
+    /** @type {any} */ ({})
+  )
 
   const formName = escapeContent(meta.formName)
   const now = new Date()
@@ -216,7 +229,7 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
 /**
  *
  * @param {Record<string, FormStateValue>} subfieldObject
- * @param {[string, FormValue|null]} entry
+ * @param {[string, RichFormValue|null]} entry
  * @returns {Record<string, FormStateValue>}
  */
 function handleSubfields(subfieldObject, [key, value]) {
@@ -279,14 +292,21 @@ function mapFormAdapterFileToFileState(file) {
  */
 export function mapValueToState(formSubmissionMessage) {
   const mainEntries = Object.entries(formSubmissionMessage.data.main)
-  const main = mainEntries.reduce(handleSubfields, {})
+  const main = mainEntries.reduce(
+    handleSubfields,
+    /** @type {Record<string, FormStateValue>} */ ({})
+  )
 
   const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
   const repeaters = repeaterEntries.reduce((repeaterObject, [key, value]) => {
     const values = value.map((repeater, idx) => {
       const idxStr = `${idx}`
+      const reduced = Object.entries(repeater).reduce(
+        handleSubfields,
+        /** @type {Record<string, FormStateValue>} */ ({})
+      )
       return {
-        ...Object.entries(repeater).reduce(handleSubfields, {}),
+        ...reduced,
         itemId:
           `a581accd-e989-4500-87da-f3929c192dba`.slice(0, 0 - idxStr.length) +
           idxStr
@@ -329,14 +349,15 @@ export function getRelevantPagesForLegacy(
   const state = mapValueToState(formSubmissionMessage)
 
   const context = model.getFormContext(
-    {
+    /** @type {FormContextRequest} */ ({
       query: {
-        force: true
+        force: 'true'
       },
       params: {
-        path: 'summary'
+        path: 'summary',
+        slug: ''
       }
-    },
+    }),
     state
   )
 
@@ -345,25 +366,30 @@ export function getRelevantPagesForLegacy(
     relevantPages
   )
 
-  return typedRelevantPages.reduce((order, page) => {
-    const { collection } = page
+  return typedRelevantPages.reduce(
+    /** @type {(order: string[], page: PageControllerClass) => string[]} */ (
+      (order, page) => {
+        const { collection } = page
 
-    if (page instanceof RepeatPageController) {
-      return [...order, page.repeat.options.name]
-    } else {
-      return [
-        ...order,
-        ...collection.fields.map(
-          /** @type {(f: Component) => string} */ ((f) => f.name)
-        )
-      ]
-    }
-  }, [])
+        if (page instanceof RepeatPageController) {
+          return [...order, page.repeat.options.name]
+        } else {
+          return [
+            ...order,
+            ...collection.fields.map(
+              /** @type {(f: Component) => string} */ ((f) => f.name)
+            )
+          ]
+        }
+      }
+    ),
+    /** @type {string[]} */ ([])
+  )
 }
 
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
- * @import { FormAdapterSubmissionMessage, FormAdapterFile, FormValue, FormStateValue, FileState, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormStateValue, FileState, FormContextRequest, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */

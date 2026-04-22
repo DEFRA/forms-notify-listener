@@ -17,15 +17,15 @@ const designerUrl = config.get('designerUrl')
 /**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
+ * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage) => string>}
  */
-const fieldHandlers = new Map([
-  [Components.FileUploadField, formatFileUploadField],
-  [Components.MultilineTextField, formatMultilineTextField],
-  [Components.UkAddressField, formatUkAddressField],
-  [Components.EastingNorthingField, formatLocationField],
-  [Components.LatLongField, formatLocationField],
-  [Components.GeospatialField, formatGeospatialField]
-])
+const fieldHandlers = new Map()
+fieldHandlers.set(Components.FileUploadField, formatFileUploadField)
+fieldHandlers.set(Components.MultilineTextField, formatMultilineTextField)
+fieldHandlers.set(Components.UkAddressField, formatUkAddressField)
+fieldHandlers.set(Components.EastingNorthingField, formatLocationField)
+fieldHandlers.set(Components.LatLongField, formatLocationField)
+fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
 
 /**
  *
@@ -42,9 +42,8 @@ export function generateFieldLine(
   formSubmissionMessage
 ) {
   // Check list component first (special case with multiple inheriance)
-  const listHandler = getListComponentHandler(field)
-  if (listHandler) {
-    return listHandler(answer, field, richFormValue)
+  if (field instanceof ListFormComponent && field instanceof FormComponent) {
+    return formatListFormComponent(answer, field, richFormValue)
   }
 
   // Iterate through registered handlers
@@ -59,21 +58,9 @@ export function generateFieldLine(
 }
 
 /**
- * Check if field is a list component and return appropriate handler
- * @param {Component} field
- * @returns {((answer: string, field: Component, richFormValue: RichFormValue) => string) | null}
- */
-function getListComponentHandler(field) {
-  if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent
-  }
-  return null
-}
-
-/**
  * Format list form component field
  * @param {string} answer
- * @param {Component} field
+ * @param {ListFormComponent} field
  * @param {RichFormValue} richFormValue
  * @returns {string}
  */
@@ -154,7 +141,9 @@ function formatGeospatialField(
  * @returns {string}
  */
 function formatFileUploadField(answer, _field, richFormValue) {
-  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (richFormValue)
+  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
+    /** @type {unknown} */ (richFormValue)
+  )
 
   // Skip empty files
   if (!formAdapterFiles.length) {

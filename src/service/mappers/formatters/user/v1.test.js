@@ -320,6 +320,7 @@ describe('User answers formatter v1', () => {
                 repeaterComponentDate: { day: 1, month: 1, year: 2000 }
               },
               {
+                // @ts-expect-error - intentionally testing null handling
                 repeaterComponentName: null,
                 repeaterComponentDate: { day: 1, month: 1, year: 2020 }
               },
