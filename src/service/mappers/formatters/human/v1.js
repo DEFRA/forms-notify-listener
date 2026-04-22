@@ -511,7 +511,7 @@ function mapFormAdapterFileToFileState(file) {
 export function mapValueToState(formSubmissionMessage) {
   const mainEntries = Object.entries(formSubmissionMessage.data.main)
   const main = mainEntries.reduce(
-    handleSubfields,
+    (acc, entry) => handleSubfields(acc, entry),
     /** @type {Record<string, FormStateValue>} */ ({})
   )
 
@@ -520,7 +520,7 @@ export function mapValueToState(formSubmissionMessage) {
     const values = value.map((repeater, idx) => {
       const idxStr = `${idx}`
       const subfields = Object.entries(repeater).reduce(
-        handleSubfields,
+        (acc, entry) => handleSubfields(acc, entry),
         /** @type {Record<string, FormStateValue>} */ ({})
       )
       return {
