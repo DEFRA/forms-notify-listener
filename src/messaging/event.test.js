@@ -2,6 +2,7 @@ import {
   DeleteMessageCommand,
   ReceiveMessageCommand,
   SQSClient,
+  SendMessageCommand,
   StartMessageMoveTaskCommand
 } from '@aws-sdk/client-sqs'
 import { mockClient } from 'aws-sdk-client-mock'
@@ -12,7 +13,8 @@ import {
   deleteEventMessage,
   receiveDlqMessages,
   receiveEventMessages,
-  redriveDlqMessages
+  redriveDlqMessages,
+  resubmitDlqMessage
 } from '~/src/messaging/event.js'
 
 jest.mock('~/src/helpers/logging/logger.js')
@@ -120,6 +122,48 @@ describe('event', () => {
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
       await expect(() =>
         deleteDlqMessage(messageStub.MessageId)
+      ).rejects.toThrow(
+        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
+      )
+    })
+  })
+
+  describe('resubmitDlqMessage', () => {
+    it('should resubmit message and delete old one from DLQ', async () => {
+      const receivedMessage = {
+        Messages: [messageStub]
+      }
+      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
+
+      const sendMessage = {
+        MessageId: '12345'
+      }
+
+      snsMock.on(SendMessageCommand).resolves(sendMessage)
+      await resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
+      expect(snsMock).toHaveReceivedCommandWith(SendMessageCommand, {
+        QueueUrl: expect.any(String),
+        MessageBody: messageStub.Body
+      })
+      expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
+        QueueUrl: expect.any(String),
+        ReceiptHandle: receiptHandle
+      })
+    })
+
+    it('should throw if message not found', async () => {
+      const receivedMessage = {
+        Messages: []
+      }
+      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
+
+      const sendMessage = {
+        MessageId: '12345'
+      }
+      snsMock.on(SendMessageCommand).resolves(sendMessage)
+
+      await expect(() =>
+        resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
       ).rejects.toThrow(
         'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
       )

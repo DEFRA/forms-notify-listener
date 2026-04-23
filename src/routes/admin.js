@@ -5,7 +5,8 @@ import { createLogger } from '~/src/helpers/logging/logger.js'
 import {
   deleteDlqMessage,
   receiveDlqMessages,
-  redriveDlqMessages
+  redriveDlqMessages,
+  resubmitDlqMessage
 } from '~/src/messaging/event.js'
 
 const logger = createLogger()
@@ -44,6 +45,28 @@ export default [
       logger.info('Redriving DLQ')
       await redriveDlqMessages()
       logger.info('Redrive DLQ triggered successfully')
+      return h.response({ message: 'success' }).code(OK_RESPONSE)
+    },
+    options: {
+      auth: {
+        scope: [`+${Scopes.DeadLetterQueues}`]
+      }
+    }
+  }),
+
+  /**
+   * @satisfies {ServerRoute<{ Params: { messageId: string }, Payload: { messageJson: string } }>}
+   */
+  ({
+    method: 'POST',
+    path: '/admin/deadletter/resubmit/{messageId}',
+    async handler(request, h) {
+      const { params, payload } = request
+      const { messageId } = params
+      const { messageJson } = payload
+      logger.info(`Resubmitting DLQ message ${messageId}`)
+      await resubmitDlqMessage(messageId, JSON.stringify(messageJson))
+      logger.info(`Resubmitted  DLQ message ${messageId}`)
       return h.response({ message: 'success' }).code(OK_RESPONSE)
     },
     options: {
