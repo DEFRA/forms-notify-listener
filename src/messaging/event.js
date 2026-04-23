@@ -1,6 +1,7 @@
 import {
   DeleteMessageCommand,
   ReceiveMessageCommand,
+  SendMessageCommand,
   StartMessageMoveTaskCommand
 } from '@aws-sdk/client-sqs'
 
@@ -58,6 +59,39 @@ export function redriveDlqMessages() {
     SourceArn: deadLetterQueueArn
   })
   return sqsClient.send(command)
+}
+
+/**
+ * Submit the specified message to the main queue, and delete the messageId from the dead-letter queue
+ * @param {string} messageId
+ * @param {string} messageJson
+ */
+export async function resubmitDlqMessage(messageId, messageJson) {
+  try {
+    logger.info(
+      `[DLQ] Submitting new message in place of message id ${messageId}`
+    )
+
+    const command = new SendMessageCommand({
+      QueueUrl: queueUrl,
+      MessageBody: messageJson
+    })
+    const sendResult = await sqsClient.send(command)
+    logger.info(
+      `[DLQ] Submitting new message in place of message id ${messageId}. New message id is ${sendResult.MessageId}. About to delete old message from DLQ`
+    )
+
+    await deleteDlqMessage(messageId)
+    logger.info(
+      `[DLQ] Deleted message id ${messageId} from DLQ after resubmitting new message id ${sendResult.MessageId}`
+    )
+  } catch (err) {
+    logger.error(
+      err,
+      `[DLQ] Failed to submit new message to main queue or failed to delete old message of id ${messageId} from DLQ`
+    )
+    throw err
+  }
 }
 
 /**

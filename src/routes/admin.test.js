@@ -2,7 +2,8 @@ import { createServer } from '~/src/api/server.js'
 import {
   deleteDlqMessage,
   receiveDlqMessages,
-  redriveDlqMessages
+  redriveDlqMessages,
+  resubmitDlqMessage
 } from '~/src/messaging/event.js'
 import { authSuperAdmin as auth } from '~/test/fixtures/auth.js'
 
@@ -54,6 +55,22 @@ describe('Admin routes', () => {
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ message: 'success' })
       expect(redriveDlqMessages).toHaveBeenCalled()
+    })
+
+    test('/admin/dead-letter/resubmit route returns 200', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/admin/deadletter/resubmit/12345',
+        auth,
+        payload: {
+          messageJson: {}
+        }
+      })
+
+      expect(response.statusCode).toEqual(okStatusCode)
+      expect(response.headers['content-type']).toContain(jsonContentType)
+      expect(response.result).toEqual({ message: 'success' })
+      expect(resubmitDlqMessage).toHaveBeenCalled()
     })
   })
 
