@@ -14,7 +14,7 @@ const queueUrl = config.get('sqsEventsQueueUrl')
 const deadLetterQueueUrl = `${queueUrl}-deadletter`
 const deadLetterQueueArn = config.get('sqsEventsDlqArn')
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
-const visibilityTimeout = config.get('visibilityTimeout')
+const pollingVisibilityTimeout = config.get('visibilityTimeout')
 
 const MAX_RETRIES = 7
 const RETRY_WAIT_BETWEEN_TRIES_IN_SECS = 1
@@ -29,7 +29,7 @@ const logger = createLogger()
 const input = {
   QueueUrl: queueUrl,
   MaxNumberOfMessages: maxNumberOfMessages,
-  VisibilityTimeout: visibilityTimeout
+  VisibilityTimeout: pollingVisibilityTimeout
 }
 
 /**
