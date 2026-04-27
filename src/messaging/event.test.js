@@ -114,6 +114,25 @@ describe('event', () => {
       })
     })
 
+    it('should delete event message with default values', async () => {
+      const receivedMessage = {
+        Messages: [messageStub, messageStub, messageStub]
+      }
+
+      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
+      await deleteDlqMessage(messageStub.MessageId, 3, 1)
+      expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
+        QueueUrl: expect.any(String),
+        MaxNumberOfMessages: 10,
+        VisibilityTimeout: 1,
+        WaitTimeSeconds: 1
+      })
+      expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
+        QueueUrl: expect.any(String),
+        ReceiptHandle: receiptHandle
+      })
+    })
+
     it('should throw if message not found after max attempts', async () => {
       const receivedMessage = {
         Messages: []
@@ -121,7 +140,7 @@ describe('event', () => {
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
       await expect(() =>
-        deleteDlqMessage(messageStub.MessageId, 5, 1)
+        deleteDlqMessage(messageStub.MessageId, 5, 0)
       ).rejects.toThrow(
         'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ after 5 attempts'
       )

@@ -16,6 +16,9 @@ const deadLetterQueueArn = config.get('sqsEventsDlqArn')
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
 const visibilityTimeout = config.get('visibilityTimeout')
 
+const DEFAULT_MAX_RETRIES = 5
+const DEFAULT_RETRY_WAIT_TIME_IN_SECS = 1
+
 const logger = createLogger()
 
 /**
@@ -81,7 +84,7 @@ export async function resubmitDlqMessage(messageId, messageJson) {
       `[DLQ] Submitting new message in place of message id ${messageId}. New message id is ${sendResult.MessageId}. About to delete old message from DLQ`
     )
 
-    await deleteDlqMessage(messageId, 5, 1)
+    await deleteDlqMessage(messageId, DEFAULT_MAX_RETRIES)
     logger.info(
       `[DLQ] Deleted message id ${messageId} from DLQ after resubmitting new message id ${sendResult.MessageId}`
     )
@@ -99,13 +102,13 @@ export async function resubmitDlqMessage(messageId, messageJson) {
  * This has to be done as a combined 'read then delete' (while using a visibility timeout of non-zero)
  * otherwise the receipt handles become stale and the delete operation doesn't work.
  * @param {string} messageId
- * @param {number} maxAttempts - Maximum number of receive attempts (default 50)
+ * @param {number} maxAttempts - Maximum number of receive attempts (default 5)
  * @param {number} waitTimeSeconds - Wait time between attempts (default 1)
  */
 export async function deleteDlqMessage(
   messageId,
-  maxAttempts = 5,
-  waitTimeSeconds = 1
+  maxAttempts = DEFAULT_MAX_RETRIES,
+  waitTimeSeconds = DEFAULT_RETRY_WAIT_TIME_IN_SECS
 ) {
   let attempts = 0
   let foundMessage = null
