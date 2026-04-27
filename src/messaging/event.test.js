@@ -101,12 +101,12 @@ describe('event', () => {
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-      await deleteDlqMessage(messageStub.MessageId)
+      await deleteDlqMessage(messageStub.MessageId, 5, 0)
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         MaxNumberOfMessages: 10,
-        VisibilityTimeout: 2,
-        WaitTimeSeconds: 0
+        VisibilityTimeout: 1,
+        WaitTimeSeconds: 1
       })
       expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
         QueueUrl: expect.any(String),
@@ -114,16 +114,16 @@ describe('event', () => {
       })
     })
 
-    it('should throw if message not found', async () => {
+    it('should throw if message not found after max attempts', async () => {
       const receivedMessage = {
         Messages: []
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
       await expect(() =>
-        deleteDlqMessage(messageStub.MessageId)
+        deleteDlqMessage(messageStub.MessageId, 5, 1)
       ).rejects.toThrow(
-        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
+        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ after 5 attempts'
       )
     })
   })
@@ -167,7 +167,7 @@ describe('event', () => {
       ).rejects.toThrow(
         'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
       )
-    })
+    }, 10000)
   })
 })
 

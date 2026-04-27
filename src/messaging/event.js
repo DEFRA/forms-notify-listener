@@ -81,7 +81,7 @@ export async function resubmitDlqMessage(messageId, messageJson) {
       `[DLQ] Submitting new message in place of message id ${messageId}. New message id is ${sendResult.MessageId}. About to delete old message from DLQ`
     )
 
-    await deleteDlqMessage(messageId)
+    await deleteDlqMessage(messageId, 5, 1)
     logger.info(
       `[DLQ] Deleted message id ${messageId} from DLQ after resubmitting new message id ${sendResult.MessageId}`
     )
@@ -99,37 +99,68 @@ export async function resubmitDlqMessage(messageId, messageJson) {
  * This has to be done as a combined 'read then delete' (while using a visibility timeout of non-zero)
  * otherwise the receipt handles become stale and the delete operation doesn't work.
  * @param {string} messageId
+ * @param {number} maxAttempts - Maximum number of receive attempts (default 50)
+ * @param {number} waitTimeSeconds - Wait time between attempts (default 1)
  */
-export async function deleteDlqMessage(messageId) {
-  const receiveCommand = new ReceiveMessageCommand({
-    QueueUrl: deadLetterQueueUrl,
-    MaxNumberOfMessages: 10,
-    VisibilityTimeout: 2,
-    WaitTimeSeconds: 0
-  })
-  const messageResponse = await sqsClient.send(receiveCommand)
+export async function deleteDlqMessage(
+  messageId,
+  maxAttempts = 5,
+  waitTimeSeconds = 1
+) {
+  let attempts = 0
+  let foundMessage = null
 
-  const messages = messageResponse.Messages
-    ? messageResponse.Messages.filter((m) => m.MessageId === messageId)
-    : undefined
-  if (!messages?.length) {
-    const errorText = `Message with id ${messageId} not found in notify-listener DLQ`
+  while (attempts < maxAttempts) {
+    attempts++
+
+    const receiveCommand = new ReceiveMessageCommand({
+      QueueUrl: deadLetterQueueUrl,
+      MaxNumberOfMessages: 10,
+      VisibilityTimeout: 1,
+      WaitTimeSeconds: 1
+    })
+    const messageResponse = await sqsClient.send(receiveCommand)
+
+    const messages = messageResponse.Messages ?? []
+    for (const mess of messages) {
+      logger.info(
+        `[DLQ] [Delete] Received message with id ${mess.MessageId} on attempt ${attempts}`
+      )
+    }
+
+    const messagesFound = messages.filter((m) => m.MessageId === messageId)
+
+    if (messagesFound.length > 0) {
+      foundMessage = messagesFound[0]
+      logger.info(
+        `[DLQ] Found message with id ${messageId} on attempt ${attempts}`
+      )
+      break
+    }
+
+    if (attempts < maxAttempts) {
+      logger.info(
+        `[DLQ] Message ${messageId} not found in batch ${attempts}, retrying...`
+      )
+      await new Promise((resolve) =>
+        setTimeout(resolve, waitTimeSeconds * 1000)
+      )
+    }
+  }
+
+  if (!foundMessage) {
+    const errorText = `Message with id ${messageId} not found in notify-listener DLQ after ${maxAttempts} attempts`
     logger.info(errorText)
     throw new Error(errorText)
   }
 
-  logger.info(
-    `[DLQ] Number of messages found with id ${messageId}: ${messages.length}`
-  )
-  for (const message of messages) {
-    const deleteCommand = new DeleteMessageCommand({
-      QueueUrl: deadLetterQueueUrl,
-      ReceiptHandle: message.ReceiptHandle
-    })
-    logger.info(`[DLQ] Deleting message with id ${messageId}`)
-    await sqsClient.send(deleteCommand)
-    logger.info(`[DLQ] Deleted message with id ${messageId}`)
-  }
+  const deleteCommand = new DeleteMessageCommand({
+    QueueUrl: deadLetterQueueUrl,
+    ReceiptHandle: foundMessage.ReceiptHandle
+  })
+  logger.info(`[DLQ] Deleting message with id ${messageId}`)
+  await sqsClient.send(deleteCommand)
+  logger.info(`[DLQ] Deleted message with id ${messageId}`)
 }
 
 /**
