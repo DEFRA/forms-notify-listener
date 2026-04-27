@@ -85,7 +85,11 @@ describe('Admin routes', () => {
       expect(response.statusCode).toEqual(okStatusCode)
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ message: 'success' })
-      expect(deleteDlqMessage).toHaveBeenCalledWith('message-id')
+      expect(deleteDlqMessage).toHaveBeenCalledWith(
+        'message-id',
+        undefined,
+        undefined
+      )
     })
   })
 })

@@ -17,6 +17,11 @@ const messageIdSchema = Joi.object({
   messageId: Joi.string().required()
 })
 
+const timeoutQuerySchema = Joi.object({
+  visibilityTimeout: Joi.number().optional(),
+  waitTimeSeconds: Joi.number().optional()
+})
+
 export default [
   /**
    * @satisfies {ServerRoute}
@@ -24,13 +29,20 @@ export default [
   ({
     method: 'GET',
     path: '/admin/deadletter/view',
-    async handler(_request, h) {
-      const messages = await receiveDlqMessages()
+    async handler(request, h) {
+      const { visibilityTimeout, waitTimeSeconds } = request.query
+      const messages = await receiveDlqMessages(
+        visibilityTimeout,
+        waitTimeSeconds
+      )
       return h.response({ messages: messages.Messages ?? [] }).code(OK_RESPONSE)
     },
     options: {
       auth: {
         scope: [`+${Scopes.DeadLetterQueues}`]
+      },
+      validate: {
+        query: timeoutQuerySchema
       }
     }
   }),
@@ -83,10 +95,14 @@ export default [
     method: 'DELETE',
     path: '/admin/deadletter/{messageId}',
     async handler(request, h) {
-      const { params } = request
+      const { params, query } = request
       const { messageId } = params
       logger.info(`Deleting DLQ message ${messageId}`)
-      await deleteDlqMessage(messageId)
+      await deleteDlqMessage(
+        messageId,
+        query.visibilityTimeout,
+        query.waitTimeSeconds
+      )
       logger.info(`Deleted DLQ message ${messageId}`)
       return h.response({ message: 'success' }).code(OK_RESPONSE)
     },
@@ -95,7 +111,8 @@ export default [
         scope: [`+${Scopes.DeadLetterQueues}`]
       },
       validate: {
-        params: messageIdSchema
+        params: messageIdSchema,
+        query: timeoutQuerySchema
       }
     }
   })

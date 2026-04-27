@@ -16,8 +16,10 @@ const deadLetterQueueArn = config.get('sqsEventsDlqArn')
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
 const visibilityTimeout = config.get('visibilityTimeout')
 
-const DEFAULT_MAX_RETRIES = 5
-const DEFAULT_RETRY_WAIT_TIME_IN_SECS = 1
+const MAX_RETRIES = 7
+const RETRY_WAIT_BETWEEN_TRIES_IN_SECS = 1
+const DEFAULT_VISIBILITY_TIMEOUT = 3
+const DEFAULT_WAIT_TIME_IN_SECS = 3
 
 const logger = createLogger()
 
@@ -43,12 +45,15 @@ export function receiveEventMessages() {
  * Receive dead-letter queue messages
  * @returns {Promise<ReceiveMessageResult>}
  */
-export function receiveDlqMessages() {
+export function receiveDlqMessages(
+  visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
+  waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
+) {
   const command = new ReceiveMessageCommand({
     QueueUrl: deadLetterQueueUrl,
     MaxNumberOfMessages: 10,
-    VisibilityTimeout: 0,
-    WaitTimeSeconds: 0
+    VisibilityTimeout: visibilityTimeout,
+    WaitTimeSeconds: waitTimeSeconds
   })
   return sqsClient.send(command)
 }
@@ -81,17 +86,12 @@ export async function resubmitDlqMessage(messageId, messageJson) {
     })
     const sendResult = await sqsClient.send(command)
     logger.info(
-      `[DLQ] Submitting new message in place of message id ${messageId}. New message id is ${sendResult.MessageId}. About to delete old message from DLQ`
-    )
-
-    await deleteDlqMessage(messageId, DEFAULT_MAX_RETRIES)
-    logger.info(
-      `[DLQ] Deleted message id ${messageId} from DLQ after resubmitting new message id ${sendResult.MessageId}`
+      `[DLQ] Submitting new message in place of message id ${messageId}. New message id is ${sendResult.MessageId}`
     )
   } catch (err) {
     logger.error(
       err,
-      `[DLQ] Failed to submit new message to main queue or failed to delete old message of id ${messageId} from DLQ`
+      `[DLQ] Failed to submit new message to main queue based on old message of id ${messageId} from DLQ`
     )
     throw err
   }
@@ -102,28 +102,24 @@ export async function resubmitDlqMessage(messageId, messageJson) {
  * This has to be done as a combined 'read then delete' (while using a visibility timeout of non-zero)
  * otherwise the receipt handles become stale and the delete operation doesn't work.
  * @param {string} messageId
- * @param {number} maxAttempts - Maximum number of receive attempts (default 5)
- * @param {number} waitTimeSeconds - Wait time between attempts (default 1)
+ * @param {number} [visibilityTimeout] - Queue visibilityTimeout
+ * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds
  */
 export async function deleteDlqMessage(
   messageId,
-  maxAttempts = DEFAULT_MAX_RETRIES,
-  waitTimeSeconds = DEFAULT_RETRY_WAIT_TIME_IN_SECS
+  visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
+  waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
 ) {
   let attempts = 0
   let foundMessage = null
 
-  while (attempts < maxAttempts) {
+  while (attempts < MAX_RETRIES) {
     attempts++
 
-    const receiveCommand = new ReceiveMessageCommand({
-      QueueUrl: deadLetterQueueUrl,
-      MaxNumberOfMessages: 10,
-      VisibilityTimeout: 1,
-      WaitTimeSeconds: 1
-    })
-    const messageResponse = await sqsClient.send(receiveCommand)
-
+    const messageResponse = await receiveDlqMessages(
+      visibilityTimeout,
+      waitTimeSeconds
+    )
     const messages = messageResponse.Messages ?? []
     for (const mess of messages) {
       logger.info(
@@ -141,18 +137,18 @@ export async function deleteDlqMessage(
       break
     }
 
-    if (attempts < maxAttempts) {
+    if (attempts < MAX_RETRIES) {
       logger.info(
         `[DLQ] Message ${messageId} not found in batch ${attempts}, retrying...`
       )
       await new Promise((resolve) =>
-        setTimeout(resolve, waitTimeSeconds * 1000)
+        setTimeout(resolve, RETRY_WAIT_BETWEEN_TRIES_IN_SECS * 1000)
       )
     }
   }
 
   if (!foundMessage) {
-    const errorText = `Message with id ${messageId} not found in notify-listener DLQ after ${maxAttempts} attempts`
+    const errorText = `Message with id ${messageId} not found in notify-listener DLQ after ${MAX_RETRIES} attempts`
     logger.info(errorText)
     throw new Error(errorText)
   }
