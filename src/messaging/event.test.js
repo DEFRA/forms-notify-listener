@@ -71,7 +71,7 @@ describe('event', () => {
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         VisibilityTimeout: 0,
-        WaitTimeSeconds: 0
+        WaitTimeSeconds: 3
       })
     })
   })
@@ -105,8 +105,8 @@ describe('event', () => {
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         MaxNumberOfMessages: 10,
-        VisibilityTimeout: 2,
-        WaitTimeSeconds: 0
+        VisibilityTimeout: 0,
+        WaitTimeSeconds: 3
       })
       expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
         QueueUrl: expect.any(String),
