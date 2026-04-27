@@ -44,8 +44,8 @@ export function receiveDlqMessages() {
   const command = new ReceiveMessageCommand({
     QueueUrl: deadLetterQueueUrl,
     MaxNumberOfMessages: 10,
-    VisibilityTimeout: 0,
-    WaitTimeSeconds: 0
+    VisibilityTimeout: 3,
+    WaitTimeSeconds: 3
   })
   return sqsClient.send(command)
 }
@@ -104,8 +104,8 @@ export async function deleteDlqMessage(messageId) {
   const receiveCommand = new ReceiveMessageCommand({
     QueueUrl: deadLetterQueueUrl,
     MaxNumberOfMessages: 10,
-    VisibilityTimeout: 2,
-    WaitTimeSeconds: 0
+    VisibilityTimeout: 3,
+    WaitTimeSeconds: 3
   })
   const messageResponse = await sqsClient.send(receiveCommand)
 
