@@ -70,7 +70,7 @@ describe('event', () => {
       await receiveDlqMessages()
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
-        VisibilityTimeout: 0,
+        VisibilityTimeout: 3,
         WaitTimeSeconds: 3
       })
     })
@@ -105,7 +105,7 @@ describe('event', () => {
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         MaxNumberOfMessages: 10,
-        VisibilityTimeout: 0,
+        VisibilityTimeout: 3,
         WaitTimeSeconds: 3
       })
       expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
