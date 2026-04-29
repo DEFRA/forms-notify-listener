@@ -40,13 +40,13 @@ describe('user-confirmation', () => {
 
 We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
-## What happens next
+# What happens next
 Some submission guidance
 
-## Get help
+# Get help
 
 
-## Your answers
+# Your answers
 Find a copy of your answers at the bottom of this email.
 
 Do not reply to this email. We do not monitor replies to this email address.
@@ -74,13 +74,13 @@ From Defra
 # Form submitted
 We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
-## What happens next
+# What happens next
 Define this text in the 'What happens next' section of the form overview
 
-## Get help
+# Get help
 
 
-## Your answers
+# Your answers
 Find a copy of your answers at the bottom of this email.
 
 Do not reply to this email. We do not monitor replies to this email address.
@@ -155,10 +155,10 @@ From Defra
 # Form submitted
 We received your form submission for &lsquo;My Form Name&rsquo; at 2:21pm on Tuesday 4 November 2025.
 
-## What happens next
+# What happens next
 Some submission guidance
 
-## Get help
+# Get help
 0121 123456789
 
 [our-email@test.com](mailto:our-email@test.com)
@@ -168,7 +168,7 @@ We will respond within 5 working days
 
 
 
-## Your answers
+# Your answers
 Find a copy of your answers at the bottom of this email.
 
 Do not reply to this email. We do not monitor replies to this email address.
@@ -300,7 +300,7 @@ From Defra
       const paymentIndex = result.indexOf(
         '# Your payment of £50.00 was successful'
       )
-      const whatHappensNextIndex = result.indexOf('## What happens next')
+      const whatHappensNextIndex = result.indexOf('# What happens next')
 
       expect(paymentIndex).toBeGreaterThan(submissionTextIndex)
       expect(paymentIndex).toBeLessThan(whatHappensNextIndex)
