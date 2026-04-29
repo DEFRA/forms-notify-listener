@@ -81,13 +81,13 @@ ${formattedAnswers}
 # Form submitted
 ${referenceNumber}We received your form submission for &lsquo;${escapeContent(formName)}&rsquo; at ${formattedSubmissionDate}.
 ${paymentSection}
-## What happens next
+# What happens next
 ${submissionGuidance ?? submisionGuidancePlaceholder}
 
-## Get help
+# Get help
 ${contactDetails}
 
-## Your answers
+# Your answers
 Find a copy of your answers at the bottom of this email.
 
 Do not reply to this email. We do not monitor replies to this email address.
