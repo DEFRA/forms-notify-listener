@@ -4,6 +4,7 @@ import Joi from 'joi'
 import { createLogger } from '~/src/helpers/logging/logger.js'
 import {
   deleteDlqMessage,
+  getDlqMessage,
   receiveDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
@@ -42,6 +43,32 @@ export default [
         scope: [`+${Scopes.DeadLetterQueues}`]
       },
       validate: {
+        query: timeoutQuerySchema
+      }
+    }
+  }),
+
+  /**
+   * @satisfies {ServerRoute}
+   */
+  ({
+    method: 'GET',
+    path: '/admin/deadletter/view/{messageId}',
+    async handler(request, h) {
+      const { visibilityTimeout, waitTimeSeconds } = request.query
+      const message = await getDlqMessage(
+        request.params.messageId,
+        visibilityTimeout,
+        waitTimeSeconds
+      )
+      return h.response({ message }).code(OK_RESPONSE)
+    },
+    options: {
+      auth: {
+        scope: [`+${Scopes.DeadLetterQueues}`]
+      },
+      validate: {
+        params: messageIdSchema,
         query: timeoutQuerySchema
       }
     }

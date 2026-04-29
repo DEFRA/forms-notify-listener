@@ -59,6 +59,57 @@ export function receiveDlqMessages(
 }
 
 /**
+ * Get a specific message from the dead-letter queue. Handles retries if not found.
+ * @param {string} messageId
+ * @param {number} [visibilityTimeout] - Queue visibilityTimeout
+ * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds
+ * @returns {Promise< Message | null >}
+ */
+export async function getDlqMessage(
+  messageId,
+  visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
+  waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
+) {
+  let attempts = 0
+  let foundMessage = null
+
+  while (attempts < MAX_RETRIES) {
+    attempts++
+
+    const messageResponse = await receiveDlqMessages(
+      visibilityTimeout,
+      waitTimeSeconds
+    )
+    const messages = messageResponse.Messages ?? []
+    for (const mess of messages) {
+      logger.info(
+        `[DLQ] [Delete] Received message with id ${mess.MessageId} on attempt ${attempts}`
+      )
+    }
+
+    const messagesFound = messages.filter((m) => m.MessageId === messageId)
+
+    if (messagesFound.length > 0) {
+      foundMessage = messagesFound[0]
+      logger.info(
+        `[DLQ] Found message with id ${messageId} on attempt ${attempts}`
+      )
+      break
+    }
+
+    if (attempts < MAX_RETRIES) {
+      logger.info(
+        `[DLQ] Message ${messageId} not found in batch ${attempts}, retrying...`
+      )
+      await new Promise((resolve) =>
+        setTimeout(resolve, RETRY_WAIT_BETWEEN_TRIES_IN_SECS * 1000)
+      )
+    }
+  }
+  return foundMessage
+}
+
+/**
  * Redrive the specified message from the dead-letter queue to the main queue
  * @returns {Promise<StartMessageMoveTaskResult>}
  */
@@ -110,43 +161,11 @@ export async function deleteDlqMessage(
   visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
   waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
 ) {
-  let attempts = 0
-  let foundMessage = null
-
-  while (attempts < MAX_RETRIES) {
-    attempts++
-
-    const messageResponse = await receiveDlqMessages(
-      visibilityTimeout,
-      waitTimeSeconds
-    )
-    const messages = messageResponse.Messages ?? []
-    for (const mess of messages) {
-      logger.info(
-        `[DLQ] [Delete] Received message with id ${mess.MessageId} on attempt ${attempts}`
-      )
-    }
-
-    const messagesFound = messages.filter((m) => m.MessageId === messageId)
-
-    if (messagesFound.length > 0) {
-      foundMessage = messagesFound[0]
-      logger.info(
-        `[DLQ] Found message with id ${messageId} on attempt ${attempts}`
-      )
-      break
-    }
-
-    if (attempts < MAX_RETRIES) {
-      logger.info(
-        `[DLQ] Message ${messageId} not found in batch ${attempts}, retrying...`
-      )
-      await new Promise((resolve) =>
-        setTimeout(resolve, RETRY_WAIT_BETWEEN_TRIES_IN_SECS * 1000)
-      )
-    }
-  }
-
+  const foundMessage = await getDlqMessage(
+    messageId,
+    visibilityTimeout,
+    waitTimeSeconds
+  )
   if (!foundMessage) {
     const errorText = `Message with id ${messageId} not found in notify-listener DLQ after ${MAX_RETRIES} attempts`
     logger.info(errorText)
