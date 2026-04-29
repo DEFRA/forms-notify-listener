@@ -1,15 +1,13 @@
 import { Scopes } from '@defra/forms-model'
 import Joi from 'joi'
 
-import { createLogger } from '~/src/helpers/logging/logger.js'
+import { logger } from '~/src/helpers/logging/logger.js'
 import {
   deleteDlqMessage,
   receiveDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
 } from '~/src/messaging/event.js'
-
-const logger = createLogger()
 
 const OK_RESPONSE = 200
 

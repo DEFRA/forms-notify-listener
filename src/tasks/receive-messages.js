@@ -1,13 +1,11 @@
 import { getErrorMessage } from '@defra/forms-model'
 
-import { createLogger } from '~/src/helpers/logging/logger.js'
+import { logger } from '~/src/helpers/logging/logger.js'
 import {
   receiveEventMessages,
   receiveMessageTimeout
 } from '~/src/messaging/event.js'
 import { handleEvent } from '~/src/service/index.js'
-
-const logger = createLogger()
 
 /**
  * @returns {Promise<void>}
