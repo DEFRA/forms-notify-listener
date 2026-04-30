@@ -160,6 +160,13 @@ describe('event', () => {
         MessageBody: messageStub.Body
       })
     })
+
+    it('should throw if resubmit fails', async () => {
+      snsMock.on(SendMessageCommand).rejects('bad SQS command')
+      await expect(() =>
+        resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
+      ).rejects.toThrow('bad SQS command')
+    })
   })
 })
 
