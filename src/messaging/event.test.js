@@ -107,6 +107,25 @@ describe('event', () => {
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
+      await deleteDlqMessage(messageStub.MessageId, 5, 2)
+      expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
+        QueueUrl: expect.any(String),
+        MaxNumberOfMessages: 10,
+        VisibilityTimeout: 5,
+        WaitTimeSeconds: 2
+      })
+      expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
+        QueueUrl: expect.any(String),
+        ReceiptHandle: receiptHandle
+      })
+    })
+
+    it('should delete event message with default values', async () => {
+      const receivedMessage = {
+        Messages: [messageStub, messageStub, messageStub]
+      }
+
+      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
       await deleteDlqMessage(messageStub.MessageId)
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
@@ -120,27 +139,22 @@ describe('event', () => {
       })
     })
 
-    it('should throw if message not found', async () => {
+    it('should throw if message not found after max attempts', async () => {
       const receivedMessage = {
         Messages: []
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
       await expect(() =>
-        deleteDlqMessage(messageStub.MessageId)
+        deleteDlqMessage(messageStub.MessageId, 0, 0)
       ).rejects.toThrow(
-        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
+        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ after 7 attempts'
       )
-    })
+    }, 10000)
   })
 
   describe('resubmitDlqMessage', () => {
-    it('should resubmit message and delete old one from DLQ', async () => {
-      const receivedMessage = {
-        Messages: [messageStub]
-      }
-      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-
+    it('should resubmit message to main queue', async () => {
       const sendMessage = {
         MessageId: '12345'
       }
@@ -151,28 +165,13 @@ describe('event', () => {
         QueueUrl: expect.any(String),
         MessageBody: messageStub.Body
       })
-      expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
-        QueueUrl: expect.any(String),
-        ReceiptHandle: receiptHandle
-      })
     })
 
-    it('should throw if message not found', async () => {
-      const receivedMessage = {
-        Messages: []
-      }
-      snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-
-      const sendMessage = {
-        MessageId: '12345'
-      }
-      snsMock.on(SendMessageCommand).resolves(sendMessage)
-
+    it('should throw if resubmit fails', async () => {
+      snsMock.on(SendMessageCommand).rejects('bad SQS command')
       await expect(() =>
         resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
-      ).rejects.toThrow(
-        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ'
-      )
+      ).rejects.toThrow('bad SQS command')
     })
   })
 })

@@ -1,6 +1,7 @@
 import { createServer } from '~/src/api/server.js'
 import {
   deleteDlqMessage,
+  getDlqMessage,
   receiveDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
@@ -40,6 +41,20 @@ describe('Admin routes', () => {
       expect(response.statusCode).toEqual(okStatusCode)
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ messages: [{ MessageId: 'message1' }] })
+    })
+
+    test('/admin/dead-letter/view/message-id route returns 200', async () => {
+      jest.mocked(getDlqMessage).mockResolvedValue({ MessageId: 'message1' })
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/admin/deadletter/view/message1',
+        auth
+      })
+
+      expect(response.statusCode).toEqual(okStatusCode)
+      expect(response.headers['content-type']).toContain(jsonContentType)
+      expect(response.result).toEqual({ message: { MessageId: 'message1' } })
     })
   })
 
@@ -85,7 +100,11 @@ describe('Admin routes', () => {
       expect(response.statusCode).toEqual(okStatusCode)
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ message: 'success' })
-      expect(deleteDlqMessage).toHaveBeenCalledWith('message-id')
+      expect(deleteDlqMessage).toHaveBeenCalledWith(
+        'message-id',
+        undefined,
+        undefined
+      )
     })
   })
 })
