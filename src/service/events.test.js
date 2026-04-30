@@ -1,4 +1,5 @@
 import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
+import { FormStatus } from '@defra/forms-model'
 import { ValidationError } from 'joi'
 
 import { deleteEventMessage } from '~/src/messaging/event.js'
@@ -46,7 +47,7 @@ describe('events', () => {
     formName: 'Order a pizza',
     formId: '68a8b0449ab460290c28940a',
     formSlug: 'order-a-pizza',
-    status: 'live',
+    status: FormStatus.Live,
     isPreview: false,
     notificationEmail: 'info@example.com'
   }

@@ -18,7 +18,7 @@ import {
 /**
  * Check if an optional field should be skipped (no value provided)
  * @param {Component} field
- * @param {RichFormValue} richFormValue
+ * @param {RichFormValue | null} richFormValue
  * @returns {boolean}
  */
 function shouldSkipOptionalField(field, richFormValue) {
@@ -56,18 +56,25 @@ function processMainEntries(formSubmissionMessage, formModel) {
   for (const [key, richFormValue] of mainEntries) {
     const field = formModel.componentMap.get(key)
 
-    if (!field) {
+    if (!(field instanceof FormComponent)) {
       continue
     }
 
-    if (shouldSkipOptionalField(field, richFormValue)) {
+    if (
+      shouldSkipOptionalField(
+        field,
+        /** @type {RichFormValue | null} */ (richFormValue)
+      )
+    ) {
       continue
     }
 
-    const answer = field.getDisplayStringFromFormValue(richFormValue)
+    const answer = field.getDisplayStringFromFormValue(
+      /** @type {any} */ (richFormValue)
+    )
 
     // Also skip if optional and the display string is empty
-    if (!field.options?.required && answer === '') {
+    if (!field.options.required && answer === '') {
       continue
     }
 
@@ -78,7 +85,11 @@ function processMainEntries(formSubmissionMessage, formModel) {
     questionLines.push(`# ${label}\n`)
 
     // Generate the answer line(s)
-    const answerLine = generateFieldLine(answer, field, richFormValue)
+    const answerLine = generateFieldLine(
+      answer,
+      field,
+      /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue))
+    )
     questionLines.push(answerLine)
 
     componentMap.set(key, questionLines)
@@ -90,9 +101,9 @@ function processMainEntries(formSubmissionMessage, formModel) {
 /**
  * Process a single repeater component across all items
  * @param {string} repeaterTitle
- * @param {Component} componentField
+ * @param {FormComponent} componentField
  * @param {string} componentName
- * @param {Record<string, RichFormValue>[]} repeaterItems
+ * @param {Record<string, RichFormValue | null>[]} repeaterItems
  * @returns {string[]}
  */
 function processRepeaterComponent(
@@ -122,15 +133,20 @@ function processRepeaterComponent(
     }
 
     const itemLabel = `${repeaterTitle} ${i + 1}`
-    const componentAnswer =
-      componentField.getDisplayStringFromFormValue(componentValue)
+    const componentAnswer = componentField.getDisplayStringFromFormValue(
+      /** @type {any} */ (componentValue)
+    )
 
     // Repeater item label uses heading level 2 (##)
     questionLines.push(`## ${escapeContent(itemLabel)}\n`)
 
     // Answer beneath with blank line separation
     questionLines.push(
-      generateFieldLine(componentAnswer, componentField, componentValue)
+      generateFieldLine(
+        componentAnswer,
+        /** @type {Component} */ (/** @type {unknown} */ (componentField)),
+        componentValue
+      )
     )
   }
 
@@ -163,9 +179,8 @@ function processRepeaterEntries(
     }
 
     const repeaterTitle = escapeContent(repeaterPage.repeat.options.title)
-    const repeaterItems = /** @type {Record<string, RichFormValue>[]} */ (
-      repeaterData
-    )
+    const repeaterItems =
+      /** @type {Record<string, RichFormValue | null>[]} */ (repeaterData)
 
     if (!hasComponents(repeaterPage)) {
       continue
@@ -176,11 +191,9 @@ function processRepeaterEntries(
       (cd) => 'title' in cd
     )) {
       const componentName = componentDef.name
-      const componentField = /** @type {Component} */ (
-        formModel.componentMap.get(componentName)
-      )
+      const componentField = formModel.componentMap.get(componentName)
 
-      if (!componentField) {
+      if (!(componentField instanceof FormComponent)) {
         continue
       }
 
@@ -228,7 +241,11 @@ function assembleOutput(order, componentMap) {
  * @returns {string}
  */
 export function formatter(formSubmissionMessage, formDefinition) {
-  const formModel = new FormModel(formDefinition, { basePath: '' }, {})
+  const formModel = new FormModel(
+    formDefinition,
+    { basePath: '' },
+    /** @type {any} */ ({})
+  )
   const order = calculateOrder(formDefinition, formSubmissionMessage)
 
   // Process main entries and repeater entries
@@ -253,7 +270,9 @@ export function formatter(formSubmissionMessage, formDefinition) {
  * @returns {string}
  */
 function formatFileUploadField(answer, _field, richFormValue) {
-  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (richFormValue)
+  const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
+    /** @type {unknown} */ (richFormValue)
+  )
 
   // Skip empty files
   if (!formAdapterFiles.length) {
@@ -280,7 +299,7 @@ function formatFileUploadField(answer, _field, richFormValue) {
  * Format list form component field (radio, checkbox, select)
  * Uses bullet points only for multiple answers, plain text for single answers
  * @param {string} _answer
- * @param {Component} field
+ * @param {ListFormComponent} field
  * @param {RichFormValue} richFormValue
  * @returns {string}
  */
@@ -315,27 +334,16 @@ function formatListFormComponent(_answer, field, richFormValue) {
 
 /**
  * Map of component types to their formatting handlers
+ * Using Map to preserve class constructor references
+ * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue) => string>}
  */
-const fieldHandlers = new Map([
-  [Components.FileUploadField, formatFileUploadField],
-  [Components.MultilineTextField, formatMultilineTextField],
-  [Components.UkAddressField, formatUkAddressField],
-  [Components.EastingNorthingField, formatLocationField],
-  [Components.LatLongField, formatLocationField],
-  [Components.GeospatialField, formatGeospatialField]
-])
-
-/**
- * Check if field is a list component and return appropriate handler
- * @param {Component} field
- * @returns {((answer: string, field: Component, richFormValue: RichFormValue) => string) | null}
- */
-function getListComponentHandler(field) {
-  if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent
-  }
-  return null
-}
+const fieldHandlers = new Map()
+fieldHandlers.set(Components.FileUploadField, formatFileUploadField)
+fieldHandlers.set(Components.MultilineTextField, formatMultilineTextField)
+fieldHandlers.set(Components.UkAddressField, formatUkAddressField)
+fieldHandlers.set(Components.EastingNorthingField, formatLocationField)
+fieldHandlers.set(Components.LatLongField, formatLocationField)
+fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
 
 /**
  * Generate formatted line for a field value
@@ -346,9 +354,8 @@ function getListComponentHandler(field) {
  */
 function generateFieldLine(answer, field, richFormValue) {
   // Check list component first (special case with multiple inheritance)
-  const listHandler = getListComponentHandler(field)
-  if (listHandler) {
-    return listHandler(answer, field, richFormValue)
+  if (field instanceof ListFormComponent && field instanceof FormComponent) {
+    return formatListFormComponent(answer, field, richFormValue)
   }
 
   // Iterate through registered handlers

@@ -30,7 +30,7 @@ export function formatter(
  * @returns {*}
  */
 function formatData(formSubmissionMessage, formDefinition) {
-  const formModel = new FormModel(formDefinition, { basePath: '' }, {})
+  const formModel = new FormModel(formDefinition, { basePath: '' })
   const {
     main: mainInput,
     repeaters: repeatersInput,
@@ -38,17 +38,25 @@ function formatData(formSubmissionMessage, formDefinition) {
   } = formSubmissionMessage.data
 
   /**
-   * @param {[string,RichFormValue]} entry
+   * @param {[string,RichFormValue|null]} entry
    */
   function mapField([key, value]) {
     const component = formModel.componentMap.get(key)
-    const mappedValue = component.getContextValueFromFormValue(value)
+
+    if (!component) {
+      return [key, '']
+    }
+
+    const formField = /** @type {FormComponent} */ (component)
+    const mappedValue = formField.getContextValueFromFormValue(
+      /** @type {RichFormValue} */ (value ?? undefined)
+    )
 
     return [key, mappedValue?.toString() ?? '']
   }
 
   /**
-   * @param {Record<string, RichFormValue>} richFormRecord
+   * @param {Record<string, RichFormValue|null>} richFormRecord
    */
   function mapRecord(richFormRecord) {
     return Object.fromEntries(Object.entries(richFormRecord).map(mapField))
@@ -71,6 +79,7 @@ function formatData(formSubmissionMessage, formDefinition) {
 }
 
 /**
+ * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */
