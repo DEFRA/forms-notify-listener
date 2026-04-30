@@ -70,43 +70,39 @@ export async function getDlqMessage(
   visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
   waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
 ) {
-  let attempts = 0
-  let foundMessage = null
+  let attempts = 1
 
-  while (attempts < MAX_RETRIES) {
-    attempts++
-
+  while (attempts <= MAX_RETRIES) {
     const messageResponse = await receiveDlqMessages(
       visibilityTimeout,
       waitTimeSeconds
     )
     const messages = messageResponse.Messages ?? []
-    for (const mess of messages) {
+    for (const m of messages) {
       logger.info(
-        `[DLQ] [Delete] Received message with id ${mess.MessageId} on attempt ${attempts}`
+        `[DLQ] Received message with id ${m.MessageId} on attempt ${attempts}`
       )
     }
 
-    const messagesFound = messages.filter((m) => m.MessageId === messageId)
-
-    if (messagesFound.length > 0) {
-      foundMessage = messagesFound[0]
+    const messageFound = messages.find((m) => m.MessageId === messageId)
+    if (messageFound) {
       logger.info(
         `[DLQ] Found message with id ${messageId} on attempt ${attempts}`
       )
-      break
+      return messageFound
     }
 
-    if (attempts < MAX_RETRIES) {
-      logger.info(
-        `[DLQ] Message ${messageId} not found in batch ${attempts}, retrying...`
-      )
-      await new Promise((resolve) =>
-        setTimeout(resolve, RETRY_WAIT_BETWEEN_TRIES_IN_SECS * 1000)
-      )
-    }
+    logger.info(
+      `[DLQ] Message ${messageId} not found in batch ${attempts}, retrying...`
+    )
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, RETRY_WAIT_BETWEEN_TRIES_IN_SECS * 1000)
+    )
+
+    attempts++
   }
-  return foundMessage
+  return null
 }
 
 /**
@@ -121,7 +117,7 @@ export function redriveDlqMessages() {
 }
 
 /**
- * Submit the specified message to the main queue, and delete the messageId from the dead-letter queue
+ * Submit the specified message to the main queue
  * @param {string} messageId
  * @param {string} messageJson
  */
@@ -151,7 +147,8 @@ export async function resubmitDlqMessage(messageId, messageJson) {
 /**
  * Delete DLQ message by messageId
  * This has to be done as a combined 'read then delete' (while using a visibility timeout of non-zero)
- * otherwise the receipt handles become stale and the delete operation doesn't work.
+ * otherwise the receipt handle becomes stale and the delete operation doesn't work.
+ * getDlqMessage uses retries in case the message is not always visibile when querying the DLQ.
  * @param {string} messageId
  * @param {number} [visibilityTimeout] - Queue visibilityTimeout
  * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds

@@ -13,6 +13,7 @@ import {
 const logger = createLogger()
 
 const OK_RESPONSE = 200
+const NOT_FOUND = 404
 
 const messageIdSchema = Joi.object({
   messageId: Joi.string().required()
@@ -61,7 +62,7 @@ export default [
         visibilityTimeout,
         waitTimeSeconds
       )
-      return h.response({ message }).code(OK_RESPONSE)
+      return h.response({ message }).code(message ? OK_RESPONSE : NOT_FOUND)
     },
     options: {
       auth: {

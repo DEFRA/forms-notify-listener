@@ -148,7 +148,7 @@ describe('event', () => {
   })
 
   describe('resubmitDlqMessage', () => {
-    it('should resubmit message and delete old one from DLQ', async () => {
+    it('should resubmit message to main queue', async () => {
       const sendMessage = {
         MessageId: '12345'
       }
