@@ -17,7 +17,13 @@ import {
   resubmitDlqMessage
 } from '~/src/messaging/event.js'
 
-jest.mock('~/src/helpers/logging/logger.js')
+jest.mock('~/src/helpers/logging/logger.js', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn()
+  }
+}))
 
 describe('event', () => {
   const snsMock = mockClient(SQSClient)
