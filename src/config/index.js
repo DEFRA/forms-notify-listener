@@ -188,7 +188,6 @@ export const config = convict({
   oidcJwksUri: {
     doc: 'The URI that defines the OIDC json web key set',
     format: String,
-    nullable: true,
     default: null,
     env: 'OIDC_JWKS_URI'
   },
