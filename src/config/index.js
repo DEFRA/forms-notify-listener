@@ -48,7 +48,6 @@ export const config = convict({
   cdpEnvironment: {
     doc: 'The CDP environment the app is running in. With the addition of "local" for local development',
     format: ['local', 'dev', 'test', 'perf-test', 'prod', 'ext-test'],
-    nullable: true,
     default: null,
     env: 'ENVIRONMENT'
   },
@@ -120,7 +119,6 @@ export const config = convict({
   httpsProxy: {
     doc: 'HTTPS Proxy',
     format: String,
-    nullable: true,
     default: null,
     env: 'CDP_HTTPS_PROXY'
   },
@@ -195,7 +193,6 @@ export const config = convict({
   oidcVerifyAud: {
     doc: 'The audience used for verifying the OIDC JWT',
     format: String,
-    nullable: true,
     default: null,
     env: 'OIDC_VERIFY_AUD'
   },
@@ -203,7 +200,6 @@ export const config = convict({
   oidcVerifyIss: {
     doc: 'The issuer used for verifying the OIDC JWT',
     format: String,
-    nullable: true,
     default: null,
     env: 'OIDC_VERIFY_ISS'
   },
@@ -211,7 +207,6 @@ export const config = convict({
   entitlementUrl: {
     doc: 'Forms entitlements API URL',
     format: String,
-    nullable: true,
     default: null,
     env: 'ENTITLEMENT_URL'
   },
@@ -220,7 +215,6 @@ export const config = convict({
     header: {
       doc: 'CDP tracing header name',
       format: String,
-      nullable: true,
       default: null,
       env: 'TRACING_HEADER'
     }
@@ -271,7 +265,6 @@ export const config = convict({
   sqsEventsDlqArn: {
     doc: 'SQS deadletter queue ARN',
     format: String,
-    nullable: true,
     default: null,
     env: 'EVENTS_SQS_DLQ_ARN'
   },
@@ -279,7 +272,6 @@ export const config = convict({
   fileExpiryInMonths: {
     doc: 'The number of months a file link is active for',
     format: Number,
-    nullable: true,
     default: null,
     env: 'FILE_EXPIRY_IN_MONTHS'
   }
