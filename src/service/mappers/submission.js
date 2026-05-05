@@ -3,7 +3,7 @@ import Joi from 'joi'
 
 /**
  * @param {Message} message
- * @returns {FormAdapterSubmissionMessagePayload}
+ * @returns {FormAdapterSubmissionMessage}
  */
 export function mapSubmissionEvent(message) {
   if (!message.MessageId) {
@@ -37,5 +37,5 @@ export function mapSubmissionEvent(message) {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
- * @import { FormAdapterSubmissionMessagePayload } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessagePayload } from '@defra/forms-engine-plugin/engine/types.js'
  */

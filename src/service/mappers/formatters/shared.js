@@ -39,8 +39,11 @@ export function formatMultilineTextField(answer, _field, _richFormValue) {
  */
 export function formatUkAddressField(_answer, field, richFormValue) {
   // Format UK addresses into new lines
-  return (field.getContextValueFromFormValue(richFormValue) ?? [])
-    .map(escapeContent)
+  const formField = /** @type {FormComponent} */ (field)
+  const contextValue = formField.getContextValueFromFormValue(richFormValue)
+  return [contextValue ?? []]
+    .flat()
+    .map((v) => escapeContent(String(v)))
     .join('\n')
     .concat('\n')
 }
@@ -53,8 +56,9 @@ export function formatUkAddressField(_answer, field, richFormValue) {
  * @returns {string}
  */
 export function formatLocationField(_answer, field, richFormValue) {
-  const contextValue = field.getContextValueFromFormValue(richFormValue)
-  return contextValue ? `${contextValue}\n` : ''
+  const formField = /** @type {FormComponent} */ (field)
+  const contextValue = formField.getContextValueFromFormValue(richFormValue)
+  return contextValue ? `${String(contextValue)}\n` : ''
 }
 
 /**
@@ -149,6 +153,7 @@ export function generateGeospatialMapLink(
 
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
+ * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, GeospatialState, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
  */

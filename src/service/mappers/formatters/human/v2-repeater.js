@@ -99,17 +99,14 @@ function processRepeaterComponent(
     const componentValue = itemData[componentName]
 
     // Skip if no value
-    if (
-      componentValue === null ||
-      componentValue === undefined ||
-      componentValue === ''
-    ) {
+    if (componentValue === undefined || componentValue === '') {
       continue
     }
 
     const itemLabel = `${repeaterTitle} ${i + 1}`
+    const formField = /** @type {FormComponent} */ (componentField)
     const componentAnswer =
-      componentField.getDisplayStringFromFormValue(componentValue)
+      formField.getDisplayStringFromFormValue(componentValue)
 
     // Repeater item label uses heading level 2 (##)
     questionLines.push(
@@ -159,9 +156,7 @@ export function processRepeaterEntries(
       (cd) => 'title' in cd
     )) {
       const componentName = componentDef.name
-      const componentField = /** @type {Component} */ (
-        formModel.componentMap.get(componentName)
-      )
+      const componentField = formModel.componentMap.get(componentName)
 
       if (!componentField) {
         continue
@@ -183,6 +178,7 @@ export function processRepeaterEntries(
 
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
+ * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
