@@ -2,7 +2,7 @@ import { isFeedbackForm, replaceCustomControllers } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
-import { createLogger } from '~/src/helpers/logging/logger.js'
+import { logger } from '~/src/helpers/logging/logger.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
@@ -10,7 +10,6 @@ import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirm
 
 const templateId = config.get('notifyTemplateId')
 const notifyReplyToId = config.get('notifyReplyToId')
-const logger = createLogger()
 
 /**
  * Sends one or more mails to GovNotify

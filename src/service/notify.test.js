@@ -25,11 +25,11 @@ import {
 } from '~/src/service/notify.js'
 
 jest.mock('~/src/helpers/logging/logger.js', () => ({
-  createLogger: () => ({
+  logger: {
     info: jest.fn(),
     error: jest.fn(),
     debug: jest.fn()
-  })
+  }
 }))
 jest.mock('nunjucks', () => {
   const environment = {
