@@ -151,7 +151,13 @@ export function processRepeaterEntries(
       repeaterData
     )
 
-    // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
+    const section = repeaterPage.section
+      ? formModel.getSection(repeaterPage.section)
+      : undefined
+
+    let repeaterSectionTitleAdded = false
+
+    // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available)
     for (const componentDef of repeaterPage.components.filter(
       (cd) => 'title' in cd
     )) {
@@ -169,6 +175,13 @@ export function processRepeaterEntries(
         repeaterItems,
         formSubmissionMessage
       )
+
+      if (!repeaterSectionTitleAdded && section) {
+        const sectionLabel = escapeContent(section.title)
+
+        questionLines.unshift(`# ${sectionLabel}\n`)
+        repeaterSectionTitleAdded = true
+      }
 
       // Store with a unique key for this component within the repeater
       componentMap.set(`${key}__${componentName}`, questionLines)
