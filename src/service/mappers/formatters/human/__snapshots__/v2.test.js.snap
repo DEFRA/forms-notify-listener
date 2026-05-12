@@ -143,6 +143,8 @@ Pizza Form form received at 12:00am on 2 July 2025.
 
 ---
 
+# Food
+
 # Toppings
 
 ## Pizza 1
@@ -169,11 +171,15 @@ Pepperoni
 
 ---
 
+## Food
+
 ## How would you like to receive your pizza?
 
 Delivery
 
 ---
+
+## Food
 
 ## Multiline Text field
 
@@ -182,6 +188,8 @@ Line 2
 Line 3
 
 ---
+
+## Food
 
 ## Multiline Text field 2
 
@@ -220,11 +228,15 @@ England (GB-ENG)
 
 ---
 
+## Your household
+
 ## First name
 
 John
 
 ---
+
+## Your household
 
 ## Last name
 
@@ -243,6 +255,8 @@ Doe
 23423
 
 ---
+
+## Your international household
 
 ## Number of people in your household
 

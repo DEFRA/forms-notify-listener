@@ -421,6 +421,7 @@ export const pizzaFormDefinition = buildDefinition({
     buildRepeaterPage({
       title: 'Pizza order',
       path: '/pizza-order',
+      section: 'food',
       repeat: {
         options: {
           name: 'pizzaOrderRepeaterOptionName',
@@ -431,7 +432,6 @@ export const pizzaFormDefinition = buildDefinition({
           max: 3
         }
       },
-      section: 'food',
       next: [
         {
           path: '/summary'
@@ -451,6 +451,7 @@ export const pizzaFormDefinition = buildDefinition({
     buildQuestionPage({
       title: 'Delivery or collection',
       path: '/delivery-or-collection',
+      section: 'food',
       components: [
         buildRadioComponent({
           name: 'orderTypeQuestionComponentName',
@@ -468,6 +469,7 @@ export const pizzaFormDefinition = buildDefinition({
     buildQuestionPage({
       title: 'Multiline Text field',
       path: '/multiline-text-field',
+      section: 'food',
       components: [
         buildMultilineTextFieldComponent({
           title: 'Multiline Text field',
@@ -485,6 +487,7 @@ export const pizzaFormDefinition = buildDefinition({
   ],
   sections: [
     {
+      id: '14957748-e8f6-4dfe-87dd-ce165b4115f1',
       name: 'food',
       title: 'Food',
       hideTitle: false
