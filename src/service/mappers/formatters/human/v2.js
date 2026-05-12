@@ -91,6 +91,12 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
       /** @type {any} */ (mappedRichFormValue)
     )
 
+    const section = field.page?.section
+    if (section) {
+      const sectionLabel = escapeContent(section.title)
+      questionLines.push(`## ${sectionLabel}\n`)
+    }
+
     const label = escapeContent(field.title)
     questionLines.push(`## ${label}\n`)
 
