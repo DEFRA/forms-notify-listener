@@ -6,7 +6,12 @@ import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
+import {
+  Engine,
+  hasComponents,
+  hasComponentsEvenIfNoNext,
+  hasRepeater
+} from '@defra/forms-model'
 import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -71,48 +76,69 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
     ...formSubmissionMessage.data.files
   })
 
-  for (const [key, richFormValue] of mainEntries) {
-    const questionLines = /** @type {string[]} */ ([])
-    const field = formModel.componentMap.get(key)
+  // Group main entries by section
+  const sections = [...formModel.sections, undefined]
+  const pages = formModel.pages
 
-    if (!(field instanceof FormComponent)) {
-      continue
-    }
+  sections.forEach((section) => {
+    let sectionLabelAdded = false
+    const sectionPages = pages.filter((page) => page.section === section)
 
-    let mappedRichFormValue = richFormValue
+    sectionPages.forEach((page) => {
+      if (!(page instanceof RepeatPageController)) {
+        const pageEntries = mainEntries.filter(
+          ([key]) =>
+            hasComponentsEvenIfNoNext(page.pageDef) &&
+            page.pageDef.components.some((component) => component.name === key)
+        )
 
-    if (field instanceof FileUploadField && richFormValue !== null) {
-      mappedRichFormValue = /** @type {FormAdapterFile[]} */ (
-        /** @type {unknown} */ (richFormValue)
-      ).map(mapFormAdapterFileToFileState)
-    }
+        for (const [key, richFormValue] of pageEntries) {
+          const questionLines = /** @type {string[]} */ ([])
 
-    const answer = field.getDisplayStringFromFormValue(
-      /** @type {any} */ (mappedRichFormValue)
-    )
+          if (section && !sectionLabelAdded && pageEntries.length) {
+            const sectionLabel = escapeContent(section.title)
+            questionLines.push(`## ${sectionLabel}\n`)
+            sectionLabelAdded = true
+          }
+          const field = formModel.componentMap.get(key)
 
-    const section = field.page?.section
-    if (section) {
-      const sectionLabel = escapeContent(section.title)
-      questionLines.push(`## ${sectionLabel}\n`)
-    }
+          if (!(field instanceof FormComponent)) {
+            continue
+          }
 
-    const label = escapeContent(field.title)
-    questionLines.push(`## ${label}\n`)
+          let mappedRichFormValue = richFormValue
 
-    if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
-      const answerLine = generateFieldLine(
-        answer,
-        field,
-        /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
-        formSubmissionMessage
-      )
-      questionLines.push(answerLine)
-    }
+          if (field instanceof FileUploadField && richFormValue !== null) {
+            mappedRichFormValue = /** @type {FormAdapterFile[]} */ (
+              /** @type {unknown} */ (richFormValue)
+            ).map(mapFormAdapterFileToFileState)
+          }
 
-    questionLines.push('---\n')
-    componentMap.set(key, questionLines)
-  }
+          const answer = field.getDisplayStringFromFormValue(
+            /** @type {any} */ (mappedRichFormValue)
+          )
+
+          const label = escapeContent(field.title)
+          questionLines.push(`## ${label}\n`)
+
+          if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
+            const answerLine = generateFieldLine(
+              answer,
+              field,
+              /** @type {RichFormValue} */ (
+                /** @type {unknown} */ (richFormValue)
+              ),
+              formSubmissionMessage
+            )
+            questionLines.push(answerLine)
+          }
+
+          questionLines.push('---\n')
+          componentMap.set(key, questionLines)
+        }
+      }
+    })
+  })
 }
 
 /**
