@@ -188,6 +188,18 @@ export function formatter(
   // Add payment details section if payment exists
   appendPaymentSection(formSubmissionMessage, lines)
 
+  const uploadedFiles = Object.keys(formSubmissionMessage.data.files).flatMap(
+    (key) => formSubmissionMessage.data.files[key]
+  )
+
+  if (uploadedFiles.length) {
+    const filesDownloadLabel = escapeFileLabel('Download all attached files')
+    lines.push(
+      `[${filesDownloadLabel}](${designerUrl}/files-download/${meta.referenceNumber})\n`,
+      '---\n'
+    )
+  }
+
   const mainResultFilename = escapeFileLabel('Download main form (CSV)')
   lines.push(
     `[${mainResultFilename}](${designerUrl}/file-download/${files.main})\n`,
