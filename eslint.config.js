@@ -1,4 +1,5 @@
 import prettierConfig from 'eslint-config-prettier'
+import importX from 'eslint-plugin-import-x'
 import jest from 'eslint-plugin-jest'
 import jsdocPlugin from 'eslint-plugin-jsdoc'
 import globals from 'globals'
@@ -34,6 +35,9 @@ export default [
 
   // Base config for all JS/CJS/MJS files
   {
+    plugins: {
+      'import-x': importX
+    },
     languageOptions: {
       ecmaVersion: 'latest',
       parserOptions: {
