@@ -44,7 +44,13 @@ module.exports = {
       'nanoid', // Supports ESM only
       'slug', // Supports ESM only
       '@defra/hapi-tracing', // Supports ESM only
-      '@defra/forms-engine-plugin'
+      '@defra/forms-engine-plugin',
+      'proxy-agent', // Supports ESM only (v8+)
+      'agent-base',
+      'http-proxy-agent',
+      'https-proxy-agent',
+      'pac-proxy-agent',
+      'socks-proxy-agent'
     ].join('|')}/)`
   ]
 }
