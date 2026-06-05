@@ -67,7 +67,7 @@ export function escapeFileLabel(str) {
  * - A number immediately followed by a period at the start of a line (ignoring leading whitespace) has the period escaped with a backslash (e.g., `1.` becomes `1\.`).
  * - Tab characters are replaced with 4 HTML encoded spaces (`&nbsp;`).
  * - A `-` character surrounded by spaces or tabs has those spaces or tabs replaced with HTML encoded spaces (`&nbsp;`).
- * - ``` being the only content on a single line is replaced with ` ` `
+ * - `\`\`\`` being the only content on a single line is replaced with `` ` ` `` ``
  * - Where a period `.` or comma `,` has a leading space or tab character, the space is converted to `&nbsp;` and tabs to 4 `&nbsp;`.
  * - Where a Markdown link is present (`[text](url)`), a space is inserted between the square brackets and round brackets.
  * - Single quotes (`'`) and double quotes (`"`) are escaped with a backslash (first escaping any backslashes that would be escape characters for the quotes).

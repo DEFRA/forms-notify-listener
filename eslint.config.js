@@ -129,6 +129,10 @@ export default [
         }
       ],
 
+      // Disable jsdoc v63 new rules that produce too many warnings in this codebase
+      'jsdoc/reject-any-type': 'off',
+      'jsdoc/reject-function-type': 'off',
+
       // JSDoc @param types are mandatory for JavaScript
       'jsdoc/require-param-description': 'off',
       'jsdoc/require-param-type': 'error',
@@ -167,6 +171,10 @@ export default [
     ...jsdocPlugin.configs['flat/recommended-typescript-flavor'],
     rules: {
       ...jsdocPlugin.configs['flat/recommended-typescript-flavor'].rules,
+
+      // Disable jsdoc v63 new rules that produce too many warnings in this codebase
+      'jsdoc/reject-any-type': 'off',
+      'jsdoc/reject-function-type': 'off',
 
       // Re-apply our JSDoc overrides (recommended-typescript-flavor re-enables these)
       'jsdoc/require-param-description': 'off',
