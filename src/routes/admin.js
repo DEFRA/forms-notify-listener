@@ -30,7 +30,10 @@ export default [
     method: 'GET',
     path: '/admin/deadletter/view',
     async handler(request, h) {
-      const { visibilityTimeout, waitTimeSeconds } = request.query
+      const { visibilityTimeout, waitTimeSeconds } =
+        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
+          request.query
+        )
       const messages = await receiveDlqMessages(
         visibilityTimeout,
         waitTimeSeconds
@@ -54,7 +57,10 @@ export default [
     method: 'GET',
     path: '/admin/deadletter/view/{messageId}',
     async handler(request, h) {
-      const { visibilityTimeout, waitTimeSeconds } = request.query
+      const { visibilityTimeout, waitTimeSeconds } =
+        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
+          request.query
+        )
       const message = await getDlqMessage(
         request.params.messageId,
         visibilityTimeout,
@@ -123,12 +129,12 @@ export default [
     async handler(request, h) {
       const { params, query } = request
       const { messageId } = params
+      const { visibilityTimeout, waitTimeSeconds } =
+        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
+          query
+        )
       logger.info(`Deleting DLQ message ${messageId}`)
-      await deleteDlqMessage(
-        messageId,
-        query.visibilityTimeout,
-        query.waitTimeSeconds
-      )
+      await deleteDlqMessage(messageId, visibilityTimeout, waitTimeSeconds)
       logger.info(`Deleted DLQ message ${messageId}`)
       return h.response({ message: 'success' }).code(OK_RESPONSE)
     },
