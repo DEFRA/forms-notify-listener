@@ -7,6 +7,7 @@ import { config } from '~/src/config/index.js'
 import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
 import { logger } from '~/src/helpers/logging/logger.js'
 import { createFormI18nInstance } from '~/src/i18n/index.js'
+import { storeMetadataBaseTranslations } from '~/src/i18n/translations-helper.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
@@ -159,6 +160,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
   const baseTranslations = extractBaseTranslations(definition)
   const i18nInstance = createFormI18nInstance(baseTranslations)
   loadFormTranslations(definition, i18nInstance)
+  storeMetadataBaseTranslations(formMetadata, i18nInstance)
   const translator = createTranslator(
     i18nInstance,
     formSubmissionMessage.meta.language

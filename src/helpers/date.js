@@ -1,13 +1,14 @@
-import { enGB } from 'date-fns/locale/en-GB'
+import { cy, enGB } from 'date-fns/locale'
 import { formatInTimeZone } from 'date-fns-tz'
 
 /**
  * Format a date in local timezone (Europe/London) and locale (enGB)
  * @param {Date} date
  * @param {string} formatStr
+ * @param {string} [language]
  */
-export function format(date, formatStr) {
+export function format(date, formatStr, language) {
   return formatInTimeZone(date, 'Europe/London', formatStr, {
-    locale: enGB
+    locale: language === 'cy' ? cy : enGB
   })
 }

@@ -65,9 +65,10 @@ export function formatLocationField(_answer, field, richFormValue) {
  * Extracts payment details from the submission message if a payment exists.
  * Forms only have one payment component.
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {string} [language]
  * @returns {{ description: string, amount: string, dateOfPayment: string } | undefined}
  */
-export function extractPaymentDetails(formSubmissionMessage) {
+export function extractPaymentDetails(formSubmissionMessage, language) {
   const payment = formSubmissionMessage.data.payment
 
   if (!payment) {
@@ -75,7 +76,7 @@ export function extractPaymentDetails(formSubmissionMessage) {
   }
 
   const date = new Date(payment.createdAt)
-  const dateOfPayment = `${dateFormat(date, 'h:mmaaa')} on ${dateFormat(date, 'd MMMM yyyy')}`
+  const dateOfPayment = `${dateFormat(date, 'h:mmaaa')} on ${dateFormat(date, 'd MMMM yyyy', language)}`
 
   const formatter = new Intl.NumberFormat('en-GB', {
     style: 'currency',
