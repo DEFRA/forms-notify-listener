@@ -60,20 +60,6 @@ function appendPaymentSection(formSubmissionMessage, lines) {
   )
 }
 
-// No need to translate as always in English.
-// Therefore create a pseudo-translator that return the list itme text
-// since this is the only method that will require a translator instance.
-export const passthroughTranslator = /** @type {Translator} */ ({
-  t: () => '',
-  tForm: () => '',
-  tPage: () => '',
-  tComponent: () => '',
-  tSection: () => '',
-  /** @param {ListItem} item */
-  tListItem: (item) => item.text,
-  language: 'en-GB'
-})
-
 /**
  * Process main form entries and add them to the component map
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
