@@ -12,6 +12,7 @@ import { addMonths } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
+import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { generateFieldLine } from '~/src/service/mappers/formatters/human/v2-common.js'
 import {
@@ -88,7 +89,8 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
     }
 
     const answer = field.getDisplayStringFromFormValue(
-      /** @type {any} */ (mappedRichFormValue)
+      /** @type {any} */ (mappedRichFormValue),
+      getDefaultTranslator()
     )
 
     const label = escapeContent(field.title)
@@ -168,10 +170,13 @@ export function formatter(
     lines.push(`This is a test of the ${formName} ${status} form.\n`)
   }
 
-  lines.push(
-    `${formName} form received at ${escapeContent(formattedNow)}.\n`,
-    '---\n'
-  )
+  lines.push(`${formName} form received at ${escapeContent(formattedNow)}.\n`)
+
+  if (meta.language === 'cy') {
+    lines.push(`This form was submitted in Welsh\n`)
+  }
+
+  lines.push('---\n')
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
@@ -403,5 +408,6 @@ export function getRelevantPagesForLegacy(
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormStateValue, FileState, FormContextRequest, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
- * @import { FormDefinition } from '@defra/forms-model'
+ * @import { FormDefinition, ListItem } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

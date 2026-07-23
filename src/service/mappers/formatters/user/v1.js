@@ -43,9 +43,12 @@ function shouldSkipOptionalField(field, richFormValue) {
  * Process main form entries (non-repeater fields)
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormModel} formModel
+ * @param {Translator} translator
  * @returns {Map<string, string[]>}
  */
-function processMainEntries(formSubmissionMessage, formModel) {
+function processMainEntries(formSubmissionMessage, formModel, translator) {
+  const { tComponent } = translator
+
   const componentMap = new Map()
 
   const mainEntries = Object.entries({
@@ -70,7 +73,8 @@ function processMainEntries(formSubmissionMessage, formModel) {
     }
 
     const answer = field.getDisplayStringFromFormValue(
-      /** @type {any} */ (richFormValue)
+      /** @type {any} */ (richFormValue),
+      translator
     )
 
     // Also skip if optional and the display string is empty
@@ -79,7 +83,9 @@ function processMainEntries(formSubmissionMessage, formModel) {
     }
 
     const questionLines = /** @type {string[]} */ ([])
-    const label = escapeContent(field.title)
+    const label = escapeContent(
+      tComponent(/** @type {ComponentDef} */ (field), 'title')
+    )
 
     // Questions use heading level 1 (#)
     questionLines.push(`# ${label}\n`)
@@ -88,7 +94,8 @@ function processMainEntries(formSubmissionMessage, formModel) {
     const answerLine = generateFieldLine(
       answer,
       field,
-      /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue))
+      /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
+      translator
     )
     questionLines.push(answerLine)
 
@@ -104,16 +111,21 @@ function processMainEntries(formSubmissionMessage, formModel) {
  * @param {FormComponent} componentField
  * @param {string} componentName
  * @param {Record<string, RichFormValue | null>[]} repeaterItems
+ * @param {Translator} translator
  * @returns {string[]}
  */
 function processRepeaterComponent(
   repeaterTitle,
   componentField,
   componentName,
-  repeaterItems
+  repeaterItems,
+  translator
 ) {
+  const { tComponent } = translator
   const questionLines = /** @type {string[]} */ ([])
-  const componentLabel = escapeContent(componentField.title)
+  const componentLabel = escapeContent(
+    tComponent(/** @type {ComponentDef} */ (componentField), 'title')
+  )
 
   // Question text uses heading level 1 (#)
   questionLines.push(`# ${componentLabel}\n`)
@@ -134,7 +146,8 @@ function processRepeaterComponent(
 
     const itemLabel = `${repeaterTitle} ${i + 1}`
     const componentAnswer = componentField.getDisplayStringFromFormValue(
-      /** @type {any} */ (componentValue)
+      /** @type {any} */ (componentValue),
+      translator
     )
 
     // Repeater item label uses heading level 2 (##)
@@ -145,7 +158,8 @@ function processRepeaterComponent(
       generateFieldLine(
         componentAnswer,
         /** @type {Component} */ (/** @type {unknown} */ (componentField)),
-        componentValue
+        componentValue,
+        translator
       )
     )
   }
@@ -160,13 +174,17 @@ function processRepeaterComponent(
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {FormModel} formModel
+ * @param {Translator} translator
  * @returns {Map<string, string[]>}
  */
 function processRepeaterEntries(
   formSubmissionMessage,
   formDefinition,
-  formModel
+  formModel,
+  translator
 ) {
+  const { tPage } = translator
+
   const componentMap = new Map()
 
   const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
@@ -178,7 +196,9 @@ function processRepeaterEntries(
       continue
     }
 
-    const repeaterTitle = escapeContent(repeaterPage.repeat.options.title)
+    const repeaterTitle =
+      escapeContent(tPage(repeaterPage, 'repeatTitle')) ||
+      repeaterPage.repeat.options.title
     const repeaterItems =
       /** @type {Record<string, RichFormValue | null>[]} */ (repeaterData)
 
@@ -201,7 +221,8 @@ function processRepeaterEntries(
         repeaterTitle,
         componentField,
         componentName,
-        repeaterItems
+        repeaterItems,
+        translator
       )
 
       // Store with a unique key for this component within the repeater
@@ -238,9 +259,10 @@ function assembleOutput(order, componentMap) {
  * Generates Markdown output of questions with answers for the form submitter
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
+ * @param {Translator} translator
  * @returns {string}
  */
-export function formatter(formSubmissionMessage, formDefinition) {
+export function formatter(formSubmissionMessage, formDefinition, translator) {
   const formModel = new FormModel(
     formDefinition,
     { basePath: '' },
@@ -249,11 +271,16 @@ export function formatter(formSubmissionMessage, formDefinition) {
   const order = calculateOrder(formDefinition, formSubmissionMessage)
 
   // Process main entries and repeater entries
-  const mainComponents = processMainEntries(formSubmissionMessage, formModel)
+  const mainComponents = processMainEntries(
+    formSubmissionMessage,
+    formModel,
+    translator
+  )
   const repeaterComponents = processRepeaterEntries(
     formSubmissionMessage,
     formDefinition,
-    formModel
+    formModel,
+    translator
   )
 
   // Merge component maps
@@ -301,9 +328,11 @@ function formatFileUploadField(answer, _field, richFormValue) {
  * @param {string} _answer
  * @param {ListFormComponent} field
  * @param {RichFormValue} richFormValue
+ * @param {Translator} translator
  * @returns {string}
  */
-function formatListFormComponent(_answer, field, richFormValue) {
+function formatListFormComponent(_answer, field, richFormValue, translator) {
+  const { tListItem } = translator
   const values = new Set(
     [field.getContextValueFromFormValue(richFormValue)].flat()
   )
@@ -318,13 +347,13 @@ function formatListFormComponent(_answer, field, richFormValue) {
 
   // Single answer: no bullet point
   if (items.length === 1) {
-    return `${escapeContent(items[0].text)}\n`
+    return `${escapeContent(tListItem(items[0], 'text'))}\n`
   }
 
   // Multiple answers: use bullet points
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeContent(item.text)
+      const label = escapeContent(tListItem(item, 'text'))
       return `* ${label}\n`
     })
     .join('')
@@ -350,12 +379,13 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  * @param {string} answer
  * @param {Component} field
  * @param {RichFormValue} richFormValue
+ * @param {Translator} translator
  * @returns {string}
  */
-function generateFieldLine(answer, field, richFormValue) {
+function generateFieldLine(answer, field, richFormValue, translator) {
   // Check list component first (special case with multiple inheritance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent(answer, field, richFormValue)
+    return formatListFormComponent(answer, field, richFormValue, translator)
   }
 
   // Iterate through registered handlers
@@ -423,5 +453,6 @@ function calculateOrderForLegacy(formDefinition, formSubmissionMessage) {
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
- * @import { FormDefinition } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
+ * @import { ComponentDef, FormDefinition } from '@defra/forms-model'
  */

@@ -1,0 +1,41 @@
+{
+  "confirmationEmail": {
+    "subject": "Ffurflen wedi'i chyflwyno i [[organisation]]",
+    "subjectTestMode": "CADARNHAU FFURFLEN BRAWF: [[organisation]]",
+    "heading": "Ffurflen wedi'i chyflwyno",
+    "receivedAt": "Gwnaethom dderbyn eich ffurflen ar gyfer &lsquo;[[formName]]&rsquo; am [[submissionDateTime]].",
+    "referenceNumber": "^ Eich cyfeirnod: [[referenceNumber]]",
+    "whatHappensNext": "Beth sy'n digwydd nesaf",
+    "whatHappensNextPlaceholder": "Diffiniwch y testun hwn yn adran 'Beth sy'n digwydd nesaf' o drosolwg y ffurflen",
+    "getHelp": "Cael cymorth",
+    "yourAnswers": "Eich atebion",
+    "answersFooter": "Cewch gopi o'ch atebion ar waelod yr e-bost hwn.",
+    "doNotReply": "Peidiwch ag ymateb i'r e-bost hwn. Nid ydym yn monitro atebion i'r cyfeiriad e-bost hwn.",
+    "from": "Oddi wrth [[organisation]]",
+    "paymentSuccess": "Roedd eich taliad o [[amount]] yn llwyddiannus",
+    "paymentFor": "Taliad ar gyfer",
+    "totalAmount": "Cyfanswm",
+    "dateOfPayment": "Dyddiad y taliad",
+    "on": "ar"
+  },
+  "pages": {
+    "summary": {
+      "fileUpload_zero": "Ni uwchlwythwyd unrhyw ffeiliau",
+      "fileUpload_one": "Uwchlwythwyd [[count]] ffeil",
+      "fileUpload_two": "Uwchlwythwyd dwy feil",
+      "fileUpload_few": "Uwchlwythwyd [[count]] ffeil",
+      "fileUpload_many": "Uwchlwythwyd [[count]] o ffeiliau",
+      "fileUpload_other": "Uwchlwythwyd [[count]] ffeil"
+    }
+  },
+  "components": {
+    "geospatialField": {
+      "added_zero": "Ni ychwanegwyd unrhyw leoliadau",
+      "added_one": "Ychwanegwyd [[count]] lleoliad",
+      "added_two": "Ychwanegwyd dau leoliad",
+      "added_few": "Ychwanegwyd [[count]] lleoliad",
+      "added_many": "Ychwanegwyd [[count]] o leoliadau",
+      "added_other": "Ychwanegwyd [[count]] lleoliad"
+    }
+  }
+}

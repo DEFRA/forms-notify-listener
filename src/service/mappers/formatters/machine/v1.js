@@ -16,7 +16,8 @@ export function formatter(
       schemaVersion,
       timestamp: new Date().toISOString(),
       referenceNumber: formSubmissionMessage.meta.referenceNumber,
-      definition: formDefinition
+      definition: formDefinition,
+      language: formSubmissionMessage.meta.language
     },
     data: formatData(formSubmissionMessage, formDefinition)
   }

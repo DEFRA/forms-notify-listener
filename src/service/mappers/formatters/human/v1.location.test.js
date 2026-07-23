@@ -27,6 +27,13 @@ jest.mock('~/src/config/index.js', () => ({
     })
   }
 }))
+jest.mock('~/src/helpers/logging/logger.js', () => ({
+  logger: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn()
+  }
+}))
 
 describe('Location field formatting in Human V1', () => {
   beforeAll(() => {

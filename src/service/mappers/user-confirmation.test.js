@@ -1,6 +1,10 @@
 import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
+import {
+  createTestTranslator,
+  testTranslationsDefinition
+} from '~/src/service/mappers/formatters/__stubs__/translator.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
 jest.mock('nunjucks', () => {
@@ -31,7 +35,8 @@ describe('user-confirmation', () => {
         submissionDate,
         metadata,
         formSubmissionMessage,
-        formDefinitionWithRefNum
+        formDefinitionWithRefNum,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
     ).toBe(
       `
@@ -67,7 +72,8 @@ From Defra
         submissionDate,
         metadata,
         formSubmissionMessage,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
     ).toBe(
       `
@@ -103,7 +109,8 @@ From Defra
         submissionDate,
         metadata,
         formSubmissionMessage,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
     ).toContain(' at 1:21pm on Tuesday 4 November 2025.')
   })
@@ -120,7 +127,8 @@ From Defra
         submissionDate,
         metadata,
         formSubmissionMessage,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
     ).toContain(' at 2:21pm on Sunday 4 May 2025.')
   })
@@ -148,7 +156,8 @@ From Defra
         submissionDate,
         metadata,
         formSubmissionMessage,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
     ).toBe(
       `
@@ -207,7 +216,8 @@ From Defra
         submissionDate,
         metadata,
         messageWithPayment,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
 
       expect(result).toContain('# Your payment of £300.00 was successful')
@@ -231,7 +241,8 @@ From Defra
         submissionDate,
         metadata,
         formSubmissionMessage,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
 
       expect(result).not.toContain('# Your payment of')
@@ -260,7 +271,8 @@ From Defra
         submissionDate,
         metadata,
         messageWithNoPayment,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
 
       expect(result).not.toContain('# Your payment of')
@@ -293,7 +305,8 @@ From Defra
         submissionDate,
         metadata,
         messageWithPayment,
-        formDefinition
+        formDefinition,
+        createTestTranslator(metadata, testTranslationsDefinition)
       )
 
       const submissionTextIndex = result.indexOf('We received your form')
@@ -307,3 +320,7 @@ From Defra
     })
   })
 })
+
+/**
+ * @import { FormDefinition, FormMetadata } from '@defra/forms-model'
+ */
