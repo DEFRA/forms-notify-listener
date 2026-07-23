@@ -18,29 +18,6 @@
     "dateOfPayment": "Dyddiad y taliad",
     "on": "ar"
   },
-  "days": {
-    "monday": "Dydd Llun",
-    "tuesday": "Dydd Mawrth",
-    "wednesday": "Dydd Mercher",
-    "thursday": "Dydd Iau",
-    "friday": "Dydd Gwener",
-    "saturday": "Dydd Sadwrn",
-    "sunday": "Dydd Sul"
-  },
-  "months": {
-    "january": "Ionawr",
-    "february": "Chwefror",
-    "march": "Mawrth",
-    "april": "Ebrill",
-    "may": "Mai",
-    "june": "Mehefin",
-    "july": "Gorffennaf",
-    "august": "Awst",
-    "september": "Medi",
-    "october": "Hydref",
-    "november": "Tachwedd",
-    "december": "Rhagfyr"
-  },
   "pages": {
     "summary": {
       "fileUpload_zero": "Ni uwchlwythwyd unrhyw ffeiliau",
