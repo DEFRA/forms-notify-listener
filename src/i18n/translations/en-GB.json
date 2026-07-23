@@ -1,0 +1,33 @@
+{
+  "confirmationEmail": {
+    "subject": "Form submitted to [[organisation]]",
+    "subjectTestMode": "TEST FORM CONFIRMATION: [[organisation]]",
+    "heading": "Form submitted",
+    "receivedAt": "We received your form submission for &lsquo;[[formName]]&rsquo; at [[submissionDateTime]].",
+    "referenceNumber": "^ Your reference number: [[referenceNumber]]",
+    "whatHappensNext": "What happens next",
+    "whatHappensNextPlaceholder": "Define this text in the 'What happens next' section of the form overview",
+    "getHelp": "Get help",
+    "yourAnswers": "Your answers",
+    "answersFooter": "Find a copy of your answers at the bottom of this email.",
+    "doNotReply": "Do not reply to this email. We do not monitor replies to this email address.",
+    "from": "From [[organisation]]",
+    "paymentSuccess": "Your payment of [[amount]] was successful",
+    "paymentFor": "Payment for",
+    "totalAmount": "Total amount",
+    "dateOfPayment": "Date of payment",
+    "on": "on"
+  },
+  "pages": {
+    "summary": {
+      "fileUpload_one": "Uploaded [[count]] file",
+      "fileUpload_other": "Uploaded [[count]] files"
+    }
+  },
+  "components": {
+    "geospatialField": {
+      "added_one": "Added [[count]] location",
+      "added_other": "Added [[count]] locations"
+    }
+  }
+}

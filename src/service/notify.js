@@ -1,8 +1,12 @@
+import { loadFormTranslations } from '@defra/forms-engine-plugin/engine/i18n/createFormTranslator.js'
+import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
 import { isFeedbackForm, replaceCustomControllers } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
 import { logger } from '~/src/helpers/logging/logger.js'
+import { extractBaseTranslations } from '~/src/i18n/extractBaseTranslations.js'
+import { createFormI18nInstance } from '~/src/i18n/index.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
@@ -152,9 +156,21 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 
   const definition = replaceCustomControllers(definitionPreConverted)
 
+  const baseTranslations = extractBaseTranslations(definition)
+  const i18nInstance = createFormI18nInstance(baseTranslations)
+  loadFormTranslations(definition, i18nInstance)
+  const translator = createTranslator(
+    i18nInstance,
+    formSubmissionMessage.meta.language
+  )
+
   const subject = meta.isPreview
-    ? `TEST FORM CONFIRMATION: ${formMetadata.organisation}`
-    : `Form submitted to ${formMetadata.organisation}`
+    ? translator.t('confirmationEmail.subjectTestMode', {
+        organisation: formMetadata.organisation
+      })
+    : translator.t('confirmationEmail.subject', {
+        organisation: formMetadata.organisation
+      })
 
   logger.info(logTags, 'Sending user confirmation email')
 
@@ -170,7 +186,8 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
           meta.timestamp,
           formMetadata,
           formSubmissionMessage,
-          definition
+          definition,
+          translator
         )
       },
       notifyReplyToId
@@ -189,6 +206,6 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 }
 
 /**
- * @import { FormDefinition, Output, Page } from '@defra/forms-model'
+ * @import { FormDefinition, Output } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  */

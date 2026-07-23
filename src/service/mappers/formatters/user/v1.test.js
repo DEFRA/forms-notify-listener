@@ -7,6 +7,7 @@ import {
   buildTextFieldComponent
 } from '@defra/forms-model/stubs'
 
+import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import {
   legacyGraphFormDefinition,
@@ -32,11 +33,13 @@ jest.mock('nunjucks', () => {
   }
 })
 
+const translator = getDefaultTranslator()
+
 describe('User answers formatter v1', () => {
   describe('formatter', () => {
     it('should return questions with heading level 1', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Questions should use heading level 1 (#)
       expect(output).toContain('# What is your name?')
@@ -47,7 +50,7 @@ describe('User answers formatter v1', () => {
 
     it('should include answers below questions', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toContain('# What is your name?\n\nSomeone')
       expect(output).toContain('1 January 2000')
@@ -56,7 +59,7 @@ describe('User answers formatter v1', () => {
 
     it('should use bullet points for checkbox answers', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Checkboxes should have bullet points
       expect(output).toContain('* Gandalf')
@@ -65,7 +68,7 @@ describe('User answers formatter v1', () => {
 
     it('should not use bullet points for single radio answer', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const output = formatter(pizzaMessage, definition)
+      const output = formatter(pizzaMessage, definition, translator)
 
       // Radio buttons with single selection should NOT have bullet points
       expect(output).toContain('Delivery')
@@ -74,7 +77,7 @@ describe('User answers formatter v1', () => {
 
     it('should skip optional questions with no answer', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // The "Additional details" field is optional and has null value
       // It should NOT appear in the output
@@ -94,7 +97,11 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(messageWithOptionalAnswer, definition)
+      const output = formatter(
+        messageWithOptionalAnswer,
+        definition,
+        translator
+      )
 
       // The optional field with an answer should be included
       expect(output).toContain('# Additional details')
@@ -103,7 +110,7 @@ describe('User answers formatter v1', () => {
 
     it('should show only file names for uploaded files (no links)', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // File uploads should show file names (no bullet for single file, bullets for multiple)
       expect(output).toContain('supporting_evidence.pdf')
@@ -114,7 +121,7 @@ describe('User answers formatter v1', () => {
 
     it('should format repeater sections with heading level 1 for main title', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater title should be heading level 1
       expect(output).toContain('# Team Member')
@@ -122,7 +129,7 @@ describe('User answers formatter v1', () => {
 
     it('should format repeater items with heading level 2', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater items should be heading level 2
       expect(output).toContain('## Team Member 1')
@@ -131,7 +138,7 @@ describe('User answers formatter v1', () => {
 
     it('should include repeater item answers', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater answers should be included
       expect(output).toContain('Frodo')
@@ -142,7 +149,7 @@ describe('User answers formatter v1', () => {
 
     it('should not generate CSV download links for repeaters', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Should NOT contain CSV download links
       expect(output).not.toContain('Download')
@@ -151,7 +158,7 @@ describe('User answers formatter v1', () => {
 
     it('should format UK addresses correctly', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toContain('1 Anywhere Street')
       expect(output).toContain('Anywhereville')
@@ -161,7 +168,7 @@ describe('User answers formatter v1', () => {
 
     it('should preserve multiline text field formatting', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const output = formatter(pizzaMessage, definition)
+      const output = formatter(pizzaMessage, definition, translator)
 
       // Multiline text should preserve line breaks
       expect(output).toContain('Line 1\nLine 2\nLine 3')
@@ -169,7 +176,7 @@ describe('User answers formatter v1', () => {
 
     it('should handle multiline text with triple backticks', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const output = formatter(pizzaMessage, definition)
+      const output = formatter(pizzaMessage, definition, translator)
 
       // Multiline text with triple backticks should have them escaped to prevent Notify markdown interpretation
       expect(output).toContain('Line 1\n` ` `\nLine 2\n` ` `\nLine 3')
@@ -177,7 +184,7 @@ describe('User answers formatter v1', () => {
 
     it('should maintain component order from form definition', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Check that questions appear in the correct order
       const nameIndex = output.indexOf('# What is your name?')
@@ -196,7 +203,7 @@ describe('User answers formatter v1', () => {
 
     it('should not include internal email elements', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Should NOT contain elements from internal email
       expect(output).not.toContain('Thanks,')
@@ -217,7 +224,7 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(emptyMessage, definition)
+      const output = formatter(emptyMessage, definition, translator)
 
       // Should return empty or minimal output
       expect(output).toBe('')
@@ -225,14 +232,14 @@ describe('User answers formatter v1', () => {
 
     it('should match snapshot for standard form', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(exampleNotifyFormMessage, definition)
+      const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
     })
 
     it('should match snapshot for pizza form', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const output = formatter(pizzaMessage, definition)
+      const output = formatter(pizzaMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
     })
@@ -250,7 +257,7 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(messageWithUndefined, definition)
+      const output = formatter(messageWithUndefined, definition, translator)
 
       expect(output).not.toContain('# Additional details')
     })
@@ -301,7 +308,11 @@ describe('User answers formatter v1', () => {
         }
       })
 
-      const output = formatter(messageWithEmptyFile, definitionWithOptionalFile)
+      const output = formatter(
+        messageWithEmptyFile,
+        definitionWithOptionalFile,
+        translator
+      )
 
       expect(output).toContain('# Your name')
       expect(output).toContain('Test User')
@@ -334,7 +345,11 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(messageWithNullRepeaterValue, definition)
+      const output = formatter(
+        messageWithNullRepeaterValue,
+        definition,
+        translator
+      )
 
       // Should include the first item
       expect(output).toContain('## Team Member 1')
@@ -360,7 +375,7 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(messageWithUnknownKey, definition)
+      const output = formatter(messageWithUnknownKey, definition, translator)
 
       // Should not include unknown component
       expect(output).not.toContain('unknownComponentKey')
@@ -383,7 +398,11 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const output = formatter(messageWithUnknownRepeater, definition)
+      const output = formatter(
+        messageWithUnknownRepeater,
+        definition,
+        translator
+      )
 
       // Should not crash and should still format known repeaters
       expect(output).toContain('## Team Member 1')
@@ -460,7 +479,8 @@ describe('User answers formatter v1', () => {
 
       const output = formatter(
         messageWithRepeaterGuidance,
-        definitionWithRepeaterGuidance
+        definitionWithRepeaterGuidance,
+        translator
       )
 
       // Should include the team member names
@@ -477,7 +497,7 @@ describe('User answers formatter v1', () => {
 
     it('should handle geospatial fields', () => {
       const definition = geospatialFormDefinition
-      const output = formatter(geospatialMessage, definition)
+      const output = formatter(geospatialMessage, definition, translator)
 
       expect(output).toBe(`# Geospatial features of the site
 
@@ -508,7 +528,7 @@ TQ 28521 79799
   describe('legacy V1 engine forms', () => {
     it('should format legacy V1 forms correctly', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const output = formatter(legacyGraphFormMessage, definition)
+      const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include main form fields
       expect(output).toContain('# First name')
@@ -521,7 +541,7 @@ TQ 28521 79799
 
     it('should handle legacy V1 form repeaters', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const output = formatter(legacyGraphFormMessage, definition)
+      const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include repeater data
       expect(output).toContain('## person 1')
@@ -532,7 +552,7 @@ TQ 28521 79799
 
     it('should handle legacy V1 form file uploads', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const output = formatter(legacyGraphFormMessage, definition)
+      const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include file upload without links
       expect(output).toContain('bank_statement.pdf')
@@ -541,7 +561,7 @@ TQ 28521 79799
 
     it('should handle legacy V1 form radio selections', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const output = formatter(legacyGraphFormMessage, definition)
+      const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include radio selection
       expect(output).toContain('# Country of birth')
@@ -550,7 +570,7 @@ TQ 28521 79799
 
     it('should match snapshot for legacy V1 form', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const output = formatter(legacyGraphFormMessage, definition)
+      const output = formatter(legacyGraphFormMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
     })

@@ -3,24 +3,24 @@ import { escapeContent } from '~/src/lib/notify.js'
 import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
 import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
 
-const submisionGuidancePlaceholder =
-  "Define this text in the 'What happens next' section of the form overview"
-
 /**
  * Generates the payment success section for the form filler email
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-function getPaymentSection(formSubmissionMessage) {
+function getPaymentSection(formSubmissionMessage, translator) {
   const paymentDetails = extractPaymentDetails(formSubmissionMessage)
 
   if (!paymentDetails) {
     return ''
   }
 
+  const { t } = translator
+
   return `
-# Your payment of ${paymentDetails.amount} was successful
-## Payment for
+# ${t('confirmationEmail.paymentSuccess', { amount: paymentDetails.amount })}
+## ${t('confirmationEmail.paymentFor')}
 ${escapeContent(paymentDetails.description)}
 ## Total amount
 ${paymentDetails.amount}
@@ -36,36 +36,41 @@ ${escapeContent(paymentDetails.dateOfPayment)}
  * @param {FormMetadata} metadata
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
+ * @param {Translator} translator
  */
 export function getUserConfirmationEmailBody(
   formName,
   submissionDate,
   metadata,
   formSubmissionMessage,
-  formDefinition
+  formDefinition,
+  translator
 ) {
+  const { t, tForm } = translator
+
   const formattedSubmissionDate = `${dateFormat(submissionDate, 'h:mmaaa')} on ${dateFormat(submissionDate, 'eeee d MMMM yyyy')}`
 
   const { submissionGuidance, organisation, contact } = metadata
 
-  const phoneDetails = contact?.phone ? `${contact.phone}\n\n` : ''
+  const phoneDetails = contact?.phone ? `${tForm('contact.phone')}\n\n` : ''
   const emailDetails = contact?.email
-    ? `[${contact.email.address}](mailto:${contact.email.address})\n${contact.email.responseTime}\n\n`
+    ? `[${tForm('contact.email.address')}](mailto:${tForm('contact.email.address')})\n${tForm('contact.email.responseTime')}\n\n`
     : ''
   const onlineDetails = contact?.online
-    ? `[${contact.online.text}](${contact.online.url})\n\n`
+    ? `[${tForm('contact.online.text')}](${tForm('contact.online.url')})\n\n`
     : ''
   const contactDetails = `${phoneDetails}${emailDetails}${onlineDetails}`
 
   const referenceNumber = formDefinition.options?.showReferenceNumber
-    ? `^ Your reference number: ${formSubmissionMessage.meta.referenceNumber}\n\n`
+    ? `${t('confirmationEmail.referenceNumber', { referenceNumber: formSubmissionMessage.meta.referenceNumber })}\n\n`
     : ''
 
   // Generate the answers section if submission data is provided
   let answersSection = ''
   const formattedAnswers = userAnswersFormatter(
     formSubmissionMessage,
-    formDefinition
+    formDefinition,
+    translator
   )
   if (formattedAnswers) {
     answersSection = `
@@ -75,24 +80,31 @@ ${formattedAnswers}
   }
 
   // Generate payment section if payment exists
-  const paymentSection = getPaymentSection(formSubmissionMessage)
+  const paymentSection = getPaymentSection(formSubmissionMessage, translator)
+
+  const submissionGuidanceText = submissionGuidance
+    ? tForm('submissionGuidance')
+    : undefined
+  const submissionGuidancePlaceholderText = t(
+    'confirmationEmail.whatHappensNextPlaceholder'
+  )
 
   return `
-# Form submitted
-${referenceNumber}We received your form submission for &lsquo;${escapeContent(formName)}&rsquo; at ${formattedSubmissionDate}.
+# ${t('confirmationEmail.heading')}
+${referenceNumber}${t('confirmationEmail.receivedAt', { formName: escapeContent(formName), submissionDateTime: formattedSubmissionDate })}
 ${paymentSection}
-# What happens next
-${submissionGuidance ?? submisionGuidancePlaceholder}
+# ${t('confirmationEmail.whatHappensNext')}
+${submissionGuidanceText ?? submissionGuidancePlaceholderText}
 
-# Get help
+# ${t('confirmationEmail.getHelp')}
 ${contactDetails}
 
-# Your answers
-Find a copy of your answers at the bottom of this email.
+# ${t('confirmationEmail.yourAnswers')}
+${t('confirmationEmail.answersFooter')}
 
-Do not reply to this email. We do not monitor replies to this email address.
+${t('confirmationEmail.doNotReply')}
 
-From ${escapeContent(organisation)}
+${t('confirmationEmail.from', { organisation: escapeContent(organisation) })}
 ${answersSection}
 `
 }
@@ -100,4 +112,5 @@ ${answersSection}
 /**
  * @import { FormMetadata, FormDefinition } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

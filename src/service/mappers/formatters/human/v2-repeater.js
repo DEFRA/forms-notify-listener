@@ -1,6 +1,7 @@
 import { ComponentType, hasRepeater } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
+import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { generateFieldLine } from '~/src/service/mappers/formatters/human/v2-common.js'
 import {
@@ -105,8 +106,10 @@ function processRepeaterComponent(
 
     const itemLabel = `${repeaterTitle} ${i + 1}`
     const formField = /** @type {FormComponent} */ (componentField)
-    const componentAnswer =
-      formField.getDisplayStringFromFormValue(componentValue)
+    const componentAnswer = formField.getDisplayStringFromFormValue(
+      componentValue,
+      getDefaultTranslator()
+    )
 
     // Repeater item label uses heading level 2 (##)
     questionLines.push(
