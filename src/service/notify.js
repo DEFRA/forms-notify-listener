@@ -17,6 +17,20 @@ const templateId = config.get('notifyTemplateId')
 const notifyReplyToId = config.get('notifyReplyToId')
 
 /**
+ * Create an i18n instance and populate it with the necessary base info and form info,
+ * ready for a translator to be overlaid
+ * @param {FormMetadata} metadata
+ * @param {FormDefinition} definition
+ */
+function createAndPopulatei18nInstance(metadata, definition) {
+  const baseTranslations = extractBaseTranslations(definition)
+  const i18nInstance = createFormI18nInstance(baseTranslations)
+  loadFormTranslations(definition, i18nInstance)
+  storeMetadataBaseTranslations(metadata, i18nInstance)
+  return i18nInstance
+}
+
+/**
  * Sends one or more mails to GovNotify
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {Promise<void>}
@@ -157,10 +171,7 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 
   const definition = replaceCustomControllers(definitionPreConverted)
 
-  const baseTranslations = extractBaseTranslations(definition)
-  const i18nInstance = createFormI18nInstance(baseTranslations)
-  loadFormTranslations(definition, i18nInstance)
-  storeMetadataBaseTranslations(formMetadata, i18nInstance)
+  const i18nInstance = createAndPopulatei18nInstance(formMetadata, definition)
   const translator = createTranslator(
     i18nInstance,
     formSubmissionMessage.meta.language
@@ -208,6 +219,6 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 }
 
 /**
- * @import { FormDefinition, Output } from '@defra/forms-model'
+ * @import { FormDefinition, FormMetadata, Output } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  */
