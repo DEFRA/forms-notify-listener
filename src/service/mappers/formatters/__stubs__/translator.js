@@ -1,10 +1,8 @@
 import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
+import { extractBaseTranslations } from '@defra/forms-engine-plugin/engine/i18n/extractBaseTranslations.js'
 
-import {
-  extractBaseTranslations,
-  storeMetadataBaseTranslations
-} from '~/src/i18n/extractBaseTranslations.js'
 import { createFormI18nInstance } from '~/src/i18n/index.js'
+import { storeMetadataBaseTranslations } from '~/src/i18n/translations-helper.js'
 
 /**
  * Create a translator for use in unit tests

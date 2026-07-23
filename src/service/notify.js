@@ -1,11 +1,11 @@
 import { loadFormTranslations } from '@defra/forms-engine-plugin/engine/i18n/createFormTranslator.js'
 import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
+import { extractBaseTranslations } from '@defra/forms-engine-plugin/engine/i18n/extractBaseTranslations.js'
 import { isFeedbackForm, replaceCustomControllers } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
 import { logger } from '~/src/helpers/logging/logger.js'
-import { extractBaseTranslations } from '~/src/i18n/extractBaseTranslations.js'
 import { createFormI18nInstance } from '~/src/i18n/index.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
