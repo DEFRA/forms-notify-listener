@@ -36,6 +36,17 @@
       "added_few": "Ychwanegwyd [[count]] lleoliad",
       "added_many": "Ychwanegwyd [[count]] o leoliadau",
       "added_other": "Ychwanegwyd [[count]] lleoliad"
+    },
+
+    "yesNoField": {
+      "yes": "Ie",
+      "no": "Nage"
+    },
+
+    "declarationField": {
+      "defaultLabel": "Rwy'n deall ac yn cytuno",
+      "defaultConfirmationLabel": "Rwy'n cadarnhau fy mod yn deall ac yn derbyn y datganiad hwn",
+      "notProvided": "Heb ei ddarparu"
     }
   }
 }

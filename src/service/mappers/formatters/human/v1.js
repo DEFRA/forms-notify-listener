@@ -19,7 +19,6 @@ import { addMonths } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
-import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
   extractPaymentDetails,
@@ -75,8 +74,14 @@ function appendPaymentSection(formSubmissionMessage, lines) {
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormModel} formModel
  * @param {Map<string, string[]>} componentMap
+ * @param {Translator} translator
  */
-function processMainEntries(formSubmissionMessage, formModel, componentMap) {
+function processMainEntries(
+  formSubmissionMessage,
+  formModel,
+  componentMap,
+  translator
+) {
   const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
@@ -100,7 +105,7 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
 
     const answer = field.getDisplayStringFromFormValue(
       /** @type {any} */ (mappedRichFormValue),
-      getDefaultTranslator()
+      translator
     )
 
     const label = escapeContent(field.title)
@@ -219,6 +224,7 @@ export function formatter(
     /** @type {any} */ ({})
   )
 
+  const translator = formModel.createTranslator('en-GB')
   const formName = escapeContent(meta.formName)
   /**
    * @todo Refactor this below but the code to
@@ -255,7 +261,7 @@ export function formatter(
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
-  processMainEntries(formSubmissionMessage, formModel, componentMap)
+  processMainEntries(formSubmissionMessage, formModel, componentMap, translator)
   processRepeaterFiles(formSubmissionMessage, formDefinition, componentMap)
   appendComponentLines(order, componentMap, lines)
 
@@ -615,4 +621,5 @@ export function getRelevantPagesForLegacy(
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormStateValue, FileState, FormContextRequest, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

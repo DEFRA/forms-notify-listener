@@ -1,11 +1,16 @@
-import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
+import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
+import {
+  buildDeclarationFieldComponent,
+  buildDefinition,
+  buildMetaData,
+  buildQuestionPage,
+  buildYesNoFieldComponent
+} from '@defra/forms-model/stubs'
 
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
-import {
-  createTestTranslator,
-  testTranslationsDefinition
-} from '~/src/service/mappers/formatters/__stubs__/translator.js'
+import { testTranslationsDefinition } from '~/src/service/mappers/formatters/__stubs__/translator.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
+import { createAndPopulatei18nInstance } from '~/src/service/notify.js'
 
 jest.mock('nunjucks', () => {
   const environment = {
@@ -18,8 +23,31 @@ jest.mock('nunjucks', () => {
 })
 
 describe('user-confirmation', () => {
-  const formSubmissionMessage = buildFormAdapterSubmissionMessage()
-  const formDefinition = buildDefinition()
+  const formSubmissionMessage = buildFormAdapterSubmissionMessage({
+    data: {
+      main: {
+        DeclarationField: 'true',
+        YesNoField: false
+      },
+      repeaters: {},
+      files: {}
+    }
+  })
+  const formDefinition = buildDefinition({
+    pages: [
+      buildQuestionPage({
+        components: [
+          buildYesNoFieldComponent({
+            name: 'YesNoField'
+          }),
+          buildDeclarationFieldComponent({
+            name: 'DeclarationField',
+            content: 'Declaration content in englush'
+          })
+        ]
+      })
+    ]
+  })
 
   test('should handle general email content', () => {
     const formName = 'My Form Name'
@@ -29,6 +57,12 @@ describe('user-confirmation', () => {
     })
     const formDefinitionWithRefNum = structuredClone(formDefinition)
     formDefinitionWithRefNum.options = { showReferenceNumber: true }
+    const i18Instance = createAndPopulatei18nInstance(
+      metadata,
+      formDefinitionWithRefNum
+    )
+    const translator = createTranslator(i18Instance, 'en-GB')
+
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -36,7 +70,7 @@ describe('user-confirmation', () => {
         metadata,
         formSubmissionMessage,
         formDefinitionWithRefNum,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
     ).toBe(
       `
@@ -58,6 +92,79 @@ Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
 
+---
+# YesNo Field Component
+
+No
+
+# Declaration
+
+I understand and agree
+
+`
+    )
+  })
+
+  test('should handle general email content in Welsh', () => {
+    const formName = 'My Form Name'
+    const submissionDate = new Date('2025-11-04T14:21:35+00:00')
+    const metadata = buildMetaData({
+      submissionGuidance: 'Some submission guidance'
+    })
+    const formDefinitionWithRefNum = structuredClone(formDefinition)
+    formDefinitionWithRefNum.options = { showReferenceNumber: true }
+    formDefinitionWithRefNum.metadata = {
+      translations: {
+        cy: {
+          'form.submissionGuidance':
+            'Something in welsh for submission guidance'
+        }
+      }
+    }
+    const i18Instance = createAndPopulatei18nInstance(
+      metadata,
+      formDefinitionWithRefNum
+    )
+    const welshTranslator = createTranslator(i18Instance, 'cy')
+
+    expect(
+      getUserConfirmationEmailBody(
+        formName,
+        submissionDate,
+        metadata,
+        formSubmissionMessage,
+        formDefinitionWithRefNum,
+        welshTranslator
+      )
+    ).toBe(
+      `
+# Ffurflen wedi'i chyflwyno
+^ Eich cyfeirnod: 576-225-943
+
+Gwnaethom dderbyn eich ffurflen ar gyfer &lsquo;My Form Name&rsquo; am 2:21pm on dydd Mawrth 4 Tachwedd 2025.
+
+# Beth sy'n digwydd nesaf
+Something in welsh for submission guidance
+
+# Cael cymorth
+
+
+# Eich atebion
+Cewch gopi o'ch atebion ar waelod yr e-bost hwn.
+
+Peidiwch ag ymateb i'r e-bost hwn. Nid ydym yn monitro atebion i'r cyfeiriad e-bost hwn.
+
+Oddi wrth Defra
+
+---
+# YesNo Field Component
+
+Nage
+
+# Declaration
+
+Rwy\\'n deall ac yn cytuno
+
 `
     )
   })
@@ -66,6 +173,8 @@ From Defra
     const formName = 'My Form Name'
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
     const metadata = buildMetaData()
+    const i18Instance = createAndPopulatei18nInstance(metadata, formDefinition)
+    const translator = createTranslator(i18Instance, 'en-GB')
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -73,7 +182,7 @@ From Defra
         metadata,
         formSubmissionMessage,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
     ).toBe(
       `
@@ -93,6 +202,15 @@ Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
 
+---
+# YesNo Field Component
+
+No
+
+# Declaration
+
+I understand and agree
+
 `
     )
   })
@@ -103,6 +221,8 @@ From Defra
     const metadata = buildMetaData({
       submissionGuidance: 'Some submission guidance'
     })
+    const i18Instance = createAndPopulatei18nInstance(metadata, formDefinition)
+    const translator = createTranslator(i18Instance, 'en-GB')
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -110,7 +230,7 @@ From Defra
         metadata,
         formSubmissionMessage,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
     ).toContain(' at 1:21pm on Tuesday 4 November 2025.')
   })
@@ -121,6 +241,8 @@ From Defra
     const metadata = buildMetaData({
       submissionGuidance: 'Some submission guidance'
     })
+    const i18Instance = createAndPopulatei18nInstance(metadata, formDefinition)
+    const translator = createTranslator(i18Instance, 'en-GB')
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -128,7 +250,7 @@ From Defra
         metadata,
         formSubmissionMessage,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
     ).toContain(' at 2:21pm on Sunday 4 May 2025.')
   })
@@ -150,6 +272,11 @@ From Defra
         }
       }
     })
+    const i18Instance = createAndPopulatei18nInstance(
+      metadata,
+      testTranslationsDefinition
+    )
+    const translator = createTranslator(i18Instance, 'en-GB')
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -157,7 +284,7 @@ From Defra
         metadata,
         formSubmissionMessage,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
     ).toBe(
       `
@@ -183,6 +310,15 @@ Find a copy of your answers at the bottom of this email.
 Do not reply to this email. We do not monitor replies to this email address.
 
 From Defra
+
+---
+# YesNo Field Component
+
+No
+
+# Declaration
+
+I understand and agree
 
 `
     )
@@ -211,13 +347,19 @@ From Defra
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        metadata,
+        testTranslationsDefinition
+      )
+      const translator = createTranslator(i18Instance, 'en-GB')
+
       const result = getUserConfirmationEmailBody(
         formName,
         submissionDate,
         metadata,
         messageWithPayment,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
 
       expect(result).toContain('# Your payment of £300.00 was successful')
@@ -236,13 +378,19 @@ From Defra
         submissionGuidance: 'Some submission guidance'
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        metadata,
+        testTranslationsDefinition
+      )
+      const translator = createTranslator(i18Instance, 'en-GB')
+
       const result = getUserConfirmationEmailBody(
         formName,
         submissionDate,
         metadata,
         formSubmissionMessage,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
 
       expect(result).not.toContain('# Your payment of')
@@ -266,13 +414,19 @@ From Defra
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        metadata,
+        testTranslationsDefinition
+      )
+      const translator = createTranslator(i18Instance, 'en-GB')
+
       const result = getUserConfirmationEmailBody(
         formName,
         submissionDate,
         metadata,
         messageWithNoPayment,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
 
       expect(result).not.toContain('# Your payment of')
@@ -300,13 +454,19 @@ From Defra
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        metadata,
+        testTranslationsDefinition
+      )
+      const translator = createTranslator(i18Instance, 'en-GB')
+
       const result = getUserConfirmationEmailBody(
         formName,
         submissionDate,
         metadata,
         messageWithPayment,
         formDefinition,
-        createTestTranslator(metadata, testTranslationsDefinition)
+        translator
       )
 
       const submissionTextIndex = result.indexOf('We received your form')
@@ -320,7 +480,3 @@ From Defra
     })
   })
 })
-
-/**
- * @import { FormDefinition, FormMetadata } from '@defra/forms-model'
- */

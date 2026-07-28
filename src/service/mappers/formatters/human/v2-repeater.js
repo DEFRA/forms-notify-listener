@@ -1,7 +1,6 @@
 import { ComponentType, hasRepeater } from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
-import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { generateFieldLine } from '~/src/service/mappers/formatters/human/v2-common.js'
 import {
@@ -79,6 +78,7 @@ export function processRepeaterFiles(
  * @param {string} componentName
  * @param {Record<string, RichFormValue>[]} repeaterItems
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string[]}
  */
 function processRepeaterComponent(
@@ -86,7 +86,8 @@ function processRepeaterComponent(
   componentField,
   componentName,
   repeaterItems,
-  formSubmissionMessage
+  formSubmissionMessage,
+  translator
 ) {
   const questionLines = /** @type {string[]} */ ([])
   const componentLabel = escapeContent(componentField.title)
@@ -108,7 +109,7 @@ function processRepeaterComponent(
     const formField = /** @type {FormComponent} */ (componentField)
     const componentAnswer = formField.getDisplayStringFromFormValue(
       componentValue,
-      getDefaultTranslator()
+      translator
     )
 
     // Repeater item label uses heading level 2 (##)
@@ -135,12 +136,14 @@ function processRepeaterComponent(
  * @param {FormDefinition} formDefinition
  * @param {FormModel} formModel
  * @param {Map<string, string[]>} componentMap
+ * @param {Translator} translator
  */
 export function processRepeaterEntries(
   formSubmissionMessage,
   formDefinition,
   formModel,
-  componentMap
+  componentMap,
+  translator
 ) {
   const repeaterEntries = Object.entries(formSubmissionMessage.data.repeaters)
 
@@ -170,7 +173,8 @@ export function processRepeaterEntries(
         componentField,
         componentName,
         repeaterItems,
-        formSubmissionMessage
+        formSubmissionMessage,
+        translator
       )
 
       // Store with a unique key for this component within the repeater
@@ -185,4 +189,5 @@ export function processRepeaterEntries(
  * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
  * @import { FormDefinition, PageRepeat } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

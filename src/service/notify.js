@@ -22,7 +22,7 @@ const notifyReplyToId = config.get('notifyReplyToId')
  * @param {FormMetadata} metadata
  * @param {FormDefinition} definition
  */
-function createAndPopulatei18nInstance(metadata, definition) {
+export function createAndPopulatei18nInstance(metadata, definition) {
   const baseTranslations = extractBaseTranslations(definition)
   const i18nInstance = createFormI18nInstance(baseTranslations)
   loadFormTranslations(definition, i18nInstance)

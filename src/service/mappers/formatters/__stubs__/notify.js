@@ -3,6 +3,7 @@ import { Engine, FormStatus, SchemaVersion } from '@defra/forms-model'
 import {
   buildCheckboxComponent,
   buildDateComponent,
+  buildDeclarationFieldComponent,
   buildDefinition,
   buildFileUploadComponent,
   buildFileUploadPage,
@@ -659,6 +660,64 @@ export const geospatialMessage = buildFormAdapterSubmissionMessage({
           }
         }
       ]
+    },
+    repeaters: {},
+    files: {}
+  },
+  result: {
+    files: {
+      main: '00000000-0000-0000-0000-000000000000',
+      repeaters: {}
+    }
+  }
+})
+
+export const declarationFormDefinition = buildDefinition({
+  name: 'Declaration',
+  startPage: '/declaration',
+  pages: [
+    buildQuestionPage({
+      title: 'Declaration page',
+      path: '/declaration',
+      components: [
+        buildDeclarationFieldComponent({
+          name: 'DeclarationField',
+          content: 'Declaration in english',
+          id: '2d35389a-d3d3-4376-b44b-b7c469dab386'
+        })
+      ]
+    }),
+    buildSummaryPage()
+  ],
+  sections: [],
+  lists: [],
+  metadata: {
+    translations: {
+      cy: {
+        'components.2d35389a-d3d3-4376-b44b-b7c469dab386.content':
+          'Declaration in welsh'
+      }
+    }
+  }
+})
+
+export const declarationMessage = buildFormAdapterSubmissionMessage({
+  messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
+  recordCreatedAt: new Date('2025-08-26'),
+  meta: {
+    schemaVersion: FormAdapterSubmissionSchemaVersion.V1,
+    timestamp: new Date('2025-08-28T11:01:59.347Z'),
+    formName: 'Declaration',
+    formId: FORM_ID,
+    formSlug: 'declaration',
+    status: FormStatus.Live,
+    isPreview: false,
+    notificationEmail: 'enrique.chase@defra.gov.uk',
+    referenceNumber: '111-C7C-D60'
+  },
+  data: {
+    main: {
+      DeclarationField: 'true'
     },
     repeaters: {},
     files: {}
