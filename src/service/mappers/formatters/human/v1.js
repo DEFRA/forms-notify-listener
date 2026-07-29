@@ -256,7 +256,7 @@ export function formatter(
   lines.push(`${formName} form received at ${escapeContent(formattedNow)}.\n`)
 
   if (meta.language === 'cy') {
-    lines.push(`This form was submitted in Welsh\n`)
+    lines.push(`This form was submitted in Welsh.\n`)
   }
 
   lines.push('---\n')
