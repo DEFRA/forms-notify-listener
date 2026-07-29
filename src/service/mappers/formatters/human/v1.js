@@ -116,7 +116,8 @@ function processMainEntries(
         answer,
         field,
         /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
-        formSubmissionMessage
+        formSubmissionMessage,
+        translator
       )
       questionLines.push(answerLine)
     }
@@ -394,7 +395,7 @@ function formatGeospatialField(
 /**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
- * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage) => string>}
+ * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage, translator: Translator) => string>}
  */
 const fieldHandlers = new Map()
 fieldHandlers.set(Components.FileUploadField, formatFileUploadField)
@@ -410,13 +411,15 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
 function generateFieldLine(
   answer,
   field,
   richFormValue,
-  formSubmissionMessage
+  formSubmissionMessage,
+  translator
 ) {
   // Check list component first (special case with multiple inheriance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
@@ -426,7 +429,13 @@ function generateFieldLine(
   // Iterate through registered handlers
   for (const [Type, handler] of fieldHandlers) {
     if (field instanceof Type) {
-      return handler(answer, field, richFormValue, formSubmissionMessage)
+      return handler(
+        answer,
+        field,
+        richFormValue,
+        formSubmissionMessage,
+        translator
+      )
     }
   }
 

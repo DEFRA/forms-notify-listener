@@ -39,6 +39,16 @@
     "yesNoField": {
       "yes": "Yes",
       "no": "No"
+    },
+
+    "latLongField": {
+      "latitude": "Latitude",
+      "longitude": "Longitude"
+    },
+
+    "eastingNorthingField": {
+      "easting": "Easting",
+      "northing": "Northing"
     }
   }
 }

@@ -105,7 +105,8 @@ function processMainEntries(
         answer,
         field,
         /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
-        formSubmissionMessage
+        formSubmissionMessage,
+        translator
       )
       questionLines.push(answerLine)
     }

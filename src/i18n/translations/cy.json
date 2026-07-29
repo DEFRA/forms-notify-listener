@@ -47,6 +47,16 @@
       "defaultLabel": "Rwy'n deall ac yn cytuno",
       "defaultConfirmationLabel": "Rwy'n cadarnhau fy mod yn deall ac yn derbyn y datganiad hwn",
       "notProvided": "Heb ei ddarparu"
+    },
+
+    "latLongField": {
+      "latitude": "Lledred",
+      "longitude": "Hydred"
+    },
+
+    "eastingNorthingField": {
+      "easting": "Dwyreiniannau",
+      "northing": "Gogleddiannau"
     }
   }
 }

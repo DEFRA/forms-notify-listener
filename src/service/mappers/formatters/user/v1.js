@@ -364,7 +364,7 @@ function formatListFormComponent(_answer, field, richFormValue, translator) {
 /**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
- * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue) => string>}
+ * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage, translator: Translator) => string>}
  */
 const fieldHandlers = new Map()
 fieldHandlers.set(Components.FileUploadField, formatFileUploadField)
@@ -388,10 +388,19 @@ function generateFieldLine(answer, field, richFormValue, translator) {
     return formatListFormComponent(answer, field, richFormValue, translator)
   }
 
+  const dummyFormSubmissionMessage =
+    /** @type {FormAdapterSubmissionMessage} */ ({})
+
   // Iterate through registered handlers
   for (const [Type, handler] of fieldHandlers) {
     if (field instanceof Type) {
-      return handler(answer, field, richFormValue)
+      return handler(
+        answer,
+        field,
+        richFormValue,
+        dummyFormSubmissionMessage,
+        translator
+      )
     }
   }
 

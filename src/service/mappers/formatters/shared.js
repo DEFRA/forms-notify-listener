@@ -53,12 +53,23 @@ export function formatUkAddressField(_answer, field, richFormValue) {
  * @param {string} _answer
  * @param {Component} field
  * @param {RichFormValue} richFormValue
+ * @param { FormAdapterSubmissionMessage | undefined } _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-export function formatLocationField(_answer, field, richFormValue) {
+export function formatLocationField(
+  _answer,
+  field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const formField = /** @type {FormComponent} */ (field)
-  const contextValue = formField.getContextValueFromFormValue(richFormValue)
-  return contextValue ? `${String(contextValue)}\n` : ''
+  const contextValue = formField.getDisplayStringFromFormValue(
+    richFormValue,
+    translator
+  )
+  return contextValue ? `${contextValue}\n` : ''
 }
 
 /**
@@ -157,4 +168,5 @@ export function generateGeospatialMapLink(
  * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, GeospatialState, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

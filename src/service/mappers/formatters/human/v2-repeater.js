@@ -120,7 +120,8 @@ function processRepeaterComponent(
         componentAnswer,
         componentField,
         componentValue,
-        formSubmissionMessage
+        formSubmissionMessage,
+        translator
       )
     )
   }
