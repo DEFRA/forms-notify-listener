@@ -1,8 +1,9 @@
 import { createFormI18nInstance, t } from '~/src/i18n/index.js'
+import { EN_GB } from '~/src/i18n/translations-helper.js'
 
 describe('i18n t()', () => {
   it('returns the English string for a known key', () => {
-    expect(t('confirmationEmail.heading', 'en-GB')).toBe('Form submitted')
+    expect(t('confirmationEmail.heading', EN_GB)).toBe('Form submitted')
   })
 
   it('falls back to en-GB for an unknown language', () => {
@@ -16,13 +17,13 @@ describe('i18n t()', () => {
   })
 
   it('returns the key string itself when the key does not exist', () => {
-    expect(t('does.not.exist', 'en-GB')).toBe('does.not.exist')
+    expect(t('does.not.exist', EN_GB)).toBe('does.not.exist')
   })
 
   it('interpolates [[...]] placeholders', () => {
-    expect(
-      t('confirmationEmail.from', 'en-GB', { organisation: 'My org' })
-    ).toBe('From My org')
+    expect(t('confirmationEmail.from', EN_GB, { organisation: 'My org' })).toBe(
+      'From My org'
+    )
   })
 })
 
@@ -39,13 +40,13 @@ describe('createFormI18nInstance', () => {
 
   it('resolves plugin strings for en-GB', () => {
     const instance = createFormI18nInstance(formNamespace)
-    const t = instance.getFixedT('en-GB', 'plugin')
+    const t = instance.getFixedT(EN_GB, 'plugin')
     expect(t('confirmationEmail.getHelp')).toBe('Get help')
   })
 
   it('resolves form content from the form namespace for en-GB', () => {
     const instance = createFormI18nInstance(formNamespace)
-    const t = instance.getFixedT('en-GB', 'form')
+    const t = instance.getFixedT(EN_GB, 'form')
     expect(t('pages.page-id.title')).toBe('Your personal details')
   })
 

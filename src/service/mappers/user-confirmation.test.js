@@ -7,6 +7,7 @@ import {
   buildYesNoFieldComponent
 } from '@defra/forms-model/stubs'
 
+import { EN_GB } from '~/src/i18n/translations-helper.js'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { testTranslationsDefinition } from '~/src/service/mappers/formatters/__stubs__/translator.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
@@ -61,7 +62,7 @@ describe('user-confirmation', () => {
       metadata,
       formDefinitionWithRefNum
     )
-    const translator = createTranslator(i18Instance, 'en-GB')
+    const translator = createTranslator(i18Instance, EN_GB)
 
     expect(
       getUserConfirmationEmailBody(
@@ -174,7 +175,7 @@ Rwy\\'n deall ac yn cytuno
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
     const metadata = buildMetaData()
     const i18Instance = createAndPopulatei18nInstance(metadata, formDefinition)
-    const translator = createTranslator(i18Instance, 'en-GB')
+    const translator = createTranslator(i18Instance, EN_GB)
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -222,7 +223,7 @@ I understand and agree
       submissionGuidance: 'Some submission guidance'
     })
     const i18Instance = createAndPopulatei18nInstance(metadata, formDefinition)
-    const translator = createTranslator(i18Instance, 'en-GB')
+    const translator = createTranslator(i18Instance, EN_GB)
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -242,7 +243,7 @@ I understand and agree
       submissionGuidance: 'Some submission guidance'
     })
     const i18Instance = createAndPopulatei18nInstance(metadata, formDefinition)
-    const translator = createTranslator(i18Instance, 'en-GB')
+    const translator = createTranslator(i18Instance, EN_GB)
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -276,7 +277,7 @@ I understand and agree
       metadata,
       testTranslationsDefinition
     )
-    const translator = createTranslator(i18Instance, 'en-GB')
+    const translator = createTranslator(i18Instance, EN_GB)
     expect(
       getUserConfirmationEmailBody(
         formName,
@@ -351,7 +352,7 @@ I understand and agree
         metadata,
         testTranslationsDefinition
       )
-      const translator = createTranslator(i18Instance, 'en-GB')
+      const translator = createTranslator(i18Instance, EN_GB)
 
       const result = getUserConfirmationEmailBody(
         formName,
@@ -382,7 +383,7 @@ I understand and agree
         metadata,
         testTranslationsDefinition
       )
-      const translator = createTranslator(i18Instance, 'en-GB')
+      const translator = createTranslator(i18Instance, EN_GB)
 
       const result = getUserConfirmationEmailBody(
         formName,
@@ -418,7 +419,7 @@ I understand and agree
         metadata,
         testTranslationsDefinition
       )
-      const translator = createTranslator(i18Instance, 'en-GB')
+      const translator = createTranslator(i18Instance, EN_GB)
 
       const result = getUserConfirmationEmailBody(
         formName,
@@ -458,7 +459,7 @@ I understand and agree
         metadata,
         testTranslationsDefinition
       )
-      const translator = createTranslator(i18Instance, 'en-GB')
+      const translator = createTranslator(i18Instance, EN_GB)
 
       const result = getUserConfirmationEmailBody(
         formName,

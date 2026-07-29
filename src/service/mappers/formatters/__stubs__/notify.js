@@ -18,7 +18,8 @@ import {
   buildRepeaterPage,
   buildSummaryPage,
   buildTextFieldComponent,
-  buildUkAddressFieldComponent
+  buildUkAddressFieldComponent,
+  buildYesNoFieldComponent
 } from '@defra/forms-model/stubs'
 
 import {
@@ -718,6 +719,63 @@ export const declarationMessage = buildFormAdapterSubmissionMessage({
   data: {
     main: {
       DeclarationField: 'true'
+    },
+    repeaters: {},
+    files: {}
+  },
+  result: {
+    files: {
+      main: '00000000-0000-0000-0000-000000000000',
+      repeaters: {}
+    }
+  }
+})
+
+export const yesNoFormDefinition = buildDefinition({
+  name: 'Yes/No',
+  startPage: '/yes-no',
+  pages: [
+    buildQuestionPage({
+      title: 'Yes/no page',
+      path: '/yes-no',
+      components: [
+        buildYesNoFieldComponent({
+          name: 'YesNoField',
+          id: '2d35389a-d3d3-4376-b44b-b7c469dab386'
+        })
+      ]
+    }),
+    buildSummaryPage()
+  ],
+  sections: [],
+  lists: [],
+  metadata: {
+    translations: {
+      cy: {
+        'components.2d35389a-d3d3-4376-b44b-b7c469dab386.title':
+          'Declaration in welsh'
+      }
+    }
+  }
+})
+
+export const yesNoMessage = buildFormAdapterSubmissionMessage({
+  messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
+  recordCreatedAt: new Date('2025-08-26'),
+  meta: {
+    schemaVersion: FormAdapterSubmissionSchemaVersion.V1,
+    timestamp: new Date('2025-08-28T11:01:59.347Z'),
+    formName: 'Declaration',
+    formId: FORM_ID,
+    formSlug: 'declaration',
+    status: FormStatus.Live,
+    isPreview: false,
+    notificationEmail: 'enrique.chase@defra.gov.uk',
+    referenceNumber: '111-C7C-D60'
+  },
+  data: {
+    main: {
+      YesNoField: true
     },
     repeaters: {},
     files: {}

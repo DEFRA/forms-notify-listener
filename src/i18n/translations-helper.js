@@ -1,3 +1,6 @@
+export const EN_GB = 'en-GB'
+export const CY = 'cy'
+
 /**
  * Store English values from FormMetadata (form overview page)
  * @param { FormMetadata | undefined } metadata
@@ -17,7 +20,7 @@ export function storeMetadataBaseTranslations(metadata, i18nInstance) {
       'form.privacyNoticeText': metadata.privacyNoticeText ?? '',
       'form.privacyNoticeUrl': metadata.privacyNoticeUrl ?? ''
     }
-    i18nInstance.addResourceBundle('en-GB', 'form', translations, true, true)
+    i18nInstance.addResourceBundle(EN_GB, 'form', translations, true, true)
   }
 }
 

@@ -5,11 +5,13 @@ import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {string} schemaVersion
+ * @param {Translator} _translator
  */
 export function formatter(
   formSubmissionMessage,
   formDefinition,
-  schemaVersion
+  schemaVersion,
+  _translator
 ) {
   const machineReadable = {
     meta: {
@@ -83,4 +85,5 @@ function formatData(formSubmissionMessage, formDefinition) {
  * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

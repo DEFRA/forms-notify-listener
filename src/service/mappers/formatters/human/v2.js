@@ -97,7 +97,6 @@ function processMainEntries(
       /** @type {any} */ (mappedRichFormValue),
       translator
     )
-
     const label = escapeContent(field.title)
     questionLines.push(`## ${label}\n`)
 
@@ -137,11 +136,13 @@ function appendComponentLines(order, componentMap, lines) {
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {string} _schemaVersion
+ * @param {Translator} translator
  */
 export function formatter(
   formSubmissionMessage,
   formDefinition,
-  _schemaVersion
+  _schemaVersion,
+  translator
 ) {
   const { meta, result } = formSubmissionMessage
   const { isPreview, status } = meta
@@ -152,8 +153,6 @@ export function formatter(
     { basePath: '' },
     /** @type {any} */ ({})
   )
-
-  const translator = formModel.createTranslator('en-GB')
 
   const formName = escapeContent(meta.formName)
   const now = new Date()

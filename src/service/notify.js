@@ -7,7 +7,10 @@ import { config } from '~/src/config/index.js'
 import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
 import { logger } from '~/src/helpers/logging/logger.js'
 import { createFormI18nInstance } from '~/src/i18n/index.js'
-import { storeMetadataBaseTranslations } from '~/src/i18n/translations-helper.js'
+import {
+  EN_GB,
+  storeMetadataBaseTranslations
+} from '~/src/i18n/translations-helper.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
@@ -19,7 +22,7 @@ const notifyReplyToId = config.get('notifyReplyToId')
 /**
  * Create an i18n instance and populate it with the necessary base info and form info,
  * ready for a translator to be overlaid
- * @param {FormMetadata} metadata
+ * @param { FormMetadata | undefined } metadata
  * @param {FormDefinition} definition
  */
 export function createAndPopulatei18nInstance(metadata, definition) {
@@ -102,8 +105,16 @@ export async function sendInternalEmail(
     ? `TEST FORM SUBMISSION: ${formName}`
     : `Form submission: ${formName}`
 
+  const i18nInstance = createAndPopulatei18nInstance(undefined, definition)
+  const translator = createTranslator(i18nInstance, EN_GB)
+
   const outputFormatter = getFormatter(output.audience, output.version)
-  let body = outputFormatter(formSubmissionMessage, definition, output.version)
+  let body = outputFormatter(
+    formSubmissionMessage,
+    definition,
+    output.version,
+    translator
+  )
 
   // GOV.UK Notify transforms quotes into curly quotes, so we can't just send the raw payload
   // This is logic specific to Notify, so we include the logic here rather than in the formatter

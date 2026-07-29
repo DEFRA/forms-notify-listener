@@ -208,11 +208,13 @@ function appendComponentLines(order, componentMap, lines) {
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {string} _schemaVersion
+ * @param {Translator} translator
  */
 export function formatter(
   formSubmissionMessage,
   formDefinition,
-  _schemaVersion
+  _schemaVersion,
+  translator
 ) {
   const { meta, result } = formSubmissionMessage
   const { isPreview, status } = meta
@@ -224,7 +226,6 @@ export function formatter(
     /** @type {any} */ ({})
   )
 
-  const translator = formModel.createTranslator('en-GB')
   const formName = escapeContent(meta.formName)
   /**
    * @todo Refactor this below but the code to
