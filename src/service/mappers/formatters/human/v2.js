@@ -39,9 +39,13 @@ export function handleReferenceNumber(definition, message, lines) {
  * Appends the payment details section to the email lines if payment exists
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {string[]} lines
+ * @param {Translator} translator
  */
-function appendPaymentSection(formSubmissionMessage, lines) {
-  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+function appendPaymentSection(formSubmissionMessage, lines, translator) {
+  const paymentDetails = extractPaymentDetails(
+    formSubmissionMessage,
+    translator
+  )
 
   if (!paymentDetails) {
     return
@@ -199,7 +203,7 @@ export function formatter(
   appendComponentLines(order, componentMap, lines)
 
   // Add payment details section if payment exists
-  appendPaymentSection(formSubmissionMessage, lines)
+  appendPaymentSection(formSubmissionMessage, lines, translator)
 
   const uploadedFiles = Object.keys(formSubmissionMessage.data.files).flatMap(
     (key) => formSubmissionMessage.data.files[key]

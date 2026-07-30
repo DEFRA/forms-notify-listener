@@ -10,7 +10,10 @@ import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatt
  * @returns {string}
  */
 function getPaymentSection(formSubmissionMessage, translator) {
-  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+  const paymentDetails = extractPaymentDetails(
+    formSubmissionMessage,
+    translator
+  )
 
   if (!paymentDetails) {
     return ''
@@ -22,9 +25,9 @@ function getPaymentSection(formSubmissionMessage, translator) {
 # ${t('confirmationEmail.paymentSuccess', { amount: paymentDetails.amount })}
 ## ${t('confirmationEmail.paymentFor')}
 ${escapeContent(paymentDetails.description)}
-## Total amount
+## ${t('confirmationEmail.totalAmount')}
 ${paymentDetails.amount}
-## Date of payment
+## ${t('confirmationEmail.dateOfPayment')}
 ${escapeContent(paymentDetails.dateOfPayment)}
 ---
 `
