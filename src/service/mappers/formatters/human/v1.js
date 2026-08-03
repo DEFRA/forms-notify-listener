@@ -19,7 +19,6 @@ import { addMonths } from 'date-fns'
 import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { stringHasNonEmptyValue } from '~/src/helpers/string-utils.js'
-import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import {
   extractPaymentDetails,
@@ -50,9 +49,13 @@ export function handleReferenceNumber(definition, message, lines) {
  * Appends the payment details section to the email lines if payment exists
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {string[]} lines
+ * @param {Translator} translator
  */
-function appendPaymentSection(formSubmissionMessage, lines) {
-  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+function appendPaymentSection(formSubmissionMessage, lines, translator) {
+  const paymentDetails = extractPaymentDetails(
+    formSubmissionMessage,
+    translator
+  )
 
   if (!paymentDetails) {
     return
@@ -75,8 +78,14 @@ function appendPaymentSection(formSubmissionMessage, lines) {
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormModel} formModel
  * @param {Map<string, string[]>} componentMap
+ * @param {Translator} translator
  */
-function processMainEntries(formSubmissionMessage, formModel, componentMap) {
+function processMainEntries(
+  formSubmissionMessage,
+  formModel,
+  componentMap,
+  translator
+) {
   const mainEntries = Object.entries({
     ...formSubmissionMessage.data.main,
     ...formSubmissionMessage.data.files
@@ -100,7 +109,7 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
 
     const answer = field.getDisplayStringFromFormValue(
       /** @type {any} */ (mappedRichFormValue),
-      getDefaultTranslator()
+      translator
     )
 
     const label = escapeContent(field.title)
@@ -111,7 +120,8 @@ function processMainEntries(formSubmissionMessage, formModel, componentMap) {
         answer,
         field,
         /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
-        formSubmissionMessage
+        formSubmissionMessage,
+        translator
       )
       questionLines.push(answerLine)
     }
@@ -203,11 +213,13 @@ function appendComponentLines(order, componentMap, lines) {
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {string} _schemaVersion
+ * @param {Translator} translator
  */
 export function formatter(
   formSubmissionMessage,
   formDefinition,
-  _schemaVersion
+  _schemaVersion,
+  translator
 ) {
   const { meta, result } = formSubmissionMessage
   const { isPreview, status } = meta
@@ -248,19 +260,19 @@ export function formatter(
   lines.push(`${formName} form received at ${escapeContent(formattedNow)}.\n`)
 
   if (meta.language === 'cy') {
-    lines.push(`This form was submitted in Welsh\n`)
+    lines.push(`This form was submitted in Welsh.\n`)
   }
 
   lines.push('---\n')
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
-  processMainEntries(formSubmissionMessage, formModel, componentMap)
+  processMainEntries(formSubmissionMessage, formModel, componentMap, translator)
   processRepeaterFiles(formSubmissionMessage, formDefinition, componentMap)
   appendComponentLines(order, componentMap, lines)
 
   // Add payment details section if payment exists
-  appendPaymentSection(formSubmissionMessage, lines)
+  appendPaymentSection(formSubmissionMessage, lines, translator)
 
   const mainResultFilename = escapeFileLabel('Download main form (CSV)')
   lines.push(
@@ -387,7 +399,7 @@ function formatGeospatialField(
 /**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
- * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage) => string>}
+ * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage, translator: Translator) => string>}
  */
 const fieldHandlers = new Map()
 fieldHandlers.set(Components.FileUploadField, formatFileUploadField)
@@ -403,13 +415,15 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
 function generateFieldLine(
   answer,
   field,
   richFormValue,
-  formSubmissionMessage
+  formSubmissionMessage,
+  translator
 ) {
   // Check list component first (special case with multiple inheriance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
@@ -419,7 +433,13 @@ function generateFieldLine(
   // Iterate through registered handlers
   for (const [Type, handler] of fieldHandlers) {
     if (field instanceof Type) {
-      return handler(answer, field, richFormValue, formSubmissionMessage)
+      return handler(
+        answer,
+        field,
+        richFormValue,
+        formSubmissionMessage,
+        translator
+      )
     }
   }
 
@@ -615,4 +635,5 @@ export function getRelevantPagesForLegacy(
  * @import { PageControllerClass } from '@defra/forms-engine-plugin/engine/pageControllers/helpers/pages.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue, FormStateValue, FileState, FormContextRequest, UploadStatusFileResponse } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

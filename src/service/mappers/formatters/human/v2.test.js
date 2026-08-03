@@ -1,7 +1,9 @@
+import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
 import { FormStatus } from '@defra/forms-model'
 import { buildDefinition } from '@defra/forms-model/stubs'
 
 import { stringExistsFromPosition } from '~/src/helpers/string-utils.js'
+import { EN_GB } from '~/src/i18n/translations-helper.js'
 import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageMetaStub
@@ -16,13 +18,16 @@ import {
   geospatialFormDefinition,
   geospatialMessage,
   pizzaFormDefinition,
-  pizzaMessage
+  pizzaMessage,
+  yesNoFormDefinition,
+  yesNoMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
 import {
   getRelevantPagesForLegacy,
   mapValueToState
 } from '~/src/service/mappers/formatters/human/v2.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
+import { createAndPopulatei18nInstance } from '~/src/service/notify.js'
 
 jest.mock('nunjucks', () => {
   const environment = {
@@ -133,8 +138,15 @@ describe('Page controller helpers', () => {
           version: '2'
         }
       })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
-      const output = formatter(exampleNotifyFormMessage, definition, '1')
+      const output = formatter(
+        exampleNotifyFormMessage,
+        definition,
+        '1',
+        translator
+      )
 
       let pos = 0
       pos = stringExistsFromPosition(
@@ -227,6 +239,8 @@ describe('Page controller helpers', () => {
           version: '2'
         }
       })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
       const output = formatter(
         buildFormAdapterSubmissionMessage({
@@ -237,7 +251,8 @@ describe('Page controller helpers', () => {
           })
         }),
         definition,
-        '1'
+        '1',
+        translator
       )
 
       expect(output).toMatchSnapshot()
@@ -254,6 +269,8 @@ describe('Page controller helpers', () => {
           showReferenceNumber: true
         }
       })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
       const output = formatter(
         buildFormAdapterSubmissionMessage({
@@ -264,7 +281,8 @@ describe('Page controller helpers', () => {
           })
         }),
         definition,
-        '1'
+        '1',
+        translator
       )
 
       expect(output).toContain('Reference number: 874-C7C-D60')
@@ -279,6 +297,8 @@ describe('Page controller helpers', () => {
           version: '2'
         }
       })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
       const output = formatter(
         buildFormAdapterSubmissionMessage({
@@ -289,7 +309,8 @@ describe('Page controller helpers', () => {
           })
         }),
         definition,
-        '1'
+        '1',
+        translator
       )
 
       expect(output).toMatchSnapshot()
@@ -303,8 +324,27 @@ describe('Page controller helpers', () => {
           version: '2'
         }
       })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
-      const output = formatter(pizzaMessage, definition, '2')
+      const output = formatter(pizzaMessage, definition, '2', translator)
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should return a valid human readable v2 response with a yes/no field', () => {
+      const definition = buildDefinition({
+        ...yesNoFormDefinition,
+        output: {
+          audience: 'human',
+          version: '2'
+        }
+      })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
+      const formatter = getFormatter('human', '2')
+      const output = formatter(yesNoMessage, definition, '2', translator)
+      expect(output).toContain('## YesNo Field Component')
+      expect(output).toContain('Yes (true)')
       expect(output).toMatchSnapshot()
     })
 
@@ -316,16 +356,30 @@ describe('Page controller helpers', () => {
           version: '2'
         }
       })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
-      const output = formatter(legacyGraphFormMessage, definition, '2')
+      const output = formatter(
+        legacyGraphFormMessage,
+        definition,
+        '2',
+        translator
+      )
 
       expect(output).toMatchSnapshot()
     })
 
     it('should handle geospatial fields', () => {
       const definition = geospatialFormDefinition
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
       const formatter = getFormatter('human', '2')
-      const output = formatter(geospatialMessage, definition)
+      const output = formatter(
+        geospatialMessage,
+        definition,
+        undefined,
+        translator
+      )
 
       expect(output).toContain(`# Geospatial features of the site
 
@@ -408,8 +462,11 @@ TQ 28521 79799
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '2')
-      const output = formatter(messageWithPayment, definition, '2')
+      const output = formatter(messageWithPayment, definition, '2', translator)
 
       expect(output).toContain('# Payment details')
       expect(output).toContain('## Payment for')
@@ -437,8 +494,16 @@ TQ 28521 79799
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '2')
-      const output = formatter(messageWithNoPayment, definition, '2')
+      const output = formatter(
+        messageWithNoPayment,
+        definition,
+        '2',
+        translator
+      )
 
       expect(output).not.toContain('# Payment details')
       expect(output).not.toContain('## Payment for')
@@ -463,8 +528,16 @@ TQ 28521 79799
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '2')
-      const output = formatter(messageWithNoPayment, definition, '2')
+      const output = formatter(
+        messageWithNoPayment,
+        definition,
+        '2',
+        translator
+      )
 
       expect(output).not.toContain('# Payment details')
     })

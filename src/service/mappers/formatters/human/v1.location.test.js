@@ -1,12 +1,15 @@
+import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
 import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import { ComponentType, Engine, SchemaVersion } from '@defra/forms-model'
 import { buildDefinition, buildQuestionPage } from '@defra/forms-model/stubs'
 
+import { EN_GB } from '~/src/i18n/translations-helper.js'
 import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageMetaStub
 } from '~/src/service/__stubs__/event-builders.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
+import { createAndPopulatei18nInstance } from '~/src/service/notify.js'
 
 jest.mock('nunjucks', () => {
   const environment = {
@@ -97,8 +100,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       expect(output).toContain('## What is your location?')
       expect(output).toContain('Northing: 654321')
@@ -149,8 +163,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       expect(output).toContain('## What is your location?')
       expect(output).not.toContain('Northing:')
@@ -206,8 +231,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       expect(output).toContain('## What are your coordinates?')
       expect(output).toContain('Latitude: 51.51945')
@@ -258,8 +294,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       expect(output).toContain('## What are your coordinates?')
       expect(output).not.toContain('Lat:')
@@ -311,8 +358,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       expect(output).toContain('## What is your OS grid reference?')
       expect(output).toContain('TQ123456')
@@ -361,8 +419,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       expect(output).toContain('## What is your National Grid field number?')
       expect(output).toContain('NG12345678')
@@ -438,8 +507,19 @@ describe('Location field formatting in Human V1', () => {
         }
       })
 
+      const i18Instance = createAndPopulatei18nInstance(
+        undefined,
+        formDefinition
+      )
+      const translator = createTranslator(i18Instance, EN_GB)
+
       const formatter = getFormatter('human', '1')
-      const output = formatter(formSubmissionMessage, formDefinition, '1')
+      const output = formatter(
+        formSubmissionMessage,
+        formDefinition,
+        '1',
+        translator
+      )
 
       // Check Easting and Northing
       expect(output).toContain('## Easting and Northing')

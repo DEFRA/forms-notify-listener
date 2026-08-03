@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto'
+
+import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
   buildDefinition,
   buildFileUploadComponent,
@@ -7,13 +10,15 @@ import {
   buildTextFieldComponent
 } from '@defra/forms-model/stubs'
 
-import { getDefaultTranslator } from '~/src/i18n/default-translator.js'
+import { EN_GB } from '~/src/i18n/translations-helper.js'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import {
   legacyGraphFormDefinition,
   legacyGraphFormMessage
 } from '~/src/service/mappers/formatters/__stubs__/legacy-form.js'
 import {
+  declarationFormDefinition,
+  declarationMessage,
   exampleNotifyFormDefinition,
   exampleNotifyFormMessage,
   geospatialFormDefinition,
@@ -33,12 +38,12 @@ jest.mock('nunjucks', () => {
   }
 })
 
-const translator = getDefaultTranslator()
-
 describe('User answers formatter v1', () => {
   describe('formatter', () => {
     it('should return questions with heading level 1', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Questions should use heading level 1 (#)
@@ -50,6 +55,8 @@ describe('User answers formatter v1', () => {
 
     it('should include answers below questions', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toContain('# What is your name?\n\nSomeone')
@@ -59,6 +66,8 @@ describe('User answers formatter v1', () => {
 
     it('should use bullet points for checkbox answers', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Checkboxes should have bullet points
@@ -68,6 +77,8 @@ describe('User answers formatter v1', () => {
 
     it('should not use bullet points for single radio answer', () => {
       const definition = buildDefinition(pizzaFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       // Radio buttons with single selection should NOT have bullet points
@@ -77,6 +88,8 @@ describe('User answers formatter v1', () => {
 
     it('should skip optional questions with no answer', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // The "Additional details" field is optional and has null value
@@ -97,6 +110,8 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(
         messageWithOptionalAnswer,
         definition,
@@ -110,6 +125,8 @@ describe('User answers formatter v1', () => {
 
     it('should show only file names for uploaded files (no links)', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // File uploads should show file names (no bullet for single file, bullets for multiple)
@@ -121,6 +138,8 @@ describe('User answers formatter v1', () => {
 
     it('should format repeater sections with heading level 1 for main title', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater title should be heading level 1
@@ -129,6 +148,8 @@ describe('User answers formatter v1', () => {
 
     it('should format repeater items with heading level 2', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater items should be heading level 2
@@ -138,6 +159,8 @@ describe('User answers formatter v1', () => {
 
     it('should include repeater item answers', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater answers should be included
@@ -149,6 +172,8 @@ describe('User answers formatter v1', () => {
 
     it('should not generate CSV download links for repeaters', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Should NOT contain CSV download links
@@ -158,6 +183,8 @@ describe('User answers formatter v1', () => {
 
     it('should format UK addresses correctly', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toContain('1 Anywhere Street')
@@ -168,6 +195,8 @@ describe('User answers formatter v1', () => {
 
     it('should preserve multiline text field formatting', () => {
       const definition = buildDefinition(pizzaFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       // Multiline text should preserve line breaks
@@ -176,6 +205,8 @@ describe('User answers formatter v1', () => {
 
     it('should handle multiline text with triple backticks', () => {
       const definition = buildDefinition(pizzaFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       // Multiline text with triple backticks should have them escaped to prevent Notify markdown interpretation
@@ -184,6 +215,8 @@ describe('User answers formatter v1', () => {
 
     it('should maintain component order from form definition', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Check that questions appear in the correct order
@@ -203,6 +236,8 @@ describe('User answers formatter v1', () => {
 
     it('should not include internal email elements', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Should NOT contain elements from internal email
@@ -224,6 +259,8 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(emptyMessage, definition, translator)
 
       // Should return empty or minimal output
@@ -232,6 +269,8 @@ describe('User answers formatter v1', () => {
 
     it('should match snapshot for standard form', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
@@ -239,6 +278,16 @@ describe('User answers formatter v1', () => {
 
     it('should match snapshot for pizza form', () => {
       const definition = buildDefinition(pizzaFormDefinition)
+      // For translation tests, we must ensure the component id's are unique otherwise we'll get collisions
+      definition.pages.forEach((p) => {
+        if ('components' in p) {
+          p.components?.forEach((comp) => {
+            comp.id = randomUUID()
+          })
+        }
+      })
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
@@ -257,6 +306,8 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(messageWithUndefined, definition, translator)
 
       expect(output).not.toContain('# Additional details')
@@ -308,6 +359,10 @@ describe('User answers formatter v1', () => {
         }
       })
 
+      const formModel = new FormModel(definitionWithOptionalFile, {
+        basePath: '/'
+      })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(
         messageWithEmptyFile,
         definitionWithOptionalFile,
@@ -345,6 +400,8 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(
         messageWithNullRepeaterValue,
         definition,
@@ -375,6 +432,8 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(messageWithUnknownKey, definition, translator)
 
       // Should not include unknown component
@@ -398,6 +457,8 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(
         messageWithUnknownRepeater,
         definition,
@@ -477,6 +538,10 @@ describe('User answers formatter v1', () => {
         }
       })
 
+      const formModel = new FormModel(definitionWithRepeaterGuidance, {
+        basePath: '/'
+      })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(
         messageWithRepeaterGuidance,
         definitionWithRepeaterGuidance,
@@ -497,6 +562,8 @@ describe('User answers formatter v1', () => {
 
     it('should handle geospatial fields', () => {
       const definition = geospatialFormDefinition
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(geospatialMessage, definition, translator)
 
       expect(output).toBe(`# Geospatial features of the site
@@ -523,11 +590,45 @@ TQ 28521 79799
 -0.14007559375386336, 51.501691503585704
 -0.1408908761094949, 51.50022866765107`)
     })
+
+    it('should handle declaration fields -  english accepted', () => {
+      const definition = declarationFormDefinition
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(declarationMessage, definition, translator)
+
+      expect(output).toBe(`# Declaration
+
+I understand and agree`)
+    })
+
+    it('should handle declaration fields -  english not provided', () => {
+      const definition = declarationFormDefinition
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const declarationMessageLocal = structuredClone(declarationMessage)
+      declarationMessageLocal.data.main.DeclarationField = 'false'
+      const output = formatter(declarationMessageLocal, definition, translator)
+
+      expect(output).toBe(`# Declaration
+
+Not provided`)
+    })
   })
 
   describe('legacy V1 engine forms', () => {
     it('should format legacy V1 forms correctly', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
+      // For translation tests, we must ensure the component id's are unique otherwise we'll get collisions
+      definition.pages.forEach((p) => {
+        if ('components' in p) {
+          p.components?.forEach((comp) => {
+            comp.id = randomUUID()
+          })
+        }
+      })
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include main form fields
@@ -541,6 +642,8 @@ TQ 28521 79799
 
     it('should handle legacy V1 form repeaters', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include repeater data
@@ -552,6 +655,8 @@ TQ 28521 79799
 
     it('should handle legacy V1 form file uploads', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include file upload without links
@@ -561,6 +666,8 @@ TQ 28521 79799
 
     it('should handle legacy V1 form radio selections', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include radio selection
@@ -570,6 +677,8 @@ TQ 28521 79799
 
     it('should match snapshot for legacy V1 form', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       expect(output).toMatchSnapshot()

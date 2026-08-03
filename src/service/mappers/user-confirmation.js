@@ -10,7 +10,10 @@ import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatt
  * @returns {string}
  */
 function getPaymentSection(formSubmissionMessage, translator) {
-  const paymentDetails = extractPaymentDetails(formSubmissionMessage)
+  const paymentDetails = extractPaymentDetails(
+    formSubmissionMessage,
+    translator
+  )
 
   if (!paymentDetails) {
     return ''
@@ -22,9 +25,9 @@ function getPaymentSection(formSubmissionMessage, translator) {
 # ${t('confirmationEmail.paymentSuccess', { amount: paymentDetails.amount })}
 ## ${t('confirmationEmail.paymentFor')}
 ${escapeContent(paymentDetails.description)}
-## Total amount
+## ${t('confirmationEmail.totalAmount')}
 ${paymentDetails.amount}
-## Date of payment
+## ${t('confirmationEmail.dateOfPayment')}
 ${escapeContent(paymentDetails.dateOfPayment)}
 ---
 `
@@ -48,7 +51,7 @@ export function getUserConfirmationEmailBody(
 ) {
   const { t, tForm, language } = translator
 
-  const formattedSubmissionDate = `${dateFormat(submissionDate, 'h:mmaaa')} on ${dateFormat(submissionDate, 'eeee d MMMM yyyy', language)}`
+  const formattedSubmissionDate = `${dateFormat(submissionDate, 'h:mmaaa', language)} ${t('confirmationEmail.on')} ${dateFormat(submissionDate, 'eeee d MMMM yyyy', language)}`
 
   const { submissionGuidance, organisation, contact } = metadata
 

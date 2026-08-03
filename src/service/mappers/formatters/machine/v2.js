@@ -3,11 +3,13 @@
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {string} schemaVersion
+ * @param {Translator} _translator
  */
 export function formatter(
   formSubmissionMessage,
   formDefinition,
-  schemaVersion
+  schemaVersion,
+  _translator
 ) {
   const { main: machineV1Main, ...machineV1Data } = formSubmissionMessage.data
 
@@ -39,4 +41,5 @@ export function formatter(
 /**
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
  * @import { FormDefinition } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

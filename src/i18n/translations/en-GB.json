@@ -28,6 +28,27 @@
     "geospatialField": {
       "added_one": "Added [[count]] location",
       "added_other": "Added [[count]] locations"
+    },
+
+    "declarationField": {
+      "defaultLabel": "I understand and agree",
+      "defaultConfirmationLabel": "I confirm that I understand and accept this declaration",
+      "notProvided": "Not provided"
+    },
+
+    "yesNoField": {
+      "yes": "Yes",
+      "no": "No"
+    },
+
+    "latLongField": {
+      "latitude": "Latitude",
+      "longitude": "Longitude"
+    },
+
+    "eastingNorthingField": {
+      "easting": "Easting",
+      "northing": "Northing"
     }
   }
 }

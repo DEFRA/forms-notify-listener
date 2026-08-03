@@ -17,7 +17,7 @@ const designerUrl = config.get('designerUrl')
 /**
  * Map of component types to their formatting handlers
  * Using Map to preserve class constructor references
- * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage) => string>}
+ * @type {Map<new (...args: any[]) => Component, (answer: string, field: Component, richFormValue: RichFormValue, formSubmissionMessage: FormAdapterSubmissionMessage, translator: Translator) => string>}
  */
 const fieldHandlers = new Map()
 fieldHandlers.set(Components.FileUploadField, formatFileUploadField)
@@ -33,13 +33,15 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
 export function generateFieldLine(
   answer,
   field,
   richFormValue,
-  formSubmissionMessage
+  formSubmissionMessage,
+  translator
 ) {
   // Check list component first (special case with multiple inheriance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
@@ -49,7 +51,13 @@ export function generateFieldLine(
   // Iterate through registered handlers
   for (const [Type, handler] of fieldHandlers) {
     if (field instanceof Type) {
-      return handler(answer, field, richFormValue, formSubmissionMessage)
+      return handler(
+        answer,
+        field,
+        richFormValue,
+        formSubmissionMessage,
+        translator
+      )
     }
   }
 
@@ -77,9 +85,14 @@ function formatListFormComponent(answer, field, richFormValue) {
     return `${escapeContent(answer)}\n`
   }
 
+  // Yes/No field is treated differently since the item.value static text values will be 'components.yesNoField.yes'
+  // and 'components.yesNoField.no' respectively. The answer will have been translated correctly at this point,
+  // so we don't want to overwrite that with item.value
+  const isYesNoField = field instanceof Components.YesNoField
+
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeContent(item.text)
+      const label = escapeContent(isYesNoField ? answer : item.text)
       const value = escapeContent(`(${item.value})`)
 
       let line = label
@@ -166,4 +179,5 @@ function formatFileUploadField(answer, _field, richFormValue) {
 /**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterFile, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */

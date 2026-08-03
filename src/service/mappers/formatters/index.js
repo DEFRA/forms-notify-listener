@@ -7,7 +7,8 @@ import { formatter as formatMachineV2 } from '~/src/service/mappers/formatters/m
  * @typedef {(
  *   formSubmissionMessage: FormAdapterSubmissionMessage,
  *   formDefinition: FormDefinition,
- *   schemaVersion: string
+ *   schemaVersion: string,
+ *   translator: Translator
  * ) => string} Formatter
  */
 
@@ -47,6 +48,7 @@ export function getFormatter(audience, version) {
 }
 
 /**
- * @import { FormMetadata, SubmitResponsePayload, FormDefinition } from '@defra/forms-model'
+ * @import { FormDefinition } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
  */
