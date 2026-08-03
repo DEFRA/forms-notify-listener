@@ -51,7 +51,7 @@ export function getUserConfirmationEmailBody(
 ) {
   const { t, tForm, language } = translator
 
-  const formattedSubmissionDate = `${dateFormat(submissionDate, 'h:mmaaa')} on ${dateFormat(submissionDate, 'eeee d MMMM yyyy', language)}`
+  const formattedSubmissionDate = `${dateFormat(submissionDate, 'h:mmaaa', language)} ${t('confirmationEmail.on')} ${dateFormat(submissionDate, 'eeee d MMMM yyyy', language)}`
 
   const { submissionGuidance, organisation, contact } = metadata
 

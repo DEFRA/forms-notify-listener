@@ -142,7 +142,7 @@ I understand and agree
 # Ffurflen wedi'i chyflwyno
 ^ Eich cyfeirnod: 576-225-943
 
-Gwnaethom dderbyn eich ffurflen ar gyfer &lsquo;My Form Name&rsquo; am 2:21pm on dydd Mawrth 4 Tachwedd 2025.
+Gwnaethom dderbyn eich ffurflen ar gyfer &lsquo;My Form Name&rsquo; am 2:21yh ar dydd Mawrth 4 Tachwedd 2025.
 
 # Beth sy'n digwydd nesaf
 Something in welsh for submission guidance
