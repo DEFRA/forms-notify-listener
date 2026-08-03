@@ -388,9 +388,6 @@ function generateFieldLine(answer, field, richFormValue, translator) {
     return formatListFormComponent(answer, field, richFormValue, translator)
   }
 
-  const dummyFormSubmissionMessage =
-    /** @type {FormAdapterSubmissionMessage} */ ({})
-
   // Iterate through registered handlers
   for (const [Type, handler] of fieldHandlers) {
     if (field instanceof Type) {
@@ -398,7 +395,8 @@ function generateFieldLine(answer, field, richFormValue, translator) {
         answer,
         field,
         richFormValue,
-        dummyFormSubmissionMessage,
+        // The handlers for user-v1 don't need the actual message
+        /** @type {FormAdapterSubmissionMessage} */ ({}),
         translator
       )
     }
