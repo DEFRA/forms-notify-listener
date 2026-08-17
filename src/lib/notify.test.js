@@ -36,7 +36,8 @@ describe('Utils: Notify', () => {
           },
           headers: {
             Authorization: expect.stringMatching(/^Bearer /)
-          }
+          },
+          timeout: expect.any(Number)
         }
       )
     })

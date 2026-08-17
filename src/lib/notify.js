@@ -5,6 +5,7 @@ import validation from '~/src/helpers/validation/basic-validators.js'
 import { postJson } from '~/src/lib/fetch.js'
 
 const notifyAPIKey = config.get('notifyAPIKey')
+const notifyRequestTimeout = config.get('notifyRequestTimeout')
 
 const API_KEY_SUBSTRING_REDUCTION = 36
 const SERVICE_ID_SUBSTRING_REDUCTION = 73
@@ -168,6 +169,9 @@ export async function sendNotification(args) {
     },
     headers: {
       Authorization: 'Bearer ' + createToken(serviceId, apiKeyId)
-    }
+    },
+    // Wreck raises a 504 Boom error on timeout, which the retry logic in
+    // `notify-targets.js` treats as transient and retries
+    timeout: notifyRequestTimeout
   })
 }

@@ -1,3 +1,4 @@
+import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import {
   ComponentType,
   ControllerType,
@@ -20,6 +21,7 @@ import {
   definitionForFeedbackForm
 } from '~/src/service/__stubs__/forms.js'
 import {
+  hasResolvedNotificationTargets,
   sendNotifyEmails,
   sendUserConfirmationEmail
 } from '~/src/service/notify.js'
@@ -42,11 +44,16 @@ jest.mock('nunjucks', () => {
 })
 jest.mock('~/src/lib/notify.js')
 jest.mock('~/src/lib/manager.js')
+jest.mock('~/src/messaging/event.js')
 jest.mock('~/src/config/index.js', () => ({
   config: {
     get: jest.fn((key) => {
       if (key === 'notifyTemplateId') return 'notify-template-id-1'
       if (key === 'notifyReplyToId') return 'notify-reply-to-id-1'
+      if (key === 'notifyMaxSendAttempts') return 3
+      if (key === 'notifySendBackoffMs') return 1
+      if (key === 'notifySendBudgetMs') return 18000
+      if (key === 'notifyMaxRequeues') return 10
       if (key === 'fileExpiryInMonths') return 9
       return 'mock-value'
     })
@@ -520,6 +527,84 @@ describe('notify', () => {
         FormStatus.Live,
         undefined
       )
+    })
+  })
+
+  describe('hasResolvedNotificationTargets', () => {
+    it.each([
+      [FormAdapterSubmissionSchemaVersion.V1, false],
+      [FormAdapterSubmissionSchemaVersion.V2, true]
+    ])('is %s for a schema version %s message', (schemaVersion, expected) => {
+      const message = buildFormAdapterSubmissionMessage({
+        meta: buildFormAdapterSubmissionMessageMetaStub({ schemaVersion })
+      })
+
+      expect(hasResolvedNotificationTargets(message)).toBe(expected)
+    })
+  })
+
+  describe('dispatch', () => {
+    it('resolves recipients from the definition for a v1 message', async () => {
+      const definition = buildDefinition({
+        ...baseDefinition,
+        outputs: [
+          {
+            audience: 'human',
+            version: '2',
+            emailAddress: 'from-the-definition@example.uk'
+          }
+        ]
+      })
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
+
+      await sendNotifyEmails(formAdapterSubmissionMessage)
+
+      expect(
+        jest
+          .mocked(sendNotification)
+          .mock.calls.map(([args]) => args.emailAddress)
+      ).toEqual([
+        'notificationEmail@example.uk',
+        'from-the-definition@example.uk'
+      ])
+    })
+
+    it('ignores the definition outputs for a v2 message', async () => {
+      const definition = buildDefinition({
+        ...baseDefinition,
+        outputs: [
+          {
+            audience: 'human',
+            version: '2',
+            emailAddress: 'from-the-definition@example.uk'
+          }
+        ]
+      })
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
+
+      await sendNotifyEmails(
+        buildFormAdapterSubmissionMessage({
+          meta: buildFormAdapterSubmissionMessageMetaStub({
+            ...formSubmissionMeta,
+            schemaVersion: FormAdapterSubmissionSchemaVersion.V2
+          }),
+          data: formSubmissionData,
+          result: formSubmissionResult,
+          notificationTargets: [
+            {
+              audience: 'machine',
+              version: '2',
+              emailAddress: 'from-the-message@example.uk'
+            }
+          ]
+        })
+      )
+
+      expect(
+        jest
+          .mocked(sendNotification)
+          .mock.calls.map(([args]) => args.emailAddress)
+      ).toEqual(['from-the-message@example.uk'])
     })
   })
 })

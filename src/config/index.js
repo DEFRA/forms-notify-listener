@@ -145,6 +145,48 @@ export const config = convict({
     default: null,
     env: 'NOTIFY_REPLY_TO_ID'
   },
+  /** @type {SchemaObj<number>} */
+  notifyRequestTimeout: {
+    doc: 'How long to wait for a single GOV.UK Notify request before giving up, in milliseconds. Without this a hung request would hold the message until the SQS visibility timeout expires.',
+    format: Number,
+    default: 5000,
+    env: 'NOTIFY_REQUEST_TIMEOUT_MS'
+  },
+  /** @type {SchemaObj<number>} */
+  notifyMaxSendAttempts: {
+    doc: 'Total attempts made against a single notification target before it is treated as failed, including the first.',
+    format: Number,
+    default: 3,
+    env: 'NOTIFY_MAX_SEND_ATTEMPTS'
+  },
+  /** @type {SchemaObj<number>} */
+  notifySendBackoffMs: {
+    doc: 'Base back-off between attempts against a single notification target, in milliseconds. Multiplied by the attempt number, so the default gives 100ms then 200ms.',
+    format: Number,
+    default: 100,
+    env: 'NOTIFY_SEND_BACKOFF_MS'
+  },
+  /** @type {SchemaObj<number>} */
+  notifySendBudgetMs: {
+    doc: "Wall-clock budget for delivering all of a submission's notification targets, in milliseconds. Must stay comfortably below SQS_VISIBILITY_TIMEOUT so the message is never redelivered while still being worked on.",
+    format: Number,
+    default: 18000,
+    env: 'NOTIFY_SEND_BUDGET_MS'
+  },
+  /** @type {SchemaObj<number>} */
+  notifyRequeueDelaySeconds: {
+    doc: 'How long a requeued submission stays invisible before it is retried, in seconds. Stops a Notify wobble being retried immediately and repeatedly. SQS caps this at 900.',
+    format: Number,
+    default: 30,
+    env: 'NOTIFY_REQUEUE_DELAY_SECONDS'
+  },
+  /** @type {SchemaObj<number>} */
+  notifyMaxRequeues: {
+    doc: 'Safety net on how many times one submission may be put back on the queue for its outstanding targets. Each requeue only happens after at least one address succeeded, so the target list always shrinks and this should never be reached.',
+    format: Number,
+    default: 10,
+    env: 'NOTIFY_MAX_REQUEUES'
+  },
 
   /**
    * API integrations

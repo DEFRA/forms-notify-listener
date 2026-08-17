@@ -14,6 +14,7 @@ import {
   receiveDlqMessages,
   receiveEventMessages,
   redriveDlqMessages,
+  republishEventMessage,
   resubmitDlqMessage
 } from '~/src/messaging/event.js'
 
@@ -171,6 +172,42 @@ describe('event', () => {
       snsMock.on(SendMessageCommand).rejects('bad SQS command')
       await expect(() =>
         resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
+      ).rejects.toThrow('bad SQS command')
+    })
+  })
+
+  describe('republishEventMessage', () => {
+    it('should put the replacement on the main queue', async () => {
+      snsMock.on(SendMessageCommand).resolves({ MessageId: '12345' })
+
+      await expect(
+        republishEventMessage(messageStub.MessageId, messageStub.Body)
+      ).resolves.toBe('12345')
+
+      expect(snsMock).toHaveReceivedCommandWith(SendMessageCommand, {
+        QueueUrl: expect.any(String),
+        MessageBody: messageStub.Body,
+        DelaySeconds: expect.any(Number)
+      })
+    })
+
+    it('should hold the replacement back for the given delay', async () => {
+      snsMock.on(SendMessageCommand).resolves({ MessageId: '12345' })
+
+      await republishEventMessage(messageStub.MessageId, messageStub.Body, 90)
+
+      expect(snsMock).toHaveReceivedCommandWith(SendMessageCommand, {
+        QueueUrl: expect.any(String),
+        MessageBody: messageStub.Body,
+        DelaySeconds: 90
+      })
+    })
+
+    it('should throw if the replacement cannot be sent', async () => {
+      snsMock.on(SendMessageCommand).rejects('bad SQS command')
+
+      await expect(
+        republishEventMessage(messageStub.MessageId, messageStub.Body)
       ).rejects.toThrow('bad SQS command')
     })
   })
