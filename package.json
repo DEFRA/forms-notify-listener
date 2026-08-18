@@ -94,6 +94,7 @@
     "@defra/forms-engine-plugin": true,
     "@defra/hapi-tracing": true,
     "esbuild": true,
-    "unrs-resolver": true
+    "unrs-resolver": true,
+    "fsevents": true
   }
 }
