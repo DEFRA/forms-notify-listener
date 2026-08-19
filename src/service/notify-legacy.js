@@ -7,18 +7,19 @@ import {
 } from '~/src/service/notify-shared.js'
 
 /**
- * Sends one or more mails to GovNotify, resolving the recipients from the live
- * form definition.
+ * Sends one or more mails to GovNotify, sending to every output in the form
+ * definition regardless of its condition.
  *
- * This is the behaviour used for every submission published before
- * `FormAdapterSubmissionSchemaVersion.V2`. Such messages carry no
- * `notificationTargets`, so the addresses have to be recovered from the form
- * definition as it stands *now* rather than as it stood at submission time.
+ * This is the behaviour used for every submission published before conditional
+ * email support was added. Such messages carry no `conditionEvaluations`, so
+ * there is no record of how the form's conditions stood at submission time and
+ * no safe way to recover one - the answers on the message are flat, not the
+ * walked evaluation context the engine judges conditions against.
  *
- * It is kept deliberately unchanged - including the sequential sends and the
- * lack of retries - so that in-flight V1 messages behave exactly as they did
- * before conditional email support was added. Nothing new should be added here;
- * see `notify-targets.js` for the current path.
+ * It is kept deliberately unchanged - including the notification email being
+ * sent to *as well as* every output, rather than only as a fallback - so that
+ * in-flight messages behave exactly as they did before. Nothing new should be
+ * added here; see `notify-conditions.js` for the current path.
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {Promise<void>}
  */

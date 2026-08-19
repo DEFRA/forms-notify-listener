@@ -170,8 +170,8 @@ export async function sendNotification(args) {
     headers: {
       Authorization: 'Bearer ' + createToken(serviceId, apiKeyId)
     },
-    // Wreck raises a 504 Boom error on timeout, which the retry logic in
-    // `notify-targets.js` treats as transient and retries
+    // Without this a hung request holds the submission until the SQS
+    // visibility timeout expires, rather than failing it promptly
     timeout: notifyRequestTimeout
   })
 }

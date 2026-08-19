@@ -1,8 +1,6 @@
-import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
-
 import { logger } from '~/src/helpers/logging/logger.js'
+import { sendNotifyEmailsForConditions } from '~/src/service/notify-conditions.js'
 import { sendNotifyEmailsLegacy } from '~/src/service/notify-legacy.js'
-import { sendNotifyEmailsForTargets } from '~/src/service/notify-targets.js'
 
 export {
   createAndPopulatei18nInstance,
@@ -11,45 +9,41 @@ export {
 } from '~/src/service/notify-shared.js'
 
 /**
- * Whether this submission carries its own resolved recipient list.
+ * Whether this submission records how its form's conditions evaluated.
  *
- * Gated on the declared schema version rather than on whether
- * `notificationTargets` happens to be present. The message schema requires the
- * property from V2 onwards, so a V2 message that somehow arrived without it
- * should fail rather than be quietly mistaken for an older message and
- * have its recipients resolved from the current form definition instead.
+ * Gated on the property being present rather than on the message's schema
+ * version, because the version says nothing about it: every message published
+ * since conditional email support was added carries the property - empty when
+ * the form has no V2 conditions to report - and no message published before it
+ * does.
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {boolean}
  */
-export function hasResolvedNotificationTargets(formSubmissionMessage) {
-  return (
-    formSubmissionMessage.meta.schemaVersion >=
-    FormAdapterSubmissionSchemaVersion.V2
-  )
+export function hasConditionEvaluations(formSubmissionMessage) {
+  return Array.isArray(formSubmissionMessage.conditionEvaluations)
 }
 
 /**
  * Sends one or more mails to GovNotify.
  *
- * Submissions published from `FormAdapterSubmissionSchemaVersion.V2` onwards
- * carry a `notificationTargets` list, resolved at submission time with any
- * output conditions already evaluated, and are delivered per-address with
- * retries and requeueing - see `notify-targets.js`.
+ * Submissions carrying `conditionEvaluations` have their recipients resolved
+ * from the form definition, with each output's condition judged on the outcome
+ * the engine recorded at submission time - see `notify-conditions.js`.
  *
  * Older submissions, which may still be in flight or sitting on the dead-letter
- * queue, have their recipients recovered from the form definition instead - see
- * `notify-legacy.js`.
+ * queue, carry no such record, so every output is sent to regardless of its
+ * condition - see `notify-legacy.js`.
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {Promise<void>}
  */
 export async function sendNotifyEmails(formSubmissionMessage) {
-  if (hasResolvedNotificationTargets(formSubmissionMessage)) {
-    return sendNotifyEmailsForTargets(formSubmissionMessage)
+  if (hasConditionEvaluations(formSubmissionMessage)) {
+    return sendNotifyEmailsForConditions(formSubmissionMessage)
   }
 
   logger.info(
     ['submit', 'email', 'legacy'],
-    `Submission ${formSubmissionMessage.meta.referenceNumber} predates resolved notification targets - resolving recipients from the form definition`
+    `Submission ${formSubmissionMessage.meta.referenceNumber} predates recorded condition outcomes - sending to every output in the form definition`
   )
 
   return sendNotifyEmailsLegacy(formSubmissionMessage)

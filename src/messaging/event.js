@@ -15,7 +15,6 @@ const deadLetterQueueUrl = `${queueUrl}-deadletter`
 const deadLetterQueueArn = config.get('sqsEventsDlqArn')
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
 const pollingVisibilityTimeout = config.get('visibilityTimeout')
-const requeueDelaySeconds = config.get('notifyRequeueDelaySeconds')
 
 const MAX_RETRIES = 7
 const RETRY_WAIT_BETWEEN_TRIES_IN_SECS = 1
@@ -138,55 +137,6 @@ export async function resubmitDlqMessage(messageId, messageJson) {
     logger.error(
       err,
       `[DLQ] Failed to submit new message to main queue based on old message of id ${messageId} from DLQ`
-    )
-    throw err
-  }
-}
-
-/**
- * Put a submission back on the main events queue.
- *
- * Used when some, but not all, of a submission's notification targets could be
- * delivered: the replacement message carries the same submission with the
- * delivered addresses already flagged, so redelivery only retries what is
- * outstanding.
- *
- * The replacement is sent before the original is acknowledged. If the
- * acknowledgement then fails the original is redelivered and some addresses
- * receive the submission twice, which is preferable to sending the replacement
- * after the acknowledgement and losing the outstanding addresses entirely if
- * the send fails.
- *
- * SQS treats this as a brand new message, so its receive count - and therefore
- * its journey to the dead-letter queue - starts again from zero. The delivery
- * delay keeps a Notify wobble from being retried the instant it failed.
- * @param {string} messageId - id of the message being replaced, for correlation
- * @param {string} messageJson
- * @param {number} [delaySeconds] - how long to hold the replacement invisible for
- * @returns {Promise<string | undefined>} id of the replacement message
- */
-export async function republishEventMessage(
-  messageId,
-  messageJson,
-  delaySeconds = requeueDelaySeconds
-) {
-  try {
-    const command = new SendMessageCommand({
-      QueueUrl: queueUrl,
-      MessageBody: messageJson,
-      DelaySeconds: delaySeconds
-    })
-    const sendResult = await sqsClient.send(command)
-
-    logger.info(
-      `[requeue] Requeued message ${messageId} as ${sendResult.MessageId}`
-    )
-
-    return sendResult.MessageId
-  } catch (err) {
-    logger.error(
-      err,
-      `[requeueFailed] Failed to requeue message ${messageId} on the main queue`
     )
     throw err
   }

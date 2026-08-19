@@ -1,9 +1,11 @@
-import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import {
   ComponentType,
+  ConditionEvaluationOutcome,
+  ConditionType,
   ControllerType,
   Engine,
   FormStatus,
+  OperatorName,
   SchemaVersion
 } from '@defra/forms-model'
 import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
@@ -21,7 +23,7 @@ import {
   definitionForFeedbackForm
 } from '~/src/service/__stubs__/forms.js'
 import {
-  hasResolvedNotificationTargets,
+  hasConditionEvaluations,
   sendNotifyEmails,
   sendUserConfirmationEmail
 } from '~/src/service/notify.js'
@@ -50,10 +52,6 @@ jest.mock('~/src/config/index.js', () => ({
     get: jest.fn((key) => {
       if (key === 'notifyTemplateId') return 'notify-template-id-1'
       if (key === 'notifyReplyToId') return 'notify-reply-to-id-1'
-      if (key === 'notifyMaxSendAttempts') return 3
-      if (key === 'notifySendBackoffMs') return 1
-      if (key === 'notifySendBudgetMs') return 18000
-      if (key === 'notifyMaxRequeues') return 10
       if (key === 'fileExpiryInMonths') return 9
       return 'mock-value'
     })
@@ -530,81 +528,141 @@ describe('notify', () => {
     })
   })
 
-  describe('hasResolvedNotificationTargets', () => {
-    it.each([
-      [FormAdapterSubmissionSchemaVersion.V1, false],
-      [FormAdapterSubmissionSchemaVersion.V2, true]
-    ])('is %s for a schema version %s message', (schemaVersion, expected) => {
+  describe('hasConditionEvaluations', () => {
+    it('should be true for a message carrying condition outcomes', () => {
       const message = buildFormAdapterSubmissionMessage({
-        meta: buildFormAdapterSubmissionMessageMetaStub({ schemaVersion })
+        conditionEvaluations: [
+          {
+            conditionId: '2b6c0e28-3d10-4b4f-9c53-2e1b0f4e0d51',
+            outcome: ConditionEvaluationOutcome.True,
+            references: []
+          }
+        ]
       })
 
-      expect(hasResolvedNotificationTargets(message)).toBe(expected)
+      expect(hasConditionEvaluations(message)).toBe(true)
+    })
+
+    it('should be true for a form that had no conditions to report on', () => {
+      const message = buildFormAdapterSubmissionMessage({
+        conditionEvaluations: []
+      })
+
+      expect(hasConditionEvaluations(message)).toBe(true)
+    })
+
+    it('should be false for a message published before they existed', () => {
+      const message = buildFormAdapterSubmissionMessage()
+      delete message.conditionEvaluations
+
+      expect(hasConditionEvaluations(message)).toBe(false)
     })
   })
 
   describe('dispatch', () => {
-    it('resolves recipients from the definition for a v1 message', async () => {
-      const definition = buildDefinition({
-        ...baseDefinition,
-        outputs: [
-          {
-            audience: 'human',
-            version: '2',
-            emailAddress: 'from-the-definition@example.uk'
-          }
-        ]
-      })
+    const conditionId = '2b6c0e28-3d10-4b4f-9c53-2e1b0f4e0d51'
+
+    // The definition schema only accepts an output conditioned on a condition
+    // the form actually has
+    const definition = buildDefinition({
+      ...baseDefinition,
+      conditions: [
+        {
+          id: conditionId,
+          displayName: 'is Julius Ceasar',
+          items: [
+            {
+              id: 'f9d1e0a5-1c2b-4a3d-9f4e-5a6b7c8d9e0f',
+              componentId: 'b2e4a0f5-eb78-4faf-a56d-cfe2462405e9',
+              operator: OperatorName.Is,
+              value: 'Julius Ceasar',
+              type: ConditionType.StringValue
+            }
+          ]
+        }
+      ],
+      outputs: [
+        {
+          audience: 'human',
+          version: '2',
+          emailAddress: 'unconditional@example.uk'
+        },
+        {
+          audience: 'human',
+          version: '2',
+          emailAddress: 'conditional@example.uk',
+          condition: conditionId
+        }
+      ]
+    })
+
+    /**
+     * @returns {(string | undefined)[]}
+     */
+    function sentTo() {
+      return jest
+        .mocked(sendNotification)
+        .mock.calls.map(([args]) => args.emailAddress)
+    }
+
+    it('should send to every output, and the notification email, for a message with no condition evaluations', async () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
 
-      await sendNotifyEmails(formAdapterSubmissionMessage)
+      const message = buildFormAdapterSubmissionMessage({
+        meta: formSubmissionMeta,
+        data: formSubmissionData,
+        result: formSubmissionResult
+      })
+      delete message.conditionEvaluations
 
-      expect(
-        jest
-          .mocked(sendNotification)
-          .mock.calls.map(([args]) => args.emailAddress)
-      ).toEqual([
+      await sendNotifyEmails(message)
+
+      // The legacy path cannot tell whether the conditioned output should have
+      // been included, so it sends to it regardless
+      expect(sentTo()).toEqual([
         'notificationEmail@example.uk',
-        'from-the-definition@example.uk'
+        'unconditional@example.uk',
+        'conditional@example.uk'
       ])
     })
 
-    it('ignores the definition outputs for a v2 message', async () => {
-      const definition = buildDefinition({
-        ...baseDefinition,
-        outputs: [
-          {
-            audience: 'human',
-            version: '2',
-            emailAddress: 'from-the-definition@example.uk'
-          }
-        ]
-      })
+    it('should resolve the outputs, and drop the notification email, for a message carrying condition evaluations', async () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
 
       await sendNotifyEmails(
         buildFormAdapterSubmissionMessage({
-          meta: buildFormAdapterSubmissionMessageMetaStub({
-            ...formSubmissionMeta,
-            schemaVersion: FormAdapterSubmissionSchemaVersion.V2
-          }),
+          meta: formSubmissionMeta,
           data: formSubmissionData,
           result: formSubmissionResult,
-          notificationTargets: [
+          conditionEvaluations: [
             {
-              audience: 'machine',
-              version: '2',
-              emailAddress: 'from-the-message@example.uk'
+              conditionId,
+              outcome: ConditionEvaluationOutcome.False,
+              references: []
             }
           ]
         })
       )
 
-      expect(
-        jest
-          .mocked(sendNotification)
-          .mock.calls.map(([args]) => args.emailAddress)
-      ).toEqual(['from-the-message@example.uk'])
+      expect(sentTo()).toEqual(['unconditional@example.uk'])
+    })
+
+    it('should resolve the outputs for a message carrying an empty evaluation list', async () => {
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
+
+      await sendNotifyEmails(
+        buildFormAdapterSubmissionMessage({
+          meta: formSubmissionMeta,
+          data: formSubmissionData,
+          result: formSubmissionResult,
+          conditionEvaluations: []
+        })
+      )
+
+      // A form with no V2 conditions reports nothing, which is not the same as
+      // reporting nothing about a form that has them - the conditioned output
+      // is excluded rather than sent to blind
+      expect(sentTo()).toEqual(['unconditional@example.uk'])
     })
   })
 })
