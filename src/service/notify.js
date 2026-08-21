@@ -1,7 +1,11 @@
 import { loadFormTranslations } from '@defra/forms-engine-plugin/engine/i18n/createFormTranslator.js'
 import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
 import { extractBaseTranslations } from '@defra/forms-engine-plugin/engine/i18n/extractBaseTranslations.js'
-import { isFeedbackForm, replaceCustomControllers } from '@defra/forms-model'
+import {
+  ConditionEvaluationOutcome,
+  isFeedbackForm,
+  replaceCustomControllers
+} from '@defra/forms-model'
 
 import { config } from '~/src/config/index.js'
 import { getBoomErrorMessage } from '~/src/helpers/logging/error-helper.js'
@@ -61,15 +65,30 @@ export async function sendNotifyEmails(formSubmissionMessage) {
   // Submission email targets are defined in either or both of:
   // - FormDefinition.output (with email address set in FormDefinition.outputEmail or in form metadata)
   // - FormDefinition.outputs (multiple rows are possible)
-  const submissionOutputs = /** @type {Output[]} */ (
-    [
-      {
-        audience: definition.output?.audience ?? 'human',
-        version: definition.output?.version ?? '2',
-        emailAddress
-      }
-    ].concat(definition.outputs ?? [])
+  const submissionOutputs = /** @type {Output[]} */ ([
+    {
+      audience: definition.output?.audience ?? 'human',
+      version: definition.output?.version ?? '2',
+      emailAddress
+    }
+  ])
+
+  const satisfiedConditions =
+    formSubmissionMessage.conditionEvaluations?.filter(
+      (cond) => cond.outcome === ConditionEvaluationOutcome.True
+    ) ?? []
+  const satisfiedConditionIds = new Set(
+    satisfiedConditions.map((cond) => cond.conditionId)
   )
+
+  // Only send to 'outputs' that either:
+  // - don't have a condition
+  // - have a condition but the condition has been satisfied
+  for (const output of definition.outputs ?? []) {
+    if (!output.condition || satisfiedConditionIds.has(output.condition)) {
+      submissionOutputs.push(output)
+    }
+  }
 
   // Submission emails
   for (const output of submissionOutputs) {
