@@ -1,5 +1,6 @@
 import {
   ComponentType,
+  ConditionEvaluationOutcome,
   ControllerType,
   Engine,
   FormStatus,
@@ -387,6 +388,152 @@ describe('notify', () => {
       expect(sendNotification).toHaveBeenNthCalledWith(4, {
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail3@example.uk',
+        personalisation: {
+          subject: 'Form submission: Order a pizza',
+          body: expect.any(String)
+        }
+      })
+    })
+
+    it('should send multiple submission emails where condition satisfied', async () => {
+      const conditionId1 = '1760a3d4-2d6b-4f9b-aae7-31e8b70b6224'
+      const conditionId2 = '4c36a5da-85c6-4901-820e-8ef1ef7fc7ba'
+      const formAdapterSubmissionMessage = buildFormAdapterSubmissionMessage({
+        meta: buildFormAdapterSubmissionMessageMetaStub({
+          formName: 'Order a pizza',
+          formSlug: 'order-a-pizza',
+          isPreview: false,
+          status: FormStatus.Live,
+          notificationEmail: 'notificationEmail1@example.uk',
+          referenceNumber: '576-225-943',
+          formId
+        }),
+        data: buildFormAdapterSubmissionMessageData({
+          main: {
+            QMwMir: 'Roman Pizza',
+            duOEvZ: 'Small',
+            DzEODf: ['Mozzarella'],
+            juiCfC: ['Pepperoni', 'Sausage', 'Onions', 'Basil'],
+            YEpypP: 'None',
+            JumNVc: 'Joe Bloggs',
+            ALNehP: '+441234567890',
+            vAqTmg: {
+              addressLine1: '1 Anywhere Street',
+              town: 'Anywhereville',
+              postcode: 'AN1 2WH'
+            },
+            IbXVGY: {
+              day: 22,
+              month: 8,
+              year: 2025
+            },
+            HGBWLt: ['Garlic sauce']
+          },
+          repeaters: {},
+          files: {}
+        }),
+        result: {
+          files: {
+            main: '9a2c50db-cbd5-4fba-ae5f-58dbfdd176d2',
+            repeaters: {}
+          }
+        },
+        conditionEvaluations: [
+          {
+            conditionId: conditionId1,
+            outcome: ConditionEvaluationOutcome.True,
+            references: []
+          },
+          {
+            conditionId: conditionId2,
+            outcome: ConditionEvaluationOutcome.Error,
+            references: []
+          }
+        ]
+      })
+
+      const definitionForMultipleEmails = {
+        ...definitionForEmail,
+        outputs: /** @type {Output[]} */ ([
+          {
+            emailAddress: 'notificationEmail2@example.uk',
+            audience: 'human',
+            version: '1'
+          },
+          {
+            emailAddress: 'notificationEmail2@example.uk',
+            audience: 'machine',
+            version: '1',
+            condition: conditionId1
+          },
+          {
+            emailAddress: 'notificationEmail3@example.uk',
+            audience: 'machine',
+            version: '2',
+            condition: conditionId2
+          }
+        ]),
+        conditions: [
+          {
+            id: conditionId1,
+            displayName: 'Condition 1',
+            items: [
+              {
+                id: 'a75bf864-366a-409e-8fe3-5d2ab8b62d58',
+                componentId: '66d51c57-d0a0-44b7-88e3-3751e965d79d',
+                operator: 'is',
+                value: 'TestValue1',
+                type: 'StringValue'
+              }
+            ]
+          },
+          {
+            id: conditionId2,
+            displayName: 'Condition 2',
+            items: [
+              {
+                id: '17ca1d11-b662-4d5a-9efe-41cae8985e8a',
+                componentId: '66d51c57-d0a0-44b7-88e3-3751e965d79d',
+                operator: 'is',
+                value: 'TestValue2',
+                type: 'StringValue'
+              }
+            ]
+          }
+        ]
+      }
+      definitionForEmail.pages[0].condition = conditionId1
+      definitionForEmail.pages[1].condition = conditionId2
+      jest
+        .mocked(getFormDefinition)
+        // @ts-expect-error - partial mock of test data
+        .mockResolvedValueOnce(definitionForMultipleEmails)
+      await sendNotifyEmails(formAdapterSubmissionMessage)
+      expect(getFormDefinition).toHaveBeenCalledWith(
+        formId,
+        FormStatus.Live,
+        undefined
+      )
+      expect(sendNotification).toHaveBeenCalledTimes(3)
+      expect(sendNotification).toHaveBeenNthCalledWith(1, {
+        templateId: 'notify-template-id-1',
+        emailAddress: 'notificationEmail1@example.uk',
+        personalisation: {
+          subject: 'Form submission: Order a pizza',
+          body: expect.any(String)
+        }
+      })
+      expect(sendNotification).toHaveBeenNthCalledWith(2, {
+        templateId: 'notify-template-id-1',
+        emailAddress: 'notificationEmail2@example.uk',
+        personalisation: {
+          subject: 'Form submission: Order a pizza',
+          body: expect.any(String)
+        }
+      })
+      expect(sendNotification).toHaveBeenNthCalledWith(3, {
+        templateId: 'notify-template-id-1',
+        emailAddress: 'notificationEmail2@example.uk',
         personalisation: {
           subject: 'Form submission: Order a pizza',
           body: expect.any(String)
