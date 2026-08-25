@@ -7,11 +7,11 @@ export const router = {
   plugin: {
     name: 'router',
     register(server) {
-      server.route(routes)
+      server.route(/** @type { ServerRoute[] } */ (routes))
     }
   }
 }
 
 /**
- * @import { ServerRegisterPluginObject } from '@hapi/hapi'
+ * @import { ServerRegisterPluginObject, ServerRoute } from '@hapi/hapi'
  */

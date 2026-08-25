@@ -165,6 +165,17 @@ export function buildFormAdapterSubmissionMessage(
 }
 
 /**
+ * @param {Partial<EmailQueueMessage>} partialEmailQueueMessage
+ */
+export function buildEmailQueueMessage(partialEmailQueueMessage = {}) {
+  return {
+    messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
+    recordCreatedAt: new Date('2025-08-26'),
+    ...partialEmailQueueMessage
+  }
+}
+
+/**
  * SQS Message stub builder
  * @param {FormAdapterSubmissionMessagePayloadSerialised} messageBody
  * @param {Partial<Message>} message
@@ -184,5 +195,6 @@ export function buildMessageStub(messageBody, message = {}) {
 
 /**
  * @import { Message } from '@aws-sdk/client-sqs'
+ * @import { EmailQueueMessage } from '~/src/messaging/publish.js'
  * @import { FormAdapterSubmissionMessage, FormAdapterSubmissionMessageResult, FormAdapterSubmissionMessagePayload, FormAdapterSubmissionMessageMeta, FormAdapterSubmissionMessageData } from '@defra/forms-engine-plugin/engine/types.js'
  */

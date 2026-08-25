@@ -15,10 +15,6 @@ const NOT_FOUND = 404
 
 export const dlqSchema = Joi.string().valid('submissions', 'emails')
 
-const messageIdSchema = Joi.object({
-  messageId: Joi.string().required()
-})
-
 const queueAndMessageIdSchema = Joi.object({
   dlq: dlqSchema.required(),
   messageId: Joi.string().required()
@@ -165,12 +161,7 @@ export default [
         scope: [`+${Scopes.DeadLetterQueues}`]
       },
       validate: {
-        params: Joi.object()
-          .keys({
-            dlq: dlqSchema.required(),
-            messageId: messageIdSchema.required()
-          })
-          .label('deadLetterDeleteMessageParams'),
+        params: queueAndMessageIdSchema,
         query: timeoutQuerySchema
       }
     }

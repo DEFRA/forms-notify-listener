@@ -185,7 +185,7 @@ export async function deleteDlqMessage(
     waitTimeSeconds
   )
   if (!foundMessage) {
-    const errorText = `Message with id ${messageId} not found in ${dlq}} DLQ after ${MAX_RETRIES} attempts`
+    const errorText = `Message with id ${messageId} not found in ${dlq} DLQ after ${MAX_RETRIES} attempts`
     logger.info(errorText)
     throw new Error(errorText)
   }

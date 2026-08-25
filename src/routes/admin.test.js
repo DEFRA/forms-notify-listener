@@ -27,14 +27,14 @@ describe('Admin routes', () => {
   const jsonContentType = 'application/json'
 
   describe('GET', () => {
-    test('/admin/dead-letter/view route returns 200', async () => {
+    test('/admin/dead-letter/emails/view route returns 200', async () => {
       jest
         .mocked(receiveDlqMessages)
         .mockResolvedValue({ Messages: [{ MessageId: 'message1' }] })
 
       const response = await server.inject({
         method: 'GET',
-        url: '/admin/deadletter/view',
+        url: '/admin/deadletter/emails/view',
         auth
       })
 
@@ -43,12 +43,12 @@ describe('Admin routes', () => {
       expect(response.result).toEqual({ messages: [{ MessageId: 'message1' }] })
     })
 
-    test('/admin/dead-letter/view/message-id route returns 200', async () => {
+    test('/admin/dead-letter/emails/view/message-id route returns 200', async () => {
       jest.mocked(getDlqMessage).mockResolvedValue({ MessageId: 'message1' })
 
       const response = await server.inject({
         method: 'GET',
-        url: '/admin/deadletter/view/message1',
+        url: '/admin/deadletter/emails/view/message1',
         auth
       })
 
@@ -59,10 +59,10 @@ describe('Admin routes', () => {
   })
 
   describe('POST', () => {
-    test('/admin/dead-letter/redrive route returns 200', async () => {
+    test('/admin/dead-letter/submissions/redrive route returns 200', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/admin/deadletter/redrive',
+        url: '/admin/deadletter/submissions/redrive',
         auth
       })
 
@@ -72,10 +72,10 @@ describe('Admin routes', () => {
       expect(redriveDlqMessages).toHaveBeenCalled()
     })
 
-    test('/admin/dead-letter/resubmit route returns 200', async () => {
+    test('/admin/dead-letter/emails/resubmit route returns 200', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/admin/deadletter/resubmit/12345',
+        url: '/admin/deadletter/emails/resubmit/12345',
         auth,
         payload: {
           messageJson: {}
@@ -90,10 +90,10 @@ describe('Admin routes', () => {
   })
 
   describe('DELETE', () => {
-    test('/admin/dead-letter/message-id route returns 200', async () => {
+    test('/admin/dead-letter/emails/message-id route returns 200', async () => {
       const response = await server.inject({
         method: 'DELETE',
-        url: '/admin/deadletter/message-id',
+        url: '/admin/deadletter/emails/message-id',
         auth
       })
 
@@ -101,6 +101,7 @@ describe('Admin routes', () => {
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ message: 'success' })
       expect(deleteDlqMessage).toHaveBeenCalledWith(
+        'emails',
         'message-id',
         undefined,
         undefined

@@ -3,10 +3,13 @@ import {
   receiveMessageTimeout
 } from '~/src/messaging/event.js'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
-import { handleEvent } from '~/src/service/index.js'
-import { runTask, runTaskOnce } from '~/src/tasks/receive-submission-messages.js'
+import { handleSubmissionEvents } from '~/src/service/submission-events.js'
+import {
+  runTask,
+  runTaskOnce
+} from '~/src/tasks/receive-submission-messages.js'
 jest.mock('~/src/messaging/event.js')
-jest.mock('~/src/service/index.js')
+jest.mock('~/src/service/submission-events.js')
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   logger: {
     error: jest.fn(),
@@ -42,15 +45,19 @@ describe('receive-messages', () => {
       jest
         .mocked(receiveEventMessages)
         .mockResolvedValueOnce(receivedMessageResult)
-      jest.mocked(handleEvent).mockResolvedValueOnce(submissionEventResult)
+      jest
+        .mocked(handleSubmissionEvents)
+        .mockResolvedValueOnce(submissionEventResult)
       await runTaskOnce()
-      expect(handleEvent).toHaveBeenCalledWith([message])
+      expect(handleSubmissionEvents).toHaveBeenCalledWith([message], {
+        handleFormSubmission: expect.anything()
+      })
     })
 
     it('should handle undefined messages', async () => {
       jest.mocked(receiveEventMessages).mockResolvedValueOnce({})
       await runTaskOnce()
-      expect(handleEvent).not.toHaveBeenCalled()
+      expect(handleSubmissionEvents).not.toHaveBeenCalled()
     })
   })
 
@@ -64,7 +71,7 @@ describe('receive-messages', () => {
       jest.mocked(receiveEventMessages).mockResolvedValueOnce({
         Messages: []
       })
-      jest.mocked(handleEvent).mockResolvedValueOnce({
+      jest.mocked(handleSubmissionEvents).mockResolvedValueOnce({
         failed: [],
         saved: []
       })
