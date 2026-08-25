@@ -1,36 +1,39 @@
 import { getErrorMessage } from '@defra/forms-model'
 
+import { config } from '~/src/config/index.js'
 import { logger } from '~/src/helpers/logging/logger.js'
 import {
   receiveEventMessages,
   receiveMessageTimeout
 } from '~/src/messaging/event.js'
-import { handleEvent } from '~/src/service/index.js'
+import { handleEmailEvents } from '~/src/service/email-events.js'
+
+const queueUrl = config.get('sqsEmailsQueueUrl')
 
 /**
  * @returns {Promise<void>}
  */
 export async function runTaskOnce() {
-  logger.info('Receiving queue messages')
+  logger.info('Receiving email queue messages')
 
   try {
-    const result = await receiveEventMessages()
+    const result = await receiveEventMessages(queueUrl)
     const messages = result.Messages
     const messageCount = messages ? messages.length : 0
 
-    logger.info(`Received ${messageCount} queue messages`)
+    logger.info(`Received ${messageCount} email queue messages`)
 
     if (messages && messageCount) {
-      logger.info('Handling form submission events')
+      logger.info('Handling email events')
 
-      await handleEvent(messages)
+      await handleEmailEvents(messages)
 
-      logger.info(`Handled form submission event`)
+      logger.info(`Handled email event`)
     }
   } catch (err) {
     logger.error(
       err,
-      `[runTaskOnce] Receive messages task failed - ${getErrorMessage(err)}`
+      `[runTaskOnce] Receive email messages task failed - ${getErrorMessage(err)}`
     )
   }
 }
@@ -42,10 +45,10 @@ export async function runTaskOnce() {
 export async function runTask() {
   await runTaskOnce()
 
-  logger.info(`Adding task to stack in ${receiveMessageTimeout} milliseconds`)
+  logger.info(`Adding email task to stack in ${receiveMessageTimeout} milliseconds`)
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(runTask, receiveMessageTimeout)
 
-  logger.info(`Added task to stack`)
+  logger.info(`Added email task to stack`)
 }

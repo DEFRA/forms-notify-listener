@@ -10,7 +10,8 @@ import { requestLogger } from '~/src/helpers/logging/request-logger.js'
 import { auth } from '~/src/plugins/auth/index.js'
 import { router } from '~/src/plugins/router.js'
 import { prepareSecureContext } from '~/src/secure-context.js'
-import { runTask } from '~/src/tasks/receive-messages.js'
+import { runTask as runEmailTask } from '~/src/tasks/receive-email-messages.js'
+import { runTask as runSubmissionTask } from '~/src/tasks/receive-submission-messages.js'
 
 const isProduction = config.get('isProduction')
 
@@ -66,7 +67,8 @@ export async function createServer() {
   await server.register(auth)
   await server.register(router)
 
-  await runTask()
+  await runEmailTask()
+  await runSubmissionTask()
 
   return server
 }

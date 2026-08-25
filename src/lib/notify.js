@@ -3,6 +3,7 @@ import { token } from '@hapi/jwt'
 import { config } from '~/src/config/index.js'
 import validation from '~/src/helpers/validation/basic-validators.js'
 import { postJson } from '~/src/lib/fetch.js'
+import { publishEvent } from '~/src/messaging/publish.js'
 
 const notifyAPIKey = config.get('notifyAPIKey')
 
@@ -153,6 +154,25 @@ const NOTIFICATIONS_URL = new URL(
 )
 
 /**
+ * Put an email payload on the queue so the email listener can pick this up and
+ * make the call to GOV Notify. This would then handle individual failed emails
+ * being auto-retried, and eventually going to the DLQ if necessary.
+ * @param {string} source - e.g. 'notify-listener' or 'submission-api'
+ * @param {string} reason - e.g. 'save-and-exit' or 'confirmation-email' or 'internal-email'
+ * @param {SendNotificationArgs} args
+ */
+export async function putNotificationOnQueue(source, reason, args) {
+  const message = {
+    ...args,
+    source,
+    reason
+  }
+
+  await publishEvent(message)
+}
+
+/**
+ * Call GOV Notify to send the email
  * @param {SendNotificationArgs} args
  * @returns {Promise<{response: object, body: unknown}>}
  */

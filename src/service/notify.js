@@ -16,7 +16,8 @@ import {
   storeMetadataBaseTranslations
 } from '~/src/i18n/translations-helper.js'
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
-import { sendNotification } from '~/src/lib/notify.js'
+import { putNotificationOnQueue } from '~/src/lib/notify.js'
+import { Reasons, Sources } from '~/src/service/constants.js'
 import { getFormatter } from '~/src/service/mappers/formatters/index.js'
 import { getUserConfirmationEmailBody } from '~/src/service/mappers/user-confirmation.js'
 
@@ -144,15 +145,19 @@ export async function sendInternalEmail(
   logger.info(logTags, 'Sending internal submission email')
 
   try {
-    // Send submission email
-    await sendNotification({
-      templateId,
-      emailAddress: output.emailAddress,
-      personalisation: {
-        subject,
-        body
+    // Add submission email to the queue
+    await putNotificationOnQueue(
+      Sources.NotifyListener,
+      Reasons.SubmissionEmail,
+      {
+        templateId,
+        emailAddress: output.emailAddress,
+        personalisation: {
+          subject,
+          body
+        }
       }
-    })
+    )
 
     logger.info(logTags, 'Internal submission email sent successfully')
   } catch (err) {
@@ -218,23 +223,27 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
   logger.info(logTags, 'Sending user confirmation email')
 
   try {
-    // Send confirmation email
-    await sendNotification({
-      templateId,
-      emailAddress: userConfirmationEmail,
-      personalisation: {
-        subject,
-        body: getUserConfirmationEmailBody(
-          formName,
-          meta.timestamp,
-          formMetadata,
-          formSubmissionMessage,
-          definition,
-          translator
-        )
-      },
-      notifyReplyToId
-    })
+    // Add confirmation email to queue
+    await putNotificationOnQueue(
+      Sources.NotifyListener,
+      Reasons.ConfirmationEmail,
+      {
+        templateId,
+        emailAddress: userConfirmationEmail,
+        personalisation: {
+          subject,
+          body: getUserConfirmationEmailBody(
+            formName,
+            meta.timestamp,
+            formMetadata,
+            formSubmissionMessage,
+            definition,
+            translator
+          )
+        },
+        notifyReplyToId
+      }
+    )
 
     logger.info(logTags, 'User confirmation email sent successfully')
   } catch (err) {

@@ -15,7 +15,7 @@ import {
 import {
   handleFormSubmissionEvents,
   mapFormAdapterSubmissionEvent
-} from '~/src/service/events.js'
+} from '~/src/service/submission-events.js'
 
 jest.mock('~/src/messaging/event.js')
 jest.mock('~/src/helpers/logging/logger.js', () => ({

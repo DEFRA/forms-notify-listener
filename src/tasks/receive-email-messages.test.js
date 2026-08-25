@@ -4,7 +4,7 @@ import {
 } from '~/src/messaging/event.js'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
 import { handleEvent } from '~/src/service/index.js'
-import { runTask, runTaskOnce } from '~/src/tasks/receive-messages.js'
+import { runTask, runTaskOnce } from '~/src/tasks/receive-email-messages.js'
 jest.mock('~/src/messaging/event.js')
 jest.mock('~/src/service/index.js')
 jest.mock('~/src/helpers/logging/logger.js', () => ({

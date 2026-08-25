@@ -13,7 +13,14 @@ import {
 const OK_RESPONSE = 200
 const NOT_FOUND = 404
 
+export const dlqSchema = Joi.string().valid('submissions', 'emails')
+
 const messageIdSchema = Joi.object({
+  messageId: Joi.string().required()
+})
+
+const queueAndMessageIdSchema = Joi.object({
+  dlq: dlqSchema.required(),
   messageId: Joi.string().required()
 })
 
@@ -24,17 +31,16 @@ const timeoutQuerySchema = Joi.object({
 
 export default [
   /**
-   * @satisfies {ServerRoute}
+   * @satisfies {ServerRoute< { Params: { dlq: string }, Query: { visibilityTimeout?: number, waitTimeSeconds?: number } } >}
    */
   ({
     method: 'GET',
-    path: '/admin/deadletter/view',
+    path: '/admin/deadletter/{dlq}/view',
     async handler(request, h) {
-      const { visibilityTimeout, waitTimeSeconds } =
-        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
-          request.query
-        )
+      const { params, query } = request
+      const { visibilityTimeout, waitTimeSeconds } = query
       const messages = await receiveDlqMessages(
+        params.dlq,
         visibilityTimeout,
         waitTimeSeconds
       )
@@ -45,24 +51,28 @@ export default [
         scope: [`+${Scopes.DeadLetterQueues}`]
       },
       validate: {
+        params: Joi.object()
+          .keys({
+            dlq: dlqSchema.required()
+          })
+          .label('deadLetterQueueParams'),
         query: timeoutQuerySchema
       }
     }
   }),
 
   /**
-   * @satisfies {ServerRoute}
+   * @satisfies {ServerRoute< { Params: { dlq: string, messageId: string }, Query: { visibilityTimeout?: number, waitTimeSeconds?: number } } >}
    */
   ({
     method: 'GET',
-    path: '/admin/deadletter/view/{messageId}',
+    path: '/admin/deadletter/{dlq}/view/{messageId}',
     async handler(request, h) {
-      const { visibilityTimeout, waitTimeSeconds } =
-        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
-          request.query
-        )
+      const { params, query } = request
+      const { visibilityTimeout, waitTimeSeconds } = query
       const message = await getDlqMessage(
-        request.params.messageId,
+        params.dlq,
+        params.messageId,
         visibilityTimeout,
         waitTimeSeconds
       )
@@ -73,69 +83,24 @@ export default [
         scope: [`+${Scopes.DeadLetterQueues}`]
       },
       validate: {
-        params: messageIdSchema,
+        params: queueAndMessageIdSchema,
         query: timeoutQuerySchema
       }
     }
   }),
 
   /**
-   * @satisfies {ServerRoute}
+   * @satisfies {ServerRoute< { Params: { dlq: string } } >}
    */
   ({
     method: 'POST',
-    path: '/admin/deadletter/redrive',
-    async handler(_request, h) {
+    path: '/admin/deadletter/{dlq}/redrive',
+    async handler(request, h) {
+      const { params } = request
+      const { dlq } = params
       logger.info('Redriving DLQ')
-      await redriveDlqMessages()
-      logger.info('Redrive DLQ triggered successfully')
-      return h.response({ message: 'success' }).code(OK_RESPONSE)
-    },
-    options: {
-      auth: {
-        scope: [`+${Scopes.DeadLetterQueues}`]
-      }
-    }
-  }),
-
-  /**
-   * @satisfies {ServerRoute<{ Params: { messageId: string }, Payload: { messageJson: string } }>}
-   */
-  ({
-    method: 'POST',
-    path: '/admin/deadletter/resubmit/{messageId}',
-    async handler(request, h) {
-      const { params, payload } = request
-      const { messageId } = params
-      const { messageJson } = payload
-      logger.info(`Resubmitting DLQ message ${messageId}`)
-      await resubmitDlqMessage(messageId, JSON.stringify(messageJson))
-      logger.info(`Resubmitted  DLQ message ${messageId}`)
-      return h.response({ message: 'success' }).code(OK_RESPONSE)
-    },
-    options: {
-      auth: {
-        scope: [`+${Scopes.DeadLetterQueues}`]
-      }
-    }
-  }),
-
-  /**
-   * @satisfies {ServerRoute<{ Params: { messageId: string } }>}
-   */
-  ({
-    method: 'DELETE',
-    path: '/admin/deadletter/{messageId}',
-    async handler(request, h) {
-      const { params, query } = request
-      const { messageId } = params
-      const { visibilityTimeout, waitTimeSeconds } =
-        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
-          query
-        )
-      logger.info(`Deleting DLQ message ${messageId}`)
-      await deleteDlqMessage(messageId, visibilityTimeout, waitTimeSeconds)
-      logger.info(`Deleted DLQ message ${messageId}`)
+      await redriveDlqMessages(dlq)
+      logger.info(`Redrive DLQ ${dlq} triggered successfully`)
       return h.response({ message: 'success' }).code(OK_RESPONSE)
     },
     options: {
@@ -143,7 +108,69 @@ export default [
         scope: [`+${Scopes.DeadLetterQueues}`]
       },
       validate: {
-        params: messageIdSchema,
+        params: Joi.object()
+          .keys({
+            dlq: dlqSchema.required()
+          })
+          .label('deadLetterQueueParams')
+      }
+    }
+  }),
+
+  /**
+   * @satisfies {ServerRoute<{ Params: { dlq: string, messageId: string }, Payload: { messageJson: string } }>}
+   */
+  ({
+    method: 'POST',
+    path: '/admin/deadletter/{dlq}/resubmit/{messageId}',
+    async handler(request, h) {
+      const { params, payload } = request
+      const { dlq, messageId } = params
+      const { messageJson } = payload
+      logger.info(`Resubmitting DLQ message ${messageId} on dlq ${dlq}`)
+      await resubmitDlqMessage(dlq, messageId, JSON.stringify(messageJson))
+      logger.info(`Resubmitted  DLQ message ${messageId} on dlq ${dlq}`)
+      return h.response({ message: 'success' }).code(OK_RESPONSE)
+    },
+    options: {
+      auth: {
+        scope: [`+${Scopes.DeadLetterQueues}`]
+      },
+      validate: {
+        params: queueAndMessageIdSchema
+      }
+    }
+  }),
+
+  /**
+   * @satisfies {ServerRoute<{ Params: { dlq: string, messageId: string } }>}
+   */
+  ({
+    method: 'DELETE',
+    path: '/admin/deadletter/{dlq}/{messageId}',
+    async handler(request, h) {
+      const { params, query } = request
+      const { dlq, messageId } = params
+      const { visibilityTimeout, waitTimeSeconds } =
+        /** @type {{ visibilityTimeout?: number, waitTimeSeconds?: number }} */ (
+          query
+        )
+      logger.info(`Deleting DLQ message ${messageId} on dlq ${dlq}`)
+      await deleteDlqMessage(dlq, messageId, visibilityTimeout, waitTimeSeconds)
+      logger.info(`Deleted DLQ message ${messageId} on dlq ${dlq}`)
+      return h.response({ message: 'success' }).code(OK_RESPONSE)
+    },
+    options: {
+      auth: {
+        scope: [`+${Scopes.DeadLetterQueues}`]
+      },
+      validate: {
+        params: Joi.object()
+          .keys({
+            dlq: dlqSchema.required(),
+            messageId: messageIdSchema.required()
+          })
+          .label('deadLetterDeleteMessageParams'),
         query: timeoutQuerySchema
       }
     }
