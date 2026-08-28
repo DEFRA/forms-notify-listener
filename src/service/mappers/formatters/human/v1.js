@@ -335,9 +335,14 @@ function formatListFormComponent(answer, field, richFormValue) {
     return `${escapeContent(answer)}\n`
   }
 
+  // Yes/No field is treated differently since the item.value static text values will be 'components.yesNoField.yes'
+  // and 'components.yesNoField.no' respectively. The answer will have been translated correctly at this point,
+  // so we don't want to overwrite that with item.value
+  const isYesNoField = field instanceof Components.YesNoField
+
   const formattedItems = items
     .map((/** @type {any} */ item) => {
-      const label = escapeContent(item.text)
+      const label = escapeContent(isYesNoField ? answer : item.text)
       const value = escapeContent(`(${item.value})`)
 
       let line = label
