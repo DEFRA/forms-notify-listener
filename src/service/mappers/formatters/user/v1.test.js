@@ -24,7 +24,9 @@ import {
   geospatialFormDefinition,
   geospatialMessage,
   pizzaFormDefinition,
-  pizzaMessage
+  pizzaMessage,
+  yesNoFormDefinition,
+  yesNoMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
 import { formatter } from '~/src/service/mappers/formatters/user/v1.js'
 
@@ -211,6 +213,16 @@ describe('User answers formatter v1', () => {
 
       // Multiline text with triple backticks should have them escaped to prevent Notify markdown interpretation
       expect(output).toContain('Line 1\n` ` `\nLine 2\n` ` `\nLine 3')
+    })
+
+    it('should handle yes/no field formatting', () => {
+      const definition = buildDefinition(yesNoFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(yesNoMessage, definition, translator)
+
+      // Multiline text should preserve line breaks
+      expect(output).toContain('# YesNo Field Component\n\nYes')
     })
 
     it('should maintain component order from form definition', () => {

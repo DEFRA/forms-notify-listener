@@ -18,7 +18,9 @@ import {
   geospatialFormDefinition,
   geospatialMessage,
   pizzaFormDefinition,
-  pizzaMessage
+  pizzaMessage,
+  yesNoFormDefinition,
+  yesNoMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
 import {
   getRelevantPagesForLegacy,
@@ -211,6 +213,23 @@ describe('Page controller helpers', () => {
         pos,
         '[Download&nbsp;main&nbsp;form&nbsp;(CSV)](http://designer/file-download/818d567d-ee05-4a7a-8c49-d5c54fb09b16)'
       )
+      expect(output).toMatchSnapshot()
+    })
+
+    it('should return a valid human readable v1 response with a yes/no field', () => {
+      const definition = buildDefinition({
+        ...yesNoFormDefinition,
+        output: {
+          audience: 'human',
+          version: '1'
+        }
+      })
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
+      const formatter = getFormatter('human', '1')
+      const output = formatter(yesNoMessage, definition, '1', translator)
+      expect(output).toContain('## YesNo Field Component')
+      expect(output).toContain('Yes (true)')
       expect(output).toMatchSnapshot()
     })
 
