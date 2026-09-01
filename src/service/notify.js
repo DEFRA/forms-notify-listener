@@ -94,6 +94,27 @@ export async function sendNotifyEmails(formSubmissionMessage) {
   }
 
   // Submission emails - only ever send one email per target per type
+  await sendUniqueInternalEmails(
+    submissionOutputs,
+    formSubmissionMessage,
+    definition
+  )
+
+  // Confirmation email
+  await sendUserConfirmationEmail(formSubmissionMessage)
+}
+
+/**
+ * Only ever send one email per target per type (internal submission emails)
+ * @param {Output[]} submissionOutputs
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} definition
+ */
+async function sendUniqueInternalEmails(
+  submissionOutputs,
+  formSubmissionMessage,
+  definition
+) {
   const sentTo = new Set()
   for (const output of submissionOutputs) {
     const key = `${output.emailAddress.toLowerCase()}-${output.audience}-${output.version}`
@@ -102,9 +123,6 @@ export async function sendNotifyEmails(formSubmissionMessage) {
       sentTo.add(key)
     }
   }
-
-  // Confirmation email
-  await sendUserConfirmationEmail(formSubmissionMessage)
 }
 
 /**
