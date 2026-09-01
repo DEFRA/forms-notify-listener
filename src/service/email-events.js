@@ -10,8 +10,16 @@ import { Reasons, Sources } from '~/src/service/constants.js'
 const queueUrl = config.get('sqsEmailsQueueUrl')
 
 const emailQueueMessagePayloadSchema = Joi.object({
-  source: Joi.string().valid(Sources.NotifyListener, Sources.SubmissionApi).required(),
-  reason: Joi.string().valid(Reasons.ConfirmationEmail, Reasons.SaveAndExit, Reasons.SubmissionEmail).required(),
+  source: Joi.string()
+    .valid(Sources.NotifyListener, Sources.SubmissionApi)
+    .required(),
+  reason: Joi.string()
+    .valid(
+      Reasons.ConfirmationEmail,
+      Reasons.SaveAndExit,
+      Reasons.SubmissionEmail
+    )
+    .required(),
   templateId: Joi.string().required(),
   emailAddress: Joi.string().email().required(),
   personalisation: Joi.object().required(),
@@ -36,14 +44,10 @@ export function mapEmailEvent(message) {
    */
   const messageBody = JSON.parse(message.Body)
 
-  const value = Joi.attempt(
-    messageBody,
-    emailQueueMessagePayloadSchema,
-    {
-      abortEarly: false,
-      stripUnknown: true
-    }
-  )
+  const value = Joi.attempt(messageBody, emailQueueMessagePayloadSchema, {
+    abortEarly: false,
+    stripUnknown: true
+  })
 
   return {
     messageId: message.MessageId,
@@ -83,14 +87,14 @@ export async function handleEmailEvents(messages) {
     }
   }
 
-  const results = await Promise.allSettled(
-    messages.map(handleSingleEmailEvent)
-  )
+  const results = await Promise.allSettled(messages.map(handleSingleEmailEvent))
 
   const saved = results
     .filter((result) => result.status === 'fulfilled')
     .map((result) => result.value)
-  const savedMessage = saved.map((item) => `${item.source}:${item.reason}`).join(',')
+  const savedMessage = saved
+    .map((item) => `${item.source}:${item.reason}`)
+    .join(',')
 
   logger.info(`Handled form submission event: ${savedMessage}`)
 

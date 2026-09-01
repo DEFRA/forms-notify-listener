@@ -66,13 +66,7 @@ export async function sendNotifyEmails(formSubmissionMessage) {
   // Submission email targets are defined in either or both of:
   // - FormDefinition.output (with email address set in FormDefinition.outputEmail or in form metadata)
   // - FormDefinition.outputs (multiple rows are possible)
-  const submissionOutputs = /** @type {Output[]} */ ([
-    {
-      audience: definition.output?.audience ?? 'human',
-      version: definition.output?.version ?? '2',
-      emailAddress
-    }
-  ])
+  const submissionOutputs = /** @type {Output[]} */ ([])
 
   const satisfiedConditions =
     formSubmissionMessage.conditionEvaluations?.filter(
@@ -91,13 +85,45 @@ export async function sendNotifyEmails(formSubmissionMessage) {
     }
   }
 
-  // Submission emails
-  for (const output of submissionOutputs) {
-    await sendInternalEmail(definition, formSubmissionMessage, output)
+  // Fallback - use default submission email if no other email targets have been listed
+  if (submissionOutputs.length === 0) {
+    submissionOutputs.push({
+      audience: definition.output?.audience ?? 'human',
+      version: definition.output?.version ?? '2',
+      emailAddress
+    })
   }
+
+  // Submission emails - only ever send one email per target per type
+  await sendUniqueInternalEmails(
+    submissionOutputs,
+    formSubmissionMessage,
+    definition
+  )
 
   // Confirmation email
   await sendUserConfirmationEmail(formSubmissionMessage)
+}
+
+/**
+ * Only ever send one email per target per type (internal submission emails)
+ * @param {Output[]} submissionOutputs
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} definition
+ */
+async function sendUniqueInternalEmails(
+  submissionOutputs,
+  formSubmissionMessage,
+  definition
+) {
+  const sentTo = new Set()
+  for (const output of submissionOutputs) {
+    const key = `${output.emailAddress.toLowerCase()}-${output.audience}-${output.version}`
+    if (!sentTo.has(key)) {
+      await sendInternalEmail(definition, formSubmissionMessage, output)
+      sentTo.add(key)
+    }
+  }
 }
 
 /**

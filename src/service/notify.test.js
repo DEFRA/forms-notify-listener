@@ -305,7 +305,7 @@ describe('notify', () => {
           formSlug: 'order-a-pizza',
           isPreview: false,
           status: FormStatus.Live,
-          notificationEmail: 'notificationEmail1@example.uk',
+          notificationEmail: 'notificationEmailDefault@example.uk',
           referenceNumber: '576-225-943',
           formId
         }),
@@ -370,13 +370,14 @@ describe('notify', () => {
         FormStatus.Live,
         undefined
       )
+      expect(putNotificationOnQueue).toHaveBeenCalledTimes(3)
       expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
         1,
         'notify-listener',
         'submission-email',
         {
           templateId: 'notify-template-id-1',
-          emailAddress: 'notificationEmail1@example.uk',
+          emailAddress: 'notificationEmail2@example.uk',
           personalisation: {
             subject: 'Form submission: Order a pizza',
             body: expect.any(String)
@@ -398,19 +399,6 @@ describe('notify', () => {
       )
       expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
         3,
-        'notify-listener',
-        'submission-email',
-        {
-          templateId: 'notify-template-id-1',
-          emailAddress: 'notificationEmail2@example.uk',
-          personalisation: {
-            subject: 'Form submission: Order a pizza',
-            body: expect.any(String)
-          }
-        }
-      )
-      expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
-        4,
         'notify-listener',
         'submission-email',
         {

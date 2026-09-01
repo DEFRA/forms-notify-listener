@@ -50,7 +50,9 @@ export async function runTaskOnce() {
 export async function runTask() {
   await runTaskOnce()
 
-  logger.info(`Adding submission task to stack in ${receiveMessageTimeout} milliseconds`)
+  logger.info(
+    `Adding submission task to stack in ${receiveMessageTimeout} milliseconds`
+  )
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(runTask, receiveMessageTimeout)

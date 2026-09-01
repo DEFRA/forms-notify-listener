@@ -49,10 +49,7 @@ export function mapFormAdapterSubmissionEvent(message) {
  * @param {T & FormAdapterSubmissionService} formSubmissionService
  * @returns {Promise<{ saved: FormAdapterSubmissionMessage[]; failed: any[] }>}
  */
-export async function handleSubmissionEvents(
-  messages,
-  formSubmissionService
-) {
+export async function handleSubmissionEvents(messages, formSubmissionService) {
   logger.info('Handling form submission events')
   /**
    * @param {Message} message
