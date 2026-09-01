@@ -296,7 +296,7 @@ describe('notify', () => {
           formSlug: 'order-a-pizza',
           isPreview: false,
           status: FormStatus.Live,
-          notificationEmail: 'notificationEmail1@example.uk',
+          notificationEmail: 'notificationEmailDefault@example.uk',
           referenceNumber: '576-225-943',
           formId
         }),
@@ -363,7 +363,7 @@ describe('notify', () => {
       )
       expect(sendNotification).toHaveBeenNthCalledWith(1, {
         templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail1@example.uk',
+        emailAddress: 'notificationEmail2@example.uk',
         personalisation: {
           subject: 'Form submission: Order a pizza',
           body: expect.any(String)
@@ -378,14 +378,6 @@ describe('notify', () => {
         }
       })
       expect(sendNotification).toHaveBeenNthCalledWith(3, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail2@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
-        }
-      })
-      expect(sendNotification).toHaveBeenNthCalledWith(4, {
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail3@example.uk',
         personalisation: {
@@ -514,16 +506,8 @@ describe('notify', () => {
         FormStatus.Live,
         undefined
       )
-      expect(sendNotification).toHaveBeenCalledTimes(3)
+      expect(sendNotification).toHaveBeenCalledTimes(2)
       expect(sendNotification).toHaveBeenNthCalledWith(1, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail1@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
-        }
-      })
-      expect(sendNotification).toHaveBeenNthCalledWith(2, {
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail2@example.uk',
         personalisation: {
@@ -531,7 +515,7 @@ describe('notify', () => {
           body: expect.any(String)
         }
       })
-      expect(sendNotification).toHaveBeenNthCalledWith(3, {
+      expect(sendNotification).toHaveBeenNthCalledWith(2, {
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail2@example.uk',
         personalisation: {
