@@ -14,8 +14,6 @@ const queueUrl = config.get('sqsEmailsQueueUrl')
  * @returns {Promise<void>}
  */
 export async function runTaskOnce() {
-  logger.info('Receiving email queue messages')
-
   try {
     const result = await receiveEventMessages(queueUrl)
     const messages = result.Messages
@@ -45,12 +43,6 @@ export async function runTaskOnce() {
 export async function runTask() {
   await runTaskOnce()
 
-  logger.info(
-    `Adding email task to stack in ${receiveMessageTimeout} milliseconds`
-  )
-
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(runTask, receiveMessageTimeout)
-
-  logger.info(`Added email task to stack`)
 }

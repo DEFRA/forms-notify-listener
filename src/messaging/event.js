@@ -22,10 +22,17 @@ const DEFAULT_WAIT_TIME_IN_SECS = 3
 /**
  * @param {string} dlqName
  */
-function getDeadLetterQueueUrl(dlqName) {
+function getQueueUrl(dlqName) {
   return dlqName === 'emails'
-    ? `${config.get('sqsEmailsQueueUrl')}-deadletter`
-    : `${config.get('sqsEventsQueueUrl')}-deadletter`
+    ? config.get('sqsEmailsQueueUrl')
+    : config.get('sqsEventsQueueUrl')
+}
+
+/**
+ * @param {string} dlqName
+ */
+function getDeadLetterQueueUrl(dlqName) {
+  return `${getQueueUrl(dlqName)}-deadletter`
 }
 
 /**
@@ -146,7 +153,7 @@ export async function resubmitDlqMessage(dlq, messageId, messageJson) {
     )
 
     const command = new SendMessageCommand({
-      QueueUrl: getDeadLetterQueueUrl(dlq),
+      QueueUrl: getQueueUrl(dlq),
       MessageBody: messageJson
     })
     const sendResult = await sqsClient.send(command)
