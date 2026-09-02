@@ -170,7 +170,8 @@ describe('event', () => {
         messageStub.Body
       )
       expect(snsMock).toHaveReceivedCommandWith(SendMessageCommand, {
-        QueueUrl: expect.any(String),
+        QueueUrl:
+          'http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_email_events',
         MessageBody: messageStub.Body
       })
     })
