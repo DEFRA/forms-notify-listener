@@ -177,7 +177,7 @@ export function buildEmailQueueMessage(partialEmailQueueMessage = {}) {
 
 /**
  * SQS Message stub builder
- * @param {FormAdapterSubmissionMessagePayloadSerialised} messageBody
+ * @param {FormAdapterSubmissionMessagePayloadSerialised | EmailQueueMessage} messageBody
  * @param {Partial<Message>} message
  * @returns {Message}
  */

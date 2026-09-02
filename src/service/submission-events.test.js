@@ -33,7 +33,7 @@ jest.mock('~/src/config/index.js', () => ({
   }
 }))
 
-describe('events', () => {
+describe('submission events', () => {
   const handleFormSubmissionMock = jest.fn()
   /**
    * @type {FormAdapterSubmissionService}
