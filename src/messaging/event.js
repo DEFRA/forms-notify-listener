@@ -20,7 +20,7 @@ const DEFAULT_VISIBILITY_TIMEOUT = 3
 const DEFAULT_WAIT_TIME_IN_SECS = 3
 
 /**
- * @param {string} dlqName
+ * @param {NotifyDlq} dlqName
  */
 function getQueueUrl(dlqName) {
   return dlqName === 'emails'
@@ -29,7 +29,7 @@ function getQueueUrl(dlqName) {
 }
 
 /**
- * @param {string} dlqName
+ * @param {NotifyDlq} dlqName
  */
 export function getDeadLetterQueueUrl(dlqName) {
   return `${getQueueUrl(dlqName)}-deadletter`
@@ -56,7 +56,7 @@ export function receiveEventMessages(queueUrl) {
 
 /**
  * Receive dead-letter queue messages
- * @param {string} dlq
+ * @param {NotifyDlq} dlq
  * @returns {Promise<ReceiveMessageResult>}
  */
 export function receiveDlqMessages(
@@ -76,7 +76,7 @@ export function receiveDlqMessages(
 
 /**
  * Get a specific message from the dead-letter queue. Handles retries if not found.
- * @param {string} dlq - the SQS deadletter queue identifier
+ * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {number} [visibilityTimeout] - Queue visibilityTimeout
  * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds
@@ -126,7 +126,7 @@ export async function getDlqMessage(
 
 /**
  * Redrive the specified message from the dead-letter queue to the main queue
- * @param {string} dlq - the SQS deadletter queue ARN
+ * @param {NotifyDlq} dlq - the SQS deadletter queue ARN
  * @returns {Promise<StartMessageMoveTaskResult>}
  */
 export function redriveDlqMessages(dlq) {
@@ -142,7 +142,7 @@ export function redriveDlqMessages(dlq) {
 
 /**
  * Submit the specified message to the main queue
- * @param {string} dlq - the SQS deadletter queue identifier
+ * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {string} messageJson
  */
@@ -174,7 +174,7 @@ export async function resubmitDlqMessage(dlq, messageId, messageJson) {
  * This has to be done as a combined 'read then delete' (while using a visibility timeout of non-zero)
  * otherwise the receipt handle becomes stale and the delete operation doesn't work.
  * getDlqMessage uses retries in case the message is not always visibile when querying the DLQ.
- * @param {string} dlq - the SQS deadletter queue identifier
+ * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {number} [visibilityTimeout] - Queue visibilityTimeout
  * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds
@@ -223,4 +223,5 @@ export function deleteEventMessage(queueUrl, message) {
 
 /**
  * @import { ReceiveMessageCommandInput, ReceiveMessageResult, DeleteMessageCommandOutput, Message, StartMessageMoveTaskResult } from '@aws-sdk/client-sqs'
+ * @import { NotifyDlq } from '~/src/messaging/types.js'
  */

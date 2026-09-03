@@ -136,9 +136,13 @@ describe('notify', () => {
 
       const putNotificationCall = jest.mocked(putNotificationOnQueue).mock
         .calls[0]
-      expect(putNotificationCall[0]).toBe('notify-listener')
-      expect(putNotificationCall[1]).toBe('submission-email')
-      expect(putNotificationCall[2]).toEqual({
+      expect(putNotificationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'submission-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putNotificationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
@@ -148,7 +152,7 @@ describe('notify', () => {
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(
-          putNotificationCall[2].personalisation.body,
+          putNotificationCall[1].personalisation.body,
           'base64'
         ).toString('utf-8')
       )
@@ -171,9 +175,13 @@ describe('notify', () => {
 
       const putNotificationCall = jest.mocked(putNotificationOnQueue).mock
         .calls[0]
-      expect(putNotificationCall[0]).toBe('notify-listener')
-      expect(putNotificationCall[1]).toBe('submission-email')
-      expect(putNotificationCall[2]).toEqual({
+      expect(putNotificationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'submission-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putNotificationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
@@ -183,7 +191,7 @@ describe('notify', () => {
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(
-          putNotificationCall[2].personalisation.body,
+          putNotificationCall[1].personalisation.body,
           'base64'
         ).toString('utf-8')
       )
@@ -250,8 +258,12 @@ describe('notify', () => {
         undefined
       )
       expect(putNotificationOnQueue).toHaveBeenCalledWith(
-        'notify-listener',
-        'submission-email',
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
         {
           templateId: 'notify-template-id-1',
           emailAddress: 'notificationEmail@example.uk',
@@ -373,8 +385,12 @@ describe('notify', () => {
       expect(putNotificationOnQueue).toHaveBeenCalledTimes(3)
       expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
         1,
-        'notify-listener',
-        'submission-email',
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
         {
           templateId: 'notify-template-id-1',
           emailAddress: 'notificationEmail2@example.uk',
@@ -386,8 +402,12 @@ describe('notify', () => {
       )
       expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
         2,
-        'notify-listener',
-        'submission-email',
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
         {
           templateId: 'notify-template-id-1',
           emailAddress: 'notificationEmail2@example.uk',
@@ -399,8 +419,12 @@ describe('notify', () => {
       )
       expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
         3,
-        'notify-listener',
-        'submission-email',
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
         {
           templateId: 'notify-template-id-1',
           emailAddress: 'notificationEmail3@example.uk',
@@ -431,9 +455,13 @@ describe('notify', () => {
       expect(jest.mocked(putNotificationOnQueue)).toHaveBeenCalledTimes(2)
       const putNotificationCall = jest.mocked(putNotificationOnQueue).mock
         .calls[0]
-      expect(putNotificationCall[0]).toBe('notify-listener')
-      expect(putNotificationCall[1]).toBe('submission-email')
-      expect(putNotificationCall[2]).toEqual({
+      expect(putNotificationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'submission-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putNotificationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
@@ -443,9 +471,13 @@ describe('notify', () => {
       })
       const putConfirmationCall = jest.mocked(putNotificationOnQueue).mock
         .calls[1]
-      expect(putConfirmationCall[0]).toBe('notify-listener')
-      expect(putConfirmationCall[1]).toBe('confirmation-email')
-      expect(putConfirmationCall[2]).toEqual({
+      expect(putConfirmationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'confirmation-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putConfirmationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'my-email@test.com',
         personalisation: {
@@ -456,7 +488,7 @@ describe('notify', () => {
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(
-          putNotificationCall[2].personalisation.body,
+          putNotificationCall[1].personalisation.body,
           'base64'
         ).toString('utf-8')
       )

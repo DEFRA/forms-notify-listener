@@ -1,17 +1,16 @@
-import { PublishCommand } from '@aws-sdk/client-sns'
+import { SendMessageCommand } from '@aws-sdk/client-sqs'
 
-import { config } from '~/src/config/index.js'
 import { logger } from '~/src/helpers/logging/logger.js'
-import { getSNSClient } from '~/src/messaging/sns.js'
+import { getSQSClient } from '~/src/messaging/sqs.js'
 
-const snsTopicArn = config.get('emailsSnsTopicArn')
-
-const client = getSNSClient()
+const sqsClient = getSQSClient()
 
 /**
  * @typedef {{
  *  source: string
  *  reason: string
+ *  formId?: string
+ *  referenceNumber?: string
  *  templateId: string
  *  emailAddress: string
  *  personalisation: { subject: string; body: string }
@@ -20,19 +19,20 @@ const client = getSNSClient()
  */
 
 /**
- * Publish event onto topic
+ * Put a message directly on the specified queue (not via SNS)
  * @param {EmailQueueMessage} message
+ * @param {string} queueUrl
  */
-export async function publishEvent(message) {
-  const command = new PublishCommand({
-    TopicArn: snsTopicArn,
-    Message: JSON.stringify(message)
+export async function putMessageOnQueue(message, queueUrl) {
+  const command = new SendMessageCommand({
+    QueueUrl: queueUrl,
+    MessageBody: JSON.stringify(message)
   })
 
-  const result = await client.send(command)
+  const result = await sqsClient.send(command)
 
   logger.info(
-    `Published email event for source ${message.source} reason ${message.reason}. MessageId: ${result.MessageId}`
+    `Put email event on queue for source ${message.source} reason ${message.reason}. MessageId: ${result.MessageId}`
   )
 
   return result

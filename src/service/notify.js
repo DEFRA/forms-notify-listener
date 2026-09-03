@@ -172,25 +172,28 @@ export async function sendInternalEmail(
 
   try {
     // Add submission email to the queue
-    await putNotificationOnQueue(
-      Sources.NotifyListener,
-      Reasons.SubmissionEmail,
-      {
-        templateId,
-        emailAddress: output.emailAddress,
-        personalisation: {
-          subject,
-          body
-        }
-      }
-    )
+    const notifyMeta = /** @type {NotificationMetadata} */ ({
+      source: Sources.NotifyListener,
+      reason: Reasons.SubmissionEmail,
+      formId: messageMeta.formId,
+      referenceNumber: messageMeta.referenceNumber
+    })
 
-    logger.info(logTags, 'Internal submission email sent successfully')
+    await putNotificationOnQueue(notifyMeta, {
+      templateId,
+      emailAddress: output.emailAddress,
+      personalisation: {
+        subject,
+        body
+      }
+    })
+
+    logger.info(logTags, 'Internal submission email queued successfully')
   } catch (err) {
     const errMsg = getBoomErrorMessage(err)
     logger.error(
       err,
-      `[emailSendFailed] Error sending internal submission email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
+      `[emailSendFailed] Error queueing internal submission email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
     )
 
     throw err
@@ -250,33 +253,36 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 
   try {
     // Add confirmation email to queue
-    await putNotificationOnQueue(
-      Sources.NotifyListener,
-      Reasons.ConfirmationEmail,
-      {
-        templateId,
-        emailAddress: userConfirmationEmail,
-        personalisation: {
-          subject,
-          body: getUserConfirmationEmailBody(
-            formName,
-            meta.timestamp,
-            formMetadata,
-            formSubmissionMessage,
-            definition,
-            translator
-          )
-        },
-        notifyReplyToId
-      }
-    )
+    const notifyMeta = /** @type {NotificationMetadata} */ ({
+      source: Sources.NotifyListener,
+      reason: Reasons.ConfirmationEmail,
+      formId: meta.formId,
+      referenceNumber: meta.referenceNumber
+    })
 
-    logger.info(logTags, 'User confirmation email sent successfully')
+    await putNotificationOnQueue(notifyMeta, {
+      templateId,
+      emailAddress: userConfirmationEmail,
+      personalisation: {
+        subject,
+        body: getUserConfirmationEmailBody(
+          formName,
+          meta.timestamp,
+          formMetadata,
+          formSubmissionMessage,
+          definition,
+          translator
+        )
+      },
+      notifyReplyToId
+    })
+
+    logger.info(logTags, 'User confirmation email queued successfully')
   } catch (err) {
     const errMsg = getBoomErrorMessage(err)
     logger.error(
       err,
-      `[emailSendFailed] Error sending user confirmation email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
+      `[emailSendFailed] Error queueing user confirmation email - messageId: ${formSubmissionMessage.messageId} - ${errMsg}`
     )
 
     throw err
@@ -286,4 +292,5 @@ export async function sendUserConfirmationEmail(formSubmissionMessage) {
 /**
  * @import { FormDefinition, FormMetadata, Output } from '@defra/forms-model'
  * @import { FormAdapterSubmissionMessage } from '@defra/forms-engine-plugin/engine/types.js'
+ * @import { NotificationMetadata } from '~/src/messaging/types.js'
  */

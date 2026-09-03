@@ -282,13 +282,6 @@ export const config = convict({
     default: null,
     env: 'SNS_ENDPOINT'
   },
-  /** @type {SchemaObj<string>} */
-  emailsSnsTopicArn: {
-    doc: 'SNS topic ARN for email sending',
-    format: String,
-    default: null,
-    env: 'EMAILS_SNS_TOPIC_ARN'
-  },
   /**@type {SchemaObj<string>} */
   sqsEmailsDlqArn: {
     doc: 'SQS deadletter queue ARN for emails',

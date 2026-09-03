@@ -37,7 +37,7 @@ export async function runTaskOnce() {
 }
 
 /**
- * Task to poll for messages and store the result in the DB
+ * Task to poll for messages and process them
  * @returns {Promise<void>}
  */
 export async function runTask() {

@@ -1,17 +1,8 @@
-import { PublishCommand, SNSClient } from '@aws-sdk/client-sns'
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs'
 import { mockClient } from 'aws-sdk-client-mock'
 
 import 'aws-sdk-client-mock-jest'
-import { publishEvent } from '~/src/messaging/publish.js'
-
-const emailsSnsTopicArn =
-  'arn:aws:sns:eu-west-2:000000000000:forms_notify_email_events'
-
-jest.mock('~/src/config/index.js', () => ({
-  config: {
-    get: jest.fn().mockReturnValue(emailsSnsTopicArn)
-  }
-}))
+import { putMessageOnQueue } from '~/src/messaging/publish.js'
 
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   logger: {
@@ -20,13 +11,13 @@ jest.mock('~/src/helpers/logging/logger.js', () => ({
 }))
 
 describe('publish', () => {
-  const snsMock = mockClient(SNSClient)
+  const sqsMock = mockClient(SQSClient)
 
   afterEach(() => {
-    snsMock.reset()
+    sqsMock.reset()
   })
 
-  describe('publishEvent', () => {
+  describe('putMessageOnQueue', () => {
     const message = {
       source: 'notify-listener',
       reason: 'confirmation-email',
@@ -44,14 +35,14 @@ describe('publish', () => {
     })
 
     it('should publish', async () => {
-      snsMock.on(PublishCommand).resolves({
+      sqsMock.on(SendMessageCommand).resolves({
         MessageId: '00000000-0000-0000-0000-000000000000'
       })
 
-      await publishEvent(message)
-      expect(snsMock).toHaveReceivedCommandWith(PublishCommand, {
-        TopicArn: emailsSnsTopicArn,
-        Message: JSON.stringify(message)
+      await putMessageOnQueue(message, 'http://queue-url')
+      expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, {
+        QueueUrl: 'http://queue-url',
+        MessageBody: JSON.stringify(message)
       })
     })
   })

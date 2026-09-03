@@ -27,7 +27,7 @@ const timeoutQuerySchema = Joi.object({
 
 export default [
   /**
-   * @satisfies {ServerRoute< { Params: { dlq: string }, Query: { visibilityTimeout?: number, waitTimeSeconds?: number } } >}
+   * @satisfies {ServerRoute< { Params: { dlq: NotifyDlq }, Query: { visibilityTimeout?: number, waitTimeSeconds?: number } } >}
    */
   ({
     method: 'GET',
@@ -58,7 +58,7 @@ export default [
   }),
 
   /**
-   * @satisfies {ServerRoute< { Params: { dlq: string, messageId: string }, Query: { visibilityTimeout?: number, waitTimeSeconds?: number } } >}
+   * @satisfies {ServerRoute< { Params: { dlq: NotifyDlq, messageId: string }, Query: { visibilityTimeout?: number, waitTimeSeconds?: number } } >}
    */
   ({
     method: 'GET',
@@ -86,7 +86,7 @@ export default [
   }),
 
   /**
-   * @satisfies {ServerRoute< { Params: { dlq: string } } >}
+   * @satisfies {ServerRoute< { Params: { dlq: NotifyDlq } } >}
    */
   ({
     method: 'POST',
@@ -114,7 +114,7 @@ export default [
   }),
 
   /**
-   * @satisfies {ServerRoute<{ Params: { dlq: string, messageId: string }, Payload: { messageJson: string } }>}
+   * @satisfies {ServerRoute<{ Params: { dlq: NotifyDlq, messageId: string }, Payload: { messageJson: string } }>}
    */
   ({
     method: 'POST',
@@ -139,7 +139,7 @@ export default [
   }),
 
   /**
-   * @satisfies {ServerRoute<{ Params: { dlq: string, messageId: string } }>}
+   * @satisfies {ServerRoute<{ Params: { dlq: NotifyDlq, messageId: string } }>}
    */
   ({
     method: 'DELETE',
@@ -170,4 +170,5 @@ export default [
 
 /**
  * @import { ServerRoute } from '@hapi/hapi'
+ * @import { NotifyDlq } from '~/src/messaging/types.js'
  */
