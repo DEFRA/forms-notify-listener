@@ -46,8 +46,8 @@ export function getErrorDetails(error) {
     // @ts-expect-error - dynamic error object
     'errors' in error.data
   ) {
-    // @ts-expect-error - dynamic error object
     return (
+      // @ts-expect-error - dynamic error object
       error.data.errors
         // @ts-expect-error - dynamic error object
         .map((err) => `error: ${err.error} message: ${err.message}`)
