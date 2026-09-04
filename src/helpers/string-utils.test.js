@@ -1,5 +1,6 @@
 import {
   escapeRegExp,
+  getErrorDetails,
   stringHasNonEmptyValue
 } from '~/src/helpers/string-utils.js'
 
@@ -52,6 +53,40 @@ describe('String Utils', () => {
     })
     test('should return true if non-empty string', () => {
       expect(stringHasNonEmptyValue('a')).toBe(true)
+    })
+  })
+
+  describe('getErrorDetails', () => {
+    test('should handle no details', () => {
+      expect(getErrorDetails({})).toBe('')
+    })
+    test('should handle error.data = null', () => {
+      const error = new Error('test error')
+      // @ts-expect-error - dynamic error object
+      error.data = null
+      expect(getErrorDetails(error)).toBe('')
+    })
+    test('should handle single error details', () => {
+      const error = new Error('test error')
+      // @ts-expect-error - dynamic error object
+      error.data = {
+        errors: [{ error: 'err1', message: 'message1' }]
+      }
+      expect(getErrorDetails(error)).toBe('error: err1 message: message1')
+    })
+
+    test('should handle multiple error details', () => {
+      const error = new Error('test error')
+      // @ts-expect-error - dynamic error object
+      error.data = {
+        errors: [
+          { error: 'err1', message: 'message1' },
+          { error: 'err2', message: 'message2' }
+        ]
+      }
+      expect(getErrorDetails(error)).toBe(
+        'error: err1 message: message1 - error: err2 message: message2'
+      )
     })
   })
 })

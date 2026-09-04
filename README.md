@@ -87,11 +87,9 @@ AWS_REGION=eu-west-2
 AWS_ACCESS_KEY_ID=dummy
 AWS_SECRET_ACCESS_KEY=dummy
 
-SNS_ENDPOINT=http://localhost:4566
 SQS_ENDPOINT=http://localhost:4566
 EVENTS_SQS_QUEUE_URL=http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_listener_events
 EMAILS_SQS_QUEUE_URL=http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_email_events
-EMAILS_SNS_TOPIC_ARN=arn:aws:sns:eu-west-2:000000000000:forms_notify_email_events
 EVENTS_SQS_DLQ_ARN=arn:aws:sqs:eu-west-2:000000000000:forms_notify_listener_events-deadletter
 EMAILS_SQS_DLQ_ARN=arn:aws:sqs:eu-west-2:000000000000:forms_notify_email_events-deadletter
 RECEIVE_MESSAGE_TIMEOUT_MS=5000

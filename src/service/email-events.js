@@ -3,6 +3,7 @@ import Joi from 'joi'
 
 import { config } from '~/src/config/index.js'
 import { logger } from '~/src/helpers/logging/logger.js'
+import { getErrorDetails } from '~/src/helpers/string-utils.js'
 import { sendNotification } from '~/src/lib/notify.js'
 import { deleteEventMessage } from '~/src/messaging/event.js'
 import { Reasons, Sources } from '~/src/service/constants.js'
@@ -81,7 +82,7 @@ export async function handleEmailEvents(messages) {
     } catch (err) {
       logger.error(
         err,
-        `[handleSingleEmailEvent] Failed to handle message - ${getErrorMessage(err)}`
+        `[handleSingleEmailEvent] Failed to handle message - ${getErrorMessage(err)} ${getErrorDetails(err)}`
       )
       throw err
     }
@@ -96,7 +97,7 @@ export async function handleEmailEvents(messages) {
     .map((item) => `${item.source}:${item.reason}`)
     .join(',')
 
-  logger.info(`Handled form submission event: ${savedMessage}`)
+  logger.info(`Handled email event: ${savedMessage}`)
 
   const failed = results
     .filter((result) => result.status === 'rejected')
@@ -105,7 +106,7 @@ export async function handleEmailEvents(messages) {
   if (failed.length) {
     const failedMessage = failed.map((item) => getErrorMessage(item)).join(',')
 
-    logger.info(`Failed to handle form submission event: ${failedMessage}`)
+    logger.info(`Failed to handle email event: ${failedMessage}`)
   }
 
   return { saved, failed }
