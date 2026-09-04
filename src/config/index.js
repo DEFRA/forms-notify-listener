@@ -276,13 +276,6 @@ export const config = convict({
     env: 'EVENTS_SQS_DLQ_ARN'
   },
   /**@type {SchemaObj<string>} */
-  snsEndpoint: {
-    doc: 'The SNS endpoint, if required (e.g. a local development dev service)',
-    format: String,
-    default: null,
-    env: 'SNS_ENDPOINT'
-  },
-  /**@type {SchemaObj<string>} */
   sqsEmailsDlqArn: {
     doc: 'SQS deadletter queue ARN for emails',
     format: String,
