@@ -10,9 +10,7 @@ import { logger } from '~/src/helpers/logging/logger.js'
 import { sqsClient } from '~/src/messaging/sqs.js'
 
 export const receiveMessageTimeout = config.get('receiveMessageTimeout')
-const queueUrl = config.get('sqsEventsQueueUrl')
-const deadLetterQueueUrl = `${queueUrl}-deadletter`
-const deadLetterQueueArn = config.get('sqsEventsDlqArn')
+
 const maxNumberOfMessages = config.get('maxNumberOfMessages')
 const pollingVisibilityTimeout = config.get('visibilityTimeout')
 
@@ -22,33 +20,53 @@ const DEFAULT_VISIBILITY_TIMEOUT = 3
 const DEFAULT_WAIT_TIME_IN_SECS = 3
 
 /**
- * @type {ReceiveMessageCommandInput}
+ * @param {NotifyDlq} dlqName
  */
-const input = {
-  QueueUrl: queueUrl,
-  MaxNumberOfMessages: maxNumberOfMessages,
-  VisibilityTimeout: pollingVisibilityTimeout
+function getQueueUrl(dlqName) {
+  return dlqName === 'emails'
+    ? config.get('sqsEmailsQueueUrl')
+    : config.get('sqsEventsQueueUrl')
+}
+
+/**
+ * @param {NotifyDlq} dlqName
+ */
+export function getDeadLetterQueueUrl(dlqName) {
+  return `${getQueueUrl(dlqName)}-deadletter`
 }
 
 /**
  * Receive event messages
+ * @param {string} queueUrl - the SQS queue url
  * @returns {Promise<ReceiveMessageResult>}
  */
-export function receiveEventMessages() {
+export function receiveEventMessages(queueUrl) {
+  /**
+   * @type {ReceiveMessageCommandInput}
+   */
+  const input = {
+    QueueUrl: queueUrl,
+    MaxNumberOfMessages: maxNumberOfMessages,
+    VisibilityTimeout: pollingVisibilityTimeout
+  }
+
   const command = new ReceiveMessageCommand(input)
   return sqsClient.send(command)
 }
 
 /**
  * Receive dead-letter queue messages
+ * @param {NotifyDlq} dlq
  * @returns {Promise<ReceiveMessageResult>}
  */
 export function receiveDlqMessages(
+  dlq,
   visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
   waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
 ) {
+  const queueUrl = getDeadLetterQueueUrl(dlq)
   const command = new ReceiveMessageCommand({
-    QueueUrl: deadLetterQueueUrl,
+    QueueUrl: queueUrl,
     MaxNumberOfMessages: 10,
     VisibilityTimeout: visibilityTimeout,
     WaitTimeSeconds: waitTimeSeconds
@@ -58,12 +76,14 @@ export function receiveDlqMessages(
 
 /**
  * Get a specific message from the dead-letter queue. Handles retries if not found.
+ * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {number} [visibilityTimeout] - Queue visibilityTimeout
  * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds
  * @returns {Promise< Message | null >}
  */
 export async function getDlqMessage(
+  dlq,
   messageId,
   visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
   waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
@@ -72,6 +92,7 @@ export async function getDlqMessage(
 
   while (attempts <= MAX_RETRIES) {
     const messageResponse = await receiveDlqMessages(
+      dlq,
       visibilityTimeout,
       waitTimeSeconds
     )
@@ -105,28 +126,34 @@ export async function getDlqMessage(
 
 /**
  * Redrive the specified message from the dead-letter queue to the main queue
+ * @param {NotifyDlq} dlq - the SQS deadletter queue ARN
  * @returns {Promise<StartMessageMoveTaskResult>}
  */
-export function redriveDlqMessages() {
+export function redriveDlqMessages(dlq) {
+  const queueArn =
+    dlq === 'emails'
+      ? config.get('sqsEmailsDlqArn')
+      : config.get('sqsEventsDlqArn')
   const command = new StartMessageMoveTaskCommand({
-    SourceArn: deadLetterQueueArn
+    SourceArn: queueArn
   })
   return sqsClient.send(command)
 }
 
 /**
  * Submit the specified message to the main queue
+ * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {string} messageJson
  */
-export async function resubmitDlqMessage(messageId, messageJson) {
+export async function resubmitDlqMessage(dlq, messageId, messageJson) {
   try {
     logger.info(
       `[DLQ] Submitting new message in place of message id ${messageId}`
     )
 
     const command = new SendMessageCommand({
-      QueueUrl: queueUrl,
+      QueueUrl: getQueueUrl(dlq),
       MessageBody: messageJson
     })
     const sendResult = await sqsClient.send(command)
@@ -147,28 +174,31 @@ export async function resubmitDlqMessage(messageId, messageJson) {
  * This has to be done as a combined 'read then delete' (while using a visibility timeout of non-zero)
  * otherwise the receipt handle becomes stale and the delete operation doesn't work.
  * getDlqMessage uses retries in case the message is not always visibile when querying the DLQ.
+ * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {number} [visibilityTimeout] - Queue visibilityTimeout
  * @param {number} [waitTimeSeconds] - Queue waitTimeSeconds
  */
 export async function deleteDlqMessage(
+  dlq,
   messageId,
   visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
   waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
 ) {
   const foundMessage = await getDlqMessage(
+    dlq,
     messageId,
     visibilityTimeout,
     waitTimeSeconds
   )
   if (!foundMessage) {
-    const errorText = `Message with id ${messageId} not found in notify-listener DLQ after ${MAX_RETRIES} attempts`
+    const errorText = `Message with id ${messageId} not found in ${dlq} DLQ after ${MAX_RETRIES} attempts`
     logger.info(errorText)
     throw new Error(errorText)
   }
 
   const deleteCommand = new DeleteMessageCommand({
-    QueueUrl: deadLetterQueueUrl,
+    QueueUrl: getDeadLetterQueueUrl(dlq),
     ReceiptHandle: foundMessage.ReceiptHandle
   })
   logger.info(`[DLQ] Deleting message with id ${messageId}`)
@@ -178,10 +208,11 @@ export async function deleteDlqMessage(
 
 /**
  * Delete event message
+ * @param {string} queueUrl - the SQS queue url
  * @param {Message} message
  * @returns {Promise<DeleteMessageCommandOutput>}
  */
-export function deleteEventMessage(message) {
+export function deleteEventMessage(queueUrl, message) {
   const command = new DeleteMessageCommand({
     QueueUrl: queueUrl,
     ReceiptHandle: message.ReceiptHandle
@@ -192,4 +223,5 @@ export function deleteEventMessage(message) {
 
 /**
  * @import { ReceiveMessageCommandInput, ReceiveMessageResult, DeleteMessageCommandOutput, Message, StartMessageMoveTaskResult } from '@aws-sdk/client-sqs'
+ * @import { NotifyDlq } from '~/src/messaging/types.js'
  */

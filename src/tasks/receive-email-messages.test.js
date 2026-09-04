@@ -2,11 +2,11 @@ import {
   receiveEventMessages,
   receiveMessageTimeout
 } from '~/src/messaging/event.js'
-import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
-import { handleEvent } from '~/src/service/index.js'
-import { runTask, runTaskOnce } from '~/src/tasks/receive-messages.js'
+import { buildEmailQueueMessage } from '~/src/service/__stubs__/event-builders.js'
+import { handleEmailEvents } from '~/src/service/email-events.js'
+import { runTask, runTaskOnce } from '~/src/tasks/receive-email-messages.js'
 jest.mock('~/src/messaging/event.js')
-jest.mock('~/src/service/index.js')
+jest.mock('~/src/service/email-events.js')
 jest.mock('~/src/helpers/logging/logger.js', () => ({
   logger: {
     error: jest.fn(),
@@ -35,22 +35,22 @@ describe('receive-messages', () => {
       const receivedMessageResult = /** @type {ReceiveMessageResult} */ ({
         Messages: [message]
       })
-      const submissionEventResult = {
+      const emailEventResult = {
         failed: [],
-        saved: [buildFormAdapterSubmissionMessage()]
+        saved: [/** @type {EmailQueueMessage} */ (buildEmailQueueMessage())]
       }
       jest
         .mocked(receiveEventMessages)
         .mockResolvedValueOnce(receivedMessageResult)
-      jest.mocked(handleEvent).mockResolvedValueOnce(submissionEventResult)
+      jest.mocked(handleEmailEvents).mockResolvedValueOnce(emailEventResult)
       await runTaskOnce()
-      expect(handleEvent).toHaveBeenCalledWith([message])
+      expect(handleEmailEvents).toHaveBeenCalledWith([message])
     })
 
     it('should handle undefined messages', async () => {
       jest.mocked(receiveEventMessages).mockResolvedValueOnce({})
       await runTaskOnce()
-      expect(handleEvent).not.toHaveBeenCalled()
+      expect(handleEmailEvents).not.toHaveBeenCalled()
     })
   })
 
@@ -64,7 +64,7 @@ describe('receive-messages', () => {
       jest.mocked(receiveEventMessages).mockResolvedValueOnce({
         Messages: []
       })
-      jest.mocked(handleEvent).mockResolvedValueOnce({
+      jest.mocked(handleEmailEvents).mockResolvedValueOnce({
         failed: [],
         saved: []
       })
@@ -88,4 +88,5 @@ describe('receive-messages', () => {
 
 /**
  * @import { ReceiveMessageResult, Message } from '@aws-sdk/client-sqs'
+ * @import { EmailQueueMessage } from '~/src/messaging/publish.js'
  */

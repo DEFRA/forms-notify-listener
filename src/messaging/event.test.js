@@ -11,6 +11,7 @@ import 'aws-sdk-client-mock-jest'
 import {
   deleteDlqMessage,
   deleteEventMessage,
+  getDeadLetterQueueUrl,
   receiveDlqMessages,
   receiveEventMessages,
   redriveDlqMessages,
@@ -24,6 +25,8 @@ jest.mock('~/src/helpers/logging/logger.js', () => ({
     info: jest.fn()
   }
 }))
+
+const queueUrl = 'http://queue-url'
 
 describe('event', () => {
   const snsMock = mockClient(SQSClient)
@@ -44,7 +47,9 @@ describe('event', () => {
         Messages: [messageStub]
       }
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-      await expect(receiveEventMessages()).resolves.toEqual(receivedMessage)
+      await expect(receiveEventMessages(queueUrl)).resolves.toEqual(
+        receivedMessage
+      )
     })
   })
 
@@ -58,7 +63,7 @@ describe('event', () => {
       }
 
       snsMock.on(DeleteMessageCommand).resolves(deleteResult)
-      await deleteEventMessage(messageStub)
+      await deleteEventMessage(queueUrl, messageStub)
       expect(snsMock).toHaveReceivedCommandWith(DeleteMessageCommand, {
         QueueUrl: expect.any(String),
         ReceiptHandle: receiptHandle
@@ -73,7 +78,7 @@ describe('event', () => {
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-      await receiveDlqMessages()
+      await receiveDlqMessages('emails')
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         VisibilityTimeout: 3,
@@ -93,7 +98,7 @@ describe('event', () => {
       }
 
       snsMock.on(StartMessageMoveTaskCommand).resolves(redriveResult)
-      await redriveDlqMessages()
+      await redriveDlqMessages('emails')
       expect(snsMock).toHaveReceivedCommandWith(StartMessageMoveTaskCommand, {
         SourceArn: expect.any(String)
       })
@@ -107,7 +112,7 @@ describe('event', () => {
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-      await deleteDlqMessage(messageStub.MessageId, 5, 2)
+      await deleteDlqMessage('submissions', messageStub.MessageId, 5, 2)
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         MaxNumberOfMessages: 10,
@@ -126,7 +131,7 @@ describe('event', () => {
       }
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
-      await deleteDlqMessage(messageStub.MessageId)
+      await deleteDlqMessage('emails', messageStub.MessageId)
       expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
         QueueUrl: expect.any(String),
         MaxNumberOfMessages: 10,
@@ -146,9 +151,9 @@ describe('event', () => {
 
       snsMock.on(ReceiveMessageCommand).resolves(receivedMessage)
       await expect(() =>
-        deleteDlqMessage(messageStub.MessageId, 0, 0)
+        deleteDlqMessage('emails', messageStub.MessageId, 0, 0)
       ).rejects.toThrow(
-        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in notify-listener DLQ after 7 attempts'
+        'Message with id 31cb6fff-8317-412e-8488-308d099034c4 not found in emails DLQ after 7 attempts'
       )
     }, 10000)
   })
@@ -160,9 +165,14 @@ describe('event', () => {
       }
 
       snsMock.on(SendMessageCommand).resolves(sendMessage)
-      await resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
+      await resubmitDlqMessage(
+        'emails',
+        messageStub.MessageId,
+        messageStub.Body
+      )
       expect(snsMock).toHaveReceivedCommandWith(SendMessageCommand, {
-        QueueUrl: expect.any(String),
+        QueueUrl:
+          'http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_email_events',
         MessageBody: messageStub.Body
       })
     })
@@ -170,8 +180,19 @@ describe('event', () => {
     it('should throw if resubmit fails', async () => {
       snsMock.on(SendMessageCommand).rejects('bad SQS command')
       await expect(() =>
-        resubmitDlqMessage(messageStub.MessageId, messageStub.Body)
+        resubmitDlqMessage('emails', messageStub.MessageId, messageStub.Body)
       ).rejects.toThrow('bad SQS command')
+    })
+  })
+
+  describe('getDeadLetterQueueUrl', () => {
+    it('should get correct queue', () => {
+      expect(getDeadLetterQueueUrl('emails')).toBe(
+        'http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_email_events-deadletter'
+      )
+      expect(getDeadLetterQueueUrl('submissions')).toBe(
+        'http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_listener_events-deadletter'
+      )
     })
   })
 })

@@ -13,9 +13,9 @@ import {
   buildMessageStub
 } from '~/src/service/__stubs__/event-builders.js'
 import {
-  handleFormSubmissionEvents,
+  handleSubmissionEvents,
   mapFormAdapterSubmissionEvent
-} from '~/src/service/events.js'
+} from '~/src/service/submission-events.js'
 
 jest.mock('~/src/messaging/event.js')
 jest.mock('~/src/helpers/logging/logger.js', () => ({
@@ -33,7 +33,7 @@ jest.mock('~/src/config/index.js', () => ({
   }
 }))
 
-describe('events', () => {
+describe('submission events', () => {
   const handleFormSubmissionMock = jest.fn()
   /**
    * @type {FormAdapterSubmissionService}
@@ -179,7 +179,7 @@ describe('events', () => {
     const message3 = buildMessageStub(payload3, { MessageId: messageId3 })
     const messages = [message1, message2, message3]
 
-    it('should handle a list of audit events', async () => {
+    it('should handle a list of submission events', async () => {
       const expectedMapped1 = {
         data,
         meta: buildFormAdapterSubmissionMessageMetaStub(formSubmissionMetaBase),
@@ -205,7 +205,7 @@ describe('events', () => {
         expectedMapped2,
         expectedMapped3
       ]
-      const result = await handleFormSubmissionEvents(
+      const result = await handleSubmissionEvents(
         messages,
         formSubmissionService
       )
@@ -223,9 +223,21 @@ describe('events', () => {
         expectedMapped3
       )
       expect(deleteEventMessage).toHaveBeenCalledTimes(3)
-      expect(deleteEventMessage).toHaveBeenNthCalledWith(1, message1)
-      expect(deleteEventMessage).toHaveBeenNthCalledWith(2, message2)
-      expect(deleteEventMessage).toHaveBeenNthCalledWith(3, message3)
+      expect(deleteEventMessage).toHaveBeenNthCalledWith(
+        1,
+        'mock-value',
+        message1
+      )
+      expect(deleteEventMessage).toHaveBeenNthCalledWith(
+        2,
+        'mock-value',
+        message2
+      )
+      expect(deleteEventMessage).toHaveBeenNthCalledWith(
+        3,
+        'mock-value',
+        message3
+      )
 
       expect(result).toEqual({
         saved: expectedResults,
@@ -241,7 +253,7 @@ describe('events', () => {
       handleFormSubmissionMock.mockResolvedValueOnce(undefined)
 
       const emptyMessage = {}
-      const result = await handleFormSubmissionEvents(
+      const result = await handleSubmissionEvents(
         [...messages, emptyMessage],
         formSubmissionService
       )

@@ -235,7 +235,7 @@ export const config = convict({
   },
   /**@type {SchemaObj<string>} */
   sqsEventsQueueUrl: {
-    doc: 'SQS queue URL',
+    doc: 'SQS queue URL for submission events',
     format: String,
     default: null,
     env: 'EVENTS_SQS_QUEUE_URL'
@@ -262,11 +262,32 @@ export const config = convict({
     env: 'SQS_VISIBILITY_TIMEOUT'
   },
   /**@type {SchemaObj<string>} */
+  sqsEmailsQueueUrl: {
+    doc: 'SQS queue URL for emails',
+    format: String,
+    default: null,
+    env: 'EMAILS_SQS_QUEUE_URL'
+  },
+  /**@type {SchemaObj<string>} */
   sqsEventsDlqArn: {
     doc: 'SQS deadletter queue ARN',
     format: String,
     default: null,
     env: 'EVENTS_SQS_DLQ_ARN'
+  },
+  /**@type {SchemaObj<string>} */
+  snsEndpoint: {
+    doc: 'The SNS endpoint, if required (e.g. a local development dev service)',
+    format: String,
+    default: null,
+    env: 'SNS_ENDPOINT'
+  },
+  /**@type {SchemaObj<string>} */
+  sqsEmailsDlqArn: {
+    doc: 'SQS deadletter queue ARN for emails',
+    format: String,
+    default: null,
+    env: 'EMAILS_SQS_DLQ_ARN'
   },
   /**@type {SchemaObj<number>} */
   fileExpiryInMonths: {

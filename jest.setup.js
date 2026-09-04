@@ -13,13 +13,20 @@ process.env.ENTITLEMENT_URL = 'http://entitlements'
 process.env.ENABLE_SECURE_CONTEXT = 'false'
 process.env.ENABLE_METRICS = 'false'
 process.env.SQS_ENDPOINT = 'http://localhost:4566'
+process.env.SNS_ENDPOINT = 'http://localhost:4566'
 process.env.EVENTS_SQS_QUEUE_URL =
   'http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_listener_events'
+process.env.EMAILS_SQS_QUEUE_URL =
+  'http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_email_events'
 process.env.RECEIVE_MESSAGE_TIMEOUT_MS = '5000'
 process.env.SQS_MAX_NUMBER_OF_MESSAGES = '10'
 process.env.SQS_VISIBILITY_TIMEOUT = '30'
 process.env.EVENTS_SQS_DLQ_ARN =
   'arn:aws:sqs:eu-west-2:000000000000:forms_notify_listener_events-deadletter'
+process.env.EMAILS_SQS_DLQ_ARN =
+  'arn:aws:sqs:eu-west-2:000000000000:forms_notify_email_events-deadletter'
+process.env.EMAILS_SNS_TOPIC_ARN =
+  'arn:aws:sns:eu-west-2:000000000000:forms_notify_email_events'
 process.env.OIDC_JWKS_URI =
   'http://localhost:5556/.well-known/openid-configuration/jwks'
 process.env.OIDC_VERIFY_AUD = 'local-test-client'

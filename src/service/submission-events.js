@@ -2,8 +2,11 @@ import { formAdapterSubmissionMessagePayloadSchema } from '@defra/forms-engine-p
 import { getErrorMessage } from '@defra/forms-model'
 import Joi from 'joi'
 
+import { config } from '~/src/config/index.js'
 import { logger } from '~/src/helpers/logging/logger.js'
 import { deleteEventMessage } from '~/src/messaging/event.js'
+
+const queueUrl = config.get('sqsEventsQueueUrl')
 
 /**
  * @param {Message} message
@@ -46,10 +49,7 @@ export function mapFormAdapterSubmissionEvent(message) {
  * @param {T & FormAdapterSubmissionService} formSubmissionService
  * @returns {Promise<{ saved: FormAdapterSubmissionMessage[]; failed: any[] }>}
  */
-export async function handleFormSubmissionEvents(
-  messages,
-  formSubmissionService
-) {
+export async function handleSubmissionEvents(messages, formSubmissionService) {
   logger.info('Handling form submission events')
   /**
    * @param {Message} message
@@ -63,7 +63,7 @@ export async function handleFormSubmissionEvents(
 
       logger.info(`Deleting ${message.MessageId}`)
 
-      await deleteEventMessage(message)
+      await deleteEventMessage(queueUrl, message)
 
       logger.info(`Deleted ${message.MessageId}`)
 

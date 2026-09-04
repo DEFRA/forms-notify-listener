@@ -1,6 +1,6 @@
 # forms-notify-listener
 
-Core delivery platform Node.js Backend Template.
+Queue listener and API to handle submission messages, sending emails, and DLQ management.
 
 - [forms-notify-listener](#forms-notify-listener)
   - [Requirements](#requirements)
@@ -12,6 +12,7 @@ Core delivery platform Node.js Backend Template.
     - [Testing](#testing)
     - [Production](#production)
     - [Notes on SQS queue configuration](#notes-on-sqs-queue-configuration)
+      - [Email delivery](#email-delivery)
       - [Queue configuration in forms-audit-api](#queue-configuration-in-forms-audit-api)
     - [Npm scripts](#npm-scripts)
     - [Update dependencies](#update-dependencies)
@@ -58,20 +59,46 @@ docker compose up
 3. Create a `.env` file with the following mandatory environment variables populated at root level:
 
 ```text
-FORMS_AUDIT_QUEUE='forms_notify_listener_events'
-LOG_LEVEL=debug
-SQS_ENDPOINT=http://localhost:4566
-AWS_REGION=eu-west-2
-EVENTS_SQS_QUEUE_URL=http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_listener_events
-AWS_ACCESS_KEY_ID=dummy
-AWS_SECRET_ACCESS_KEY=dummy
-RECEIVE_MESSAGE_TIMEOUT_MS=5000
+HOST=0.0.0.0
+ENVIRONMENT=local
+SERVICE_VERSION=''
+PORT=3006
+
+TRACING_HEADER=x-trace-id
+LOG_ENABLED=true
+LOG_FORMAT=pino-pretty
+LOG_LEVEL=info
+CDP_HTTPS_PROXY=''
+
 NOTIFY_TEMPLATE_ID=3d448938-8a8b-40c2-a3de-414597f976e1
 NOTIFY_API_KEY=[your api key]
-NOTIFY_REPLY_TO_ID=462e5ac0-28f1-4e51-9d8e-8d8c31f59f6a
-RECEIVE_MESSAGE_TIMEOUT_MS=5000
+NOTIFY_REPLY_TO_ID=c0428382-7df0-4e57-89fa-20bb69e9e755
+
 MANAGER_URL=http://localhost:3001
 DESIGNER_URL=http://localhost:3000
+ENTITLEMENT_URL=http://localhost:3004
+
+OIDC_JWKS_URI=http://localhost:5556/.well-known/openid-configuration/jwks
+OIDC_VERIFY_AUD=local-test-client
+OIDC_VERIFY_ISS=http://oidc:80
+
+AWS_REGION=eu-west-2
+
+AWS_ACCESS_KEY_ID=dummy
+AWS_SECRET_ACCESS_KEY=dummy
+
+SNS_ENDPOINT=http://localhost:4566
+SQS_ENDPOINT=http://localhost:4566
+EVENTS_SQS_QUEUE_URL=http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_listener_events
+EMAILS_SQS_QUEUE_URL=http://sqs.eu-west-2.127.0.0.1:4566/000000000000/forms_notify_email_events
+EMAILS_SNS_TOPIC_ARN=arn:aws:sns:eu-west-2:000000000000:forms_notify_email_events
+EVENTS_SQS_DLQ_ARN=arn:aws:sqs:eu-west-2:000000000000:forms_notify_listener_events-deadletter
+EMAILS_SQS_DLQ_ARN=arn:aws:sqs:eu-west-2:000000000000:forms_notify_email_events-deadletter
+RECEIVE_MESSAGE_TIMEOUT_MS=5000
+SQS_MAX_NUMBER_OF_MESSAGES=10
+SQS_VISIBILITY_TIMEOUT=30
+FILE_EXPIRY_IN_MONTHS=9
+
 ```
 
 For proxy options, see https://www.npmjs.com/package/proxy-from-env which is used by https://github.com/TooTallNate/proxy-agents/tree/main/packages/proxy-agent. It's currently supports Hapi Wreck only, e.g. in the JWKS lookup.
@@ -131,6 +158,12 @@ By default, CDP set `ReceiveMessageWaitTime` to 20s. The auditing queue also use
 
 See [here](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-short-and-long-polling.html) for more information.
 
+#### Email delivery
+
+Submission emails and user confirmation emails are placed directly on the email SQS queue. The email listener processes the queue and sends each email through GOV.UK Notify. If delivery fails, SQS retries the message according to the queue redrive policy before moving it to the email dead-letter queue (DLQ).
+
+Messages in either the `emails` or `submissions` DLQ can be viewed, redriven, resubmitted individually, or deleted using the admin endpoints. These endpoints require the `dead-letter-queues` scope.
+
 #### Queue configuration in forms-audit-api
 
 `RECEIVE_MESSAGE_TIMEOUT_MS` - the amount of time to wait between calls to receive messages
@@ -171,11 +204,16 @@ git config --global core.autocrlf false
 
 ## API endpoints
 
-| Endpoint             | Description                    |
-| :------------------- | :----------------------------- |
-| `GET: /health`       | Health                         |
-| `GET: /example    `  | Example API (remove as needed) |
-| `GET: /example/<id>` | Example API (remove as needed) |
+| Endpoint                                            | Description                                                                                          |
+| :-------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| `GET /health`                                       | Health check. No authentication required.                                                            |
+| `GET /admin/deadletter/{dlq}/view`                  | List messages in the specified `emails` or `submissions` DLQ.                                        |
+| `GET /admin/deadletter/{dlq}/view/{messageId}`      | Retrieve a specific DLQ message.                                                                     |
+| `POST /admin/deadletter/{dlq}/redrive`              | Move all messages from the DLQ back to its source queue.                                             |
+| `POST /admin/deadletter/{dlq}/resubmit/{messageId}` | Resubmit a specific DLQ message to its source queue. The request payload must include `messageJson`. |
+| `DELETE /admin/deadletter/{dlq}/{messageId}`        | Delete a specific DLQ message.                                                                       |
+
+All `/admin/deadletter` endpoints require authentication with the `dead-letter-queues` scope. The list, retrieve, and delete endpoints accept optional `visibilityTimeout` and `waitTimeSeconds` query parameters.
 
 ## Development helpers
 

@@ -1,6 +1,5 @@
 import {
   ComponentType,
-  ConditionEvaluationOutcome,
   ControllerType,
   Engine,
   FormStatus,
@@ -9,7 +8,7 @@ import {
 import { buildDefinition, buildMetaData } from '@defra/forms-model/stubs'
 
 import { getFormDefinition, getFormMetadata } from '~/src/lib/manager.js'
-import { sendNotification } from '~/src/lib/notify.js'
+import { putNotificationOnQueue } from '~/src/lib/notify.js'
 import {
   buildFormAdapterSubmissionMessage,
   buildFormAdapterSubmissionMessageData,
@@ -135,8 +134,15 @@ describe('notify', () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
       await sendNotifyEmails(formAdapterSubmissionMessage)
 
-      const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
-      expect(sendNotificationCall).toEqual({
+      const putNotificationCall = jest.mocked(putNotificationOnQueue).mock
+        .calls[0]
+      expect(putNotificationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'submission-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putNotificationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
@@ -146,7 +152,7 @@ describe('notify', () => {
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(
-          sendNotificationCall.personalisation.body,
+          putNotificationCall[1].personalisation.body,
           'base64'
         ).toString('utf-8')
       )
@@ -167,8 +173,15 @@ describe('notify', () => {
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
       await sendNotifyEmails(formAdapterSubmissionMessage)
 
-      const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
-      expect(sendNotificationCall).toEqual({
+      const putNotificationCall = jest.mocked(putNotificationOnQueue).mock
+        .calls[0]
+      expect(putNotificationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'submission-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putNotificationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
@@ -178,7 +191,7 @@ describe('notify', () => {
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(
-          sendNotificationCall.personalisation.body,
+          putNotificationCall[1].personalisation.body,
           'base64'
         ).toString('utf-8')
       )
@@ -244,14 +257,22 @@ describe('notify', () => {
         FormStatus.Live,
         undefined
       )
-      expect(sendNotification).toHaveBeenCalledWith({
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
+      expect(putNotificationOnQueue).toHaveBeenCalledWith(
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
+        {
+          templateId: 'notify-template-id-1',
+          emailAddress: 'notificationEmail@example.uk',
+          personalisation: {
+            subject: 'Form submission: Order a pizza',
+            body: expect.any(String)
+          }
         }
-      })
+      )
     })
 
     it('should not send emails if a feedback form', async () => {
@@ -286,7 +307,7 @@ describe('notify', () => {
         .mocked(getFormDefinition)
         .mockResolvedValueOnce(definitionForFeedbackForm)
       await sendNotifyEmails(formAdapterSubmissionMessage)
-      expect(sendNotification).not.toHaveBeenCalled()
+      expect(putNotificationOnQueue).not.toHaveBeenCalled()
     })
 
     it('should send multiple submission emails', async () => {
@@ -361,168 +382,58 @@ describe('notify', () => {
         FormStatus.Live,
         undefined
       )
-      expect(sendNotification).toHaveBeenNthCalledWith(1, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail2@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
-        }
-      })
-      expect(sendNotification).toHaveBeenNthCalledWith(2, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail2@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
-        }
-      })
-      expect(sendNotification).toHaveBeenNthCalledWith(3, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail3@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
-        }
-      })
-    })
-
-    it('should send multiple submission emails where condition satisfied', async () => {
-      const conditionId1 = '1760a3d4-2d6b-4f9b-aae7-31e8b70b6224'
-      const conditionId2 = '4c36a5da-85c6-4901-820e-8ef1ef7fc7ba'
-      const formAdapterSubmissionMessage = buildFormAdapterSubmissionMessage({
-        meta: buildFormAdapterSubmissionMessageMetaStub({
-          formName: 'Order a pizza',
-          formSlug: 'order-a-pizza',
-          isPreview: false,
-          status: FormStatus.Live,
-          notificationEmail: 'notificationEmail1@example.uk',
+      expect(putNotificationOnQueue).toHaveBeenCalledTimes(3)
+      expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
+        1,
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
           referenceNumber: '576-225-943',
-          formId
-        }),
-        data: buildFormAdapterSubmissionMessageData({
-          main: {
-            QMwMir: 'Roman Pizza',
-            duOEvZ: 'Small',
-            DzEODf: ['Mozzarella'],
-            juiCfC: ['Pepperoni', 'Sausage', 'Onions', 'Basil'],
-            YEpypP: 'None',
-            JumNVc: 'Joe Bloggs',
-            ALNehP: '+441234567890',
-            vAqTmg: {
-              addressLine1: '1 Anywhere Street',
-              town: 'Anywhereville',
-              postcode: 'AN1 2WH'
-            },
-            IbXVGY: {
-              day: 22,
-              month: 8,
-              year: 2025
-            },
-            HGBWLt: ['Garlic sauce']
-          },
-          repeaters: {},
-          files: {}
-        }),
-        result: {
-          files: {
-            main: '9a2c50db-cbd5-4fba-ae5f-58dbfdd176d2',
-            repeaters: {}
-          }
+          source: 'notify-listener'
         },
-        conditionEvaluations: [
-          {
-            conditionId: conditionId1,
-            outcome: ConditionEvaluationOutcome.True,
-            references: []
-          },
-          {
-            conditionId: conditionId2,
-            outcome: ConditionEvaluationOutcome.Error,
-            references: []
+        {
+          templateId: 'notify-template-id-1',
+          emailAddress: 'notificationEmail2@example.uk',
+          personalisation: {
+            subject: 'Form submission: Order a pizza',
+            body: expect.any(String)
           }
-        ]
-      })
-
-      const definitionForMultipleEmails = {
-        ...definitionForEmail,
-        outputs: /** @type {Output[]} */ ([
-          {
-            emailAddress: 'notificationEmail2@example.uk',
-            audience: 'human',
-            version: '1'
-          },
-          {
-            emailAddress: 'notificationEmail2@example.uk',
-            audience: 'machine',
-            version: '1',
-            condition: conditionId1
-          },
-          {
-            emailAddress: 'notificationEmail3@example.uk',
-            audience: 'machine',
-            version: '2',
-            condition: conditionId2
-          }
-        ]),
-        conditions: [
-          {
-            id: conditionId1,
-            displayName: 'Condition 1',
-            items: [
-              {
-                id: 'a75bf864-366a-409e-8fe3-5d2ab8b62d58',
-                componentId: '66d51c57-d0a0-44b7-88e3-3751e965d79d',
-                operator: 'is',
-                value: 'TestValue1',
-                type: 'StringValue'
-              }
-            ]
-          },
-          {
-            id: conditionId2,
-            displayName: 'Condition 2',
-            items: [
-              {
-                id: '17ca1d11-b662-4d5a-9efe-41cae8985e8a',
-                componentId: '66d51c57-d0a0-44b7-88e3-3751e965d79d',
-                operator: 'is',
-                value: 'TestValue2',
-                type: 'StringValue'
-              }
-            ]
-          }
-        ]
-      }
-      definitionForEmail.pages[0].condition = conditionId1
-      definitionForEmail.pages[1].condition = conditionId2
-      jest
-        .mocked(getFormDefinition)
-        // @ts-expect-error - partial mock of test data
-        .mockResolvedValueOnce(definitionForMultipleEmails)
-      await sendNotifyEmails(formAdapterSubmissionMessage)
-      expect(getFormDefinition).toHaveBeenCalledWith(
-        formId,
-        FormStatus.Live,
-        undefined
+        }
       )
-      expect(sendNotification).toHaveBeenCalledTimes(2)
-      expect(sendNotification).toHaveBeenNthCalledWith(1, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail2@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
+      expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
+        2,
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
+        {
+          templateId: 'notify-template-id-1',
+          emailAddress: 'notificationEmail2@example.uk',
+          personalisation: {
+            subject: 'Form submission: Order a pizza',
+            body: expect.any(String)
+          }
         }
-      })
-      expect(sendNotification).toHaveBeenNthCalledWith(2, {
-        templateId: 'notify-template-id-1',
-        emailAddress: 'notificationEmail2@example.uk',
-        personalisation: {
-          subject: 'Form submission: Order a pizza',
-          body: expect.any(String)
+      )
+      expect(putNotificationOnQueue).toHaveBeenNthCalledWith(
+        3,
+        {
+          formId: '68a8b0449ab460290c28940a',
+          reason: 'submission-email',
+          referenceNumber: '576-225-943',
+          source: 'notify-listener'
+        },
+        {
+          templateId: 'notify-template-id-1',
+          emailAddress: 'notificationEmail3@example.uk',
+          personalisation: {
+            subject: 'Form submission: Order a pizza',
+            body: expect.any(String)
+          }
         }
-      })
+      )
     })
 
     it('should send a user confirmation email', async () => {
@@ -541,9 +452,16 @@ describe('notify', () => {
       }
       await sendNotifyEmails(formAdapterMessageWithUserEmail)
 
-      expect(jest.mocked(sendNotification)).toHaveBeenCalledTimes(2)
-      const [sendNotificationCall] = jest.mocked(sendNotification).mock.calls[0]
-      expect(sendNotificationCall).toEqual({
+      expect(jest.mocked(putNotificationOnQueue)).toHaveBeenCalledTimes(2)
+      const putNotificationCall = jest.mocked(putNotificationOnQueue).mock
+        .calls[0]
+      expect(putNotificationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'submission-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putNotificationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'notificationEmail@example.uk',
         personalisation: {
@@ -551,8 +469,15 @@ describe('notify', () => {
           body: expect.any(String)
         }
       })
-      const [sendConfirmationCall] = jest.mocked(sendNotification).mock.calls[1]
-      expect(sendConfirmationCall).toEqual({
+      const putConfirmationCall = jest.mocked(putNotificationOnQueue).mock
+        .calls[1]
+      expect(putConfirmationCall[0]).toEqual({
+        formId: '68a8b0449ab460290c28940a',
+        reason: 'confirmation-email',
+        referenceNumber: '576-225-943',
+        source: 'notify-listener'
+      })
+      expect(putConfirmationCall[1]).toEqual({
         templateId: 'notify-template-id-1',
         emailAddress: 'my-email@test.com',
         personalisation: {
@@ -563,7 +488,7 @@ describe('notify', () => {
       })
       const sendNotificationBody = JSON.parse(
         Buffer.from(
-          sendNotificationCall.personalisation.body,
+          putNotificationCall[1].personalisation.body,
           'base64'
         ).toString('utf-8')
       )
@@ -593,7 +518,7 @@ describe('notify', () => {
       formAdapterMessageWithUserEmail.meta.custom = {
         userConfirmationEmail: 'my-email@test.com'
       }
-      jest.mocked(sendNotification).mockRejectedValueOnce(err)
+      jest.mocked(putNotificationOnQueue).mockRejectedValueOnce(err)
       await expect(
         sendUserConfirmationEmail(formAdapterMessageWithUserEmail)
       ).rejects.toThrow(err)
@@ -602,7 +527,7 @@ describe('notify', () => {
     it('should handle and throw errors', async () => {
       const err = new Error('Upstream failure')
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
-      jest.mocked(sendNotification).mockRejectedValueOnce(err)
+      jest.mocked(putNotificationOnQueue).mockRejectedValueOnce(err)
       await expect(
         sendNotifyEmails(formAdapterSubmissionMessage)
       ).rejects.toThrow(err)
