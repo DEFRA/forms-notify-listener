@@ -12,7 +12,8 @@ import {
   formatGeospatialField,
   formatLocationField,
   formatMultilineTextField,
-  formatUkAddressField
+  formatUkAddressField,
+  repeaterAnswersKey
 } from '~/src/service/mappers/formatters/shared.js'
 
 /**
@@ -106,34 +107,19 @@ function processMainEntries(formSubmissionMessage, formModel, translator) {
 }
 
 /**
- * Process a single repeater component across all items
- * @param {string} repeaterTitle
- * @param {FormComponent} componentField
- * @param {string} componentName
- * @param {Record<string, RichFormValue | null>[]} repeaterItems
+ * Process a single repeater item, listing every component answer for that item
+ * @param {string} itemLabel
+ * @param {FormComponent[]} componentFields
+ * @param {Record<string, RichFormValue | null>} itemData
  * @param {Translator} translator
  * @returns {string[]}
  */
-function processRepeaterComponent(
-  repeaterTitle,
-  componentField,
-  componentName,
-  repeaterItems,
-  translator
-) {
+function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
   const { tComponent } = translator
-  const questionLines = /** @type {string[]} */ ([])
-  const componentLabel = escapeContent(
-    tComponent(/** @type {ComponentDef} */ (componentField), 'title')
-  )
+  const answerLines = /** @type {string[]} */ ([])
 
-  // Question text uses heading level 1 (#)
-  questionLines.push(`# ${componentLabel}\n`)
-
-  // Process each repeater item for this component
-  for (let i = 0; i < repeaterItems.length; i++) {
-    const itemData = repeaterItems[i]
-    const componentValue = itemData[componentName]
+  for (const componentField of componentFields) {
+    const componentValue = itemData[componentField.name]
 
     // Skip if no value
     if (
@@ -144,17 +130,19 @@ function processRepeaterComponent(
       continue
     }
 
-    const itemLabel = `${repeaterTitle} ${i + 1}`
+    const componentLabel = escapeContent(
+      tComponent(/** @type {ComponentDef} */ (componentField), 'title')
+    )
     const componentAnswer = componentField.getDisplayStringFromFormValue(
       /** @type {any} */ (componentValue),
       translator
     )
 
-    // Repeater item label uses heading level 2 (##)
-    questionLines.push(`## ${escapeContent(itemLabel)}\n`)
+    // Question text uses heading level 2 (##)
+    answerLines.push(`## ${componentLabel}\n`)
 
     // Answer beneath with blank line separation
-    questionLines.push(
+    answerLines.push(
       generateFieldLine(
         componentAnswer,
         /** @type {Component} */ (/** @type {unknown} */ (componentField)),
@@ -164,13 +152,19 @@ function processRepeaterComponent(
     )
   }
 
-  return questionLines
+  // Drop the item entirely when none of its components hold a value
+  if (!answerLines.length) {
+    return []
+  }
+
+  // Repeater item label uses heading level 1 (#)
+  return [`# ${escapeContent(itemLabel)}\n`, ...answerLines]
 }
 
 /**
  * Process repeater sections
- * Each component in a repeater gets its own section with H1 for question text
- * and H2 for each repeater item label
+ * Each repeater item gets its own section with H1 for the item label
+ * and H2 for each question within that item
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {FormModel} formModel
@@ -207,27 +201,24 @@ function processRepeaterEntries(
     }
 
     // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
-    for (const componentDef of repeaterPage.components.filter(
-      (cd) => 'title' in cd
-    )) {
-      const componentName = componentDef.name
-      const componentField = formModel.componentMap.get(componentName)
+    const componentFields = repeaterPage.components
+      .filter((cd) => 'title' in cd)
+      .flatMap((cd) => {
+        const field = formModel.componentMap.get(cd.name)
+        return field instanceof FormComponent ? [field] : []
+      })
 
-      if (!(componentField instanceof FormComponent)) {
-        continue
-      }
-
-      const questionLines = processRepeaterComponent(
-        repeaterTitle,
-        componentField,
-        componentName,
-        repeaterItems,
+    const questionLines = repeaterItems.flatMap((itemData, index) =>
+      processRepeaterItem(
+        `${repeaterTitle} ${index + 1}`,
+        componentFields,
+        itemData,
         translator
       )
+    )
 
-      // Store with a unique key for this component within the repeater
-      componentMap.set(`${key}__${componentName}`, questionLines)
-    }
+    // Store the whole repeater under a single key
+    componentMap.set(repeaterAnswersKey(key), questionLines)
   }
 
   return componentMap
@@ -408,7 +399,7 @@ function generateFieldLine(answer, field, richFormValue, translator) {
 
 /**
  * Calculate the order of components for output
- * For repeaters, returns keys in format `repeaterName__componentName` for each component
+ * For repeaters, returns the single key holding every item's answers
  * @param {FormDefinition} formDefinition
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @returns {string[]}
@@ -421,11 +412,8 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
   return formDefinition.pages.flatMap((page) => {
     if (hasComponents(page)) {
       if (hasRepeater(page)) {
-        // For repeaters, return a key for each component within the repeater
-        const repeaterName = page.repeat.options.name
-        return page.components.map(
-          (component) => `${repeaterName}__${component.name}`
-        )
+        // For repeaters, return the single key holding every item's answers
+        return [repeaterAnswersKey(page.repeat.options.name)]
       }
       return page.components.map((component) => component.name)
     }
@@ -445,15 +433,13 @@ function calculateOrderForLegacy(formDefinition, formSubmissionMessage) {
     formSubmissionMessage
   )
 
-  // Expand repeater keys to include component names
-  return legacyOrder.flatMap((/** @type {string} */ key) => {
+  // Point repeater keys at the map entry holding every item's answers
+  return legacyOrder.map((/** @type {string} */ key) => {
     const repeaterPage = findRepeaterPageByKey(key, formDefinition)
     if (hasRepeater(repeaterPage) && hasComponents(repeaterPage)) {
-      return repeaterPage.components.map(
-        (component) => `${key}__${component.name}`
-      )
+      return repeaterAnswersKey(key)
     }
-    return [key]
+    return key
   })
 }
 

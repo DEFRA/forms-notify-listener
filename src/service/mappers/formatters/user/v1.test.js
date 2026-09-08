@@ -138,25 +138,35 @@ describe('User answers formatter v1', () => {
       expect(output).not.toContain('http://designer')
     })
 
-    it('should format repeater sections with heading level 1 for main title', () => {
+    it('should format repeater items with heading level 1 for the item label', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
       const formModel = new FormModel(definition, { basePath: '/' })
       const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
-      // Repeater title should be heading level 1
-      expect(output).toContain('# Team Member')
+      // Repeater items should be heading level 1
+      expect(output).toContain('# Team Member 1')
+      expect(output).toContain('# Team Member 2')
     })
 
-    it('should format repeater items with heading level 2', () => {
+    it('should format repeater questions with heading level 2 beneath each item', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
       const formModel = new FormModel(definition, { basePath: '/' })
       const translator = formModel.createTranslator(EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
-      // Repeater items should be heading level 2
-      expect(output).toContain('## Team Member 1')
-      expect(output).toContain('## Team Member 2')
+      // Every question of an item is grouped beneath that item's heading
+      expect(output).toContain(
+        `# Team Member 1
+
+## What is the team member\\'s name?
+
+Frodo
+
+## What is the team member\\'s date of birth?
+
+1 January 2000`
+      )
     })
 
     it('should include repeater item answers', () => {
@@ -421,12 +431,12 @@ describe('User answers formatter v1', () => {
       )
 
       // Should include the first item
-      expect(output).toContain('## Team Member 1')
+      expect(output).toContain('# Team Member 1')
       expect(output).toContain('Frodo')
       // Should skip items with null/empty name but still show date
-      expect(output).toContain('## Team Member 2')
+      expect(output).toContain('# Team Member 2')
       expect(output).toContain('1 January 2020')
-      expect(output).toContain('## Team Member 3')
+      expect(output).toContain('# Team Member 3')
       expect(output).toContain('1 January 2021')
     })
 
@@ -478,7 +488,7 @@ describe('User answers formatter v1', () => {
       )
 
       // Should not crash and should still format known repeaters
-      expect(output).toContain('## Team Member 1')
+      expect(output).toContain('# Team Member 1')
       expect(output).toContain('Frodo')
     })
 
@@ -561,10 +571,10 @@ describe('User answers formatter v1', () => {
       )
 
       // Should include the team member names
-      expect(output).toContain('# Name of team member')
-      expect(output).toContain('## Team member 1')
+      expect(output).toContain('## Name of team member')
+      expect(output).toContain('# Team member 1')
       expect(output).toContain('Alice')
-      expect(output).toContain('## Team member 2')
+      expect(output).toContain('# Team member 2')
       expect(output).toContain('Bob')
       // Should NOT include the guidance component content
       expect(output).not.toContain(
@@ -659,9 +669,9 @@ Not provided`)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include repeater data
-      expect(output).toContain('## person 1')
+      expect(output).toContain('# person 1')
       expect(output).toContain('Jane')
-      expect(output).toContain('## person 2')
+      expect(output).toContain('# person 2')
       expect(output).toContain('Janet')
     })
 
