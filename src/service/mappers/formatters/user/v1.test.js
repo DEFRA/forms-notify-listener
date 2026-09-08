@@ -660,6 +660,251 @@ I understand and agree`)
 
 Not provided`)
     })
+    it('should drop repeater items where no component holds a value', () => {
+      const messageWithEmptyItem = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          repeaters: {
+            repeaterOptionName: [
+              {
+                // @ts-expect-error - intentionally testing null handling
+                repeaterComponentName: null,
+                // @ts-expect-error - intentionally testing null handling
+                repeaterComponentDate: null
+              },
+              {
+                repeaterComponentName: 'Gandalf',
+                repeaterComponentDate: { day: 1, month: 1, year: 2020 }
+              }
+            ]
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(messageWithEmptyItem, definition, translator)
+
+      // The first item holds nothing, so its heading is dropped entirely
+      expect(output).not.toContain('# Team Member 1')
+      expect(output).toContain('# Team Member 2')
+      expect(output).toContain('Gandalf')
+    })
+
+    it('should skip repeater pages that carry no components', () => {
+      const definitionWithoutComponents =
+        /** @type {import('@defra/forms-model').FormDefinition} */ ({
+          name: 'Form with a component-less repeater',
+          pages: [
+            {
+              title: 'Team members',
+              path: '/team-members',
+              // No `next` property, so the page reports no components
+              id: '32888028-61db-40fc-b255-80bc67829d31',
+              components: [
+                {
+                  id: '407dd0d7-cce9-4f43-8e1f-7d89cb698875',
+                  name: 'teamMemberName',
+                  title: 'Name of team member',
+                  hint: '',
+                  options: { required: true },
+                  schema: {},
+                  type: 'TextField'
+                }
+              ],
+              repeat: {
+                options: { name: 'teamMembers', title: 'Team member' },
+                schema: { min: 1, max: 5 }
+              },
+              controller: 'RepeatPageController'
+            },
+            {
+              id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
+              title: 'Summary',
+              path: '/summary',
+              controller: 'SummaryPageController'
+            }
+          ],
+          conditions: [],
+          sections: [],
+          lists: [],
+          startPage: '/team-members'
+        })
+
+      const message = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          main: {},
+          repeaters: {
+            teamMembers: [{ teamMemberName: 'Alice' }]
+          },
+          files: {}
+        }
+      })
+
+      const formModel = new FormModel(definitionWithoutComponents, {
+        basePath: '/'
+      })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(message, definitionWithoutComponents, translator)
+
+      expect(output).toBe('')
+    })
+
+    it('should ignore repeater components that are not form components', () => {
+      const definitionWithDetails =
+        /** @type {import('@defra/forms-model').FormDefinition} */ ({
+          name: 'Form with repeater details',
+          pages: [
+            {
+              title: 'Team members',
+              path: '/team-members',
+              components: [
+                {
+                  id: '245d54df-bb1e-488e-82f6-8f1e42c197e6',
+                  name: 'teamMemberDetails',
+                  // A Details component carries a title but holds no answer
+                  title: 'More about team members',
+                  content: 'Some guidance content.',
+                  options: {},
+                  type: 'Details'
+                },
+                {
+                  id: '407dd0d7-cce9-4f43-8e1f-7d89cb698875',
+                  name: 'teamMemberName',
+                  title: 'Name of team member',
+                  hint: '',
+                  options: { required: true },
+                  schema: {},
+                  type: 'TextField'
+                }
+              ],
+              next: [],
+              id: '32888028-61db-40fc-b255-80bc67829d31',
+              repeat: {
+                options: { name: 'teamMembers', title: 'Team member' },
+                schema: { min: 1, max: 5 }
+              },
+              controller: 'RepeatPageController'
+            },
+            {
+              id: '449a45f6-4541-4a46-91bd-8b8931b07b50',
+              title: 'Summary',
+              path: '/summary',
+              controller: 'SummaryPageController'
+            }
+          ],
+          conditions: [],
+          sections: [],
+          lists: [],
+          startPage: '/team-members'
+        })
+
+      const message = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          main: {},
+          repeaters: {
+            teamMembers: [{ teamMemberName: 'Alice' }]
+          },
+          files: {}
+        }
+      })
+
+      const formModel = new FormModel(definitionWithDetails, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(message, definitionWithDetails, translator)
+
+      expect(output).toContain('# Team member 1')
+      expect(output).toContain('## Name of team member')
+      expect(output).toContain('Alice')
+      expect(output).not.toContain('More about team members')
+    })
+
+    it('should show the plain answer for a required file upload with no files', () => {
+      const messageWithNoFiles = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          files: {
+            IWEgMu: []
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(messageWithNoFiles, definition, translator)
+
+      // The question is still listed because it is required, but has no answer
+      expect(output).toContain('# Please add supporting evidence\n\n\n')
+      expect(output).not.toContain('supporting_evidence.pdf')
+    })
+
+    it('should use bullet points when several files are uploaded', () => {
+      const messageWithTwoFiles = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          files: {
+            IWEgMu: [
+              {
+                fileName: 'supporting_evidence.pdf',
+                fileId: 'ef4863e9-7e9e-40d0-8fea-cf34faf098cd',
+                userDownloadLink:
+                  'http://localhost:3005/file-download/ef4863e9-7e9e-40d0-8fea-cf34faf098cd'
+              },
+              {
+                fileName: 'second_evidence.pdf',
+                fileId: '0a0e3f6d-6f0b-4a1e-9c3b-1a0f2d6e8b7c',
+                userDownloadLink:
+                  'http://localhost:3005/file-download/0a0e3f6d-6f0b-4a1e-9c3b-1a0f2d6e8b7c'
+              }
+            ]
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(messageWithTwoFiles, definition, translator)
+
+      expect(output).toContain('* supporting_evidence.pdf')
+      expect(output).toContain('* second_evidence.pdf')
+      // File names are listed without download links
+      expect(output).not.toContain('http://localhost')
+    })
+
+    it('should leave the answer blank when no list item matches the value', () => {
+      const messageWithUnknownListValue = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          main: {
+            ...exampleNotifyFormMessage.data.main,
+            hVcHQv: ['Sauron']
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(
+        messageWithUnknownListValue,
+        definition,
+        translator
+      )
+
+      // The question is still listed because it is required, but has no answer
+      expect(output).toContain('# Who are your favourite LotR characters?')
+      expect(output).not.toContain('Sauron')
+      expect(output).not.toContain('* Gandalf')
+    })
   })
 
   describe('legacy V1 engine forms', () => {

@@ -138,11 +138,9 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
       translator
     )
 
-    // Question text uses heading level 2 (##)
-    answerLines.push(`## ${componentLabel}\n`)
-
-    // Answer beneath with blank line separation
+    // Question text uses heading level 2 (##), answer beneath with blank line separation
     answerLines.push(
+      `## ${componentLabel}\n`,
       generateFieldLine(
         componentAnswer,
         /** @type {Component} */ (/** @type {unknown} */ (componentField)),
