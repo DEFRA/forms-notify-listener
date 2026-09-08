@@ -335,6 +335,30 @@ Frodo
       expect(output).not.toContain('# Additional details')
     })
 
+    it('should skip optional fields whose display string is empty', () => {
+      // An empty string survives the null/undefined check, so the field is only
+      // dropped once its display string turns out to be empty too
+      const messageWithEmptyString = buildFormAdapterSubmissionMessage({
+        ...exampleNotifyFormMessage,
+        data: {
+          ...exampleNotifyFormMessage.data,
+          main: {
+            ...exampleNotifyFormMessage.data.main,
+            ADDDTS: ''
+          }
+        }
+      })
+
+      const definition = buildDefinition(exampleNotifyFormDefinition)
+      const formModel = new FormModel(definition, { basePath: '/' })
+      const translator = formModel.createTranslator(EN_GB)
+      const output = formatter(messageWithEmptyString, definition, translator)
+
+      expect(output).not.toContain('# Additional details')
+      // The rest of the form is unaffected
+      expect(output).toContain('# What is your name?')
+    })
+
     it('should skip optional file upload fields with empty array', () => {
       const definitionWithOptionalFile = buildDefinition({
         ...exampleNotifyFormDefinition,
