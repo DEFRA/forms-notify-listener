@@ -5,7 +5,8 @@ import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
 import { generateFieldLine } from '~/src/service/mappers/formatters/human/v2-common.js'
 import {
   findRepeaterPageByKey,
-  generateGeospatialMapLink
+  generateGeospatialMapLink,
+  repeaterAnswersKey
 } from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
@@ -36,7 +37,7 @@ export function processRepeaterFiles(
     const componentKey = repeaterPage.repeat.options.name
     const questionLines = /** @type {string[]} */ ([])
 
-    questionLines.push(`## ${label}\n`)
+    questionLines.push(`# ${label} responses\n`)
 
     const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
     questionLines.push(
@@ -72,49 +73,40 @@ export function processRepeaterFiles(
 }
 
 /**
- * Process a single repeater component across all items
- * @param {string} repeaterTitle
- * @param {Component} componentField
- * @param {string} componentName
- * @param {Record<string, RichFormValue>[]} repeaterItems
+ * Process a single repeater item, listing every component answer for that item
+ * @param {string} itemLabel
+ * @param {Component[]} componentFields
+ * @param {Record<string, RichFormValue>} itemData
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {Translator} translator
  * @returns {string[]}
  */
-function processRepeaterComponent(
-  repeaterTitle,
-  componentField,
-  componentName,
-  repeaterItems,
+function processRepeaterItem(
+  itemLabel,
+  componentFields,
+  itemData,
   formSubmissionMessage,
   translator
 ) {
-  const questionLines = /** @type {string[]} */ ([])
-  const componentLabel = escapeContent(componentField.title)
+  const answerLines = /** @type {string[]} */ ([])
 
-  // Question text uses heading level 1 (#)
-  questionLines.push(`# ${componentLabel}\n`)
-
-  // Process each repeater item for this component
-  for (let i = 0; i < repeaterItems.length; i++) {
-    const itemData = repeaterItems[i]
-    const componentValue = itemData[componentName]
+  for (const componentField of componentFields) {
+    const componentValue = itemData[componentField.name]
 
     // Skip if no value
     if (componentValue === undefined || componentValue === '') {
       continue
     }
 
-    const itemLabel = `${repeaterTitle} ${i + 1}`
     const formField = /** @type {FormComponent} */ (componentField)
     const componentAnswer = formField.getDisplayStringFromFormValue(
       componentValue,
       translator
     )
 
-    // Repeater item label uses heading level 2 (##)
-    questionLines.push(
-      `## ${escapeContent(itemLabel)}\n`,
+    // Question text uses heading level 2 (##)
+    answerLines.push(
+      `## ${escapeContent(componentField.title)}\n`,
       // Answer beneath with blank line separation
       generateFieldLine(
         componentAnswer,
@@ -126,13 +118,19 @@ function processRepeaterComponent(
     )
   }
 
-  return questionLines
+  // Drop the item entirely when none of its components hold a value
+  if (!answerLines.length) {
+    return []
+  }
+
+  // Repeater item label uses heading level 1 (#)
+  return [`# ${escapeContent(itemLabel)}\n`, ...answerLines]
 }
 
 /**
  * Process repeater sections
- * Each component in a repeater gets its own section with H1 for question text
- * and H2 for each repeater item label
+ * Each repeater item gets its own section with H1 for the item label
+ * and H2 for each question within that item
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {FormDefinition} formDefinition
  * @param {FormModel} formModel
@@ -159,28 +157,25 @@ export function processRepeaterEntries(
     )
 
     // Filtering out guidance components by checking for 'title' property (isFormComponent property is not available).
-    for (const componentDef of repeaterPage.components.filter(
-      (cd) => 'title' in cd
-    )) {
-      const componentName = componentDef.name
-      const componentField = formModel.componentMap.get(componentName)
+    const componentFields = repeaterPage.components
+      .filter((cd) => 'title' in cd)
+      .flatMap((cd) => {
+        const field = formModel.componentMap.get(cd.name)
+        return field ? [field] : []
+      })
 
-      if (!componentField) {
-        continue
-      }
-
-      const questionLines = processRepeaterComponent(
-        repeaterTitle,
-        componentField,
-        componentName,
-        repeaterItems,
+    const questionLines = repeaterItems.flatMap((itemData, index) =>
+      processRepeaterItem(
+        `${repeaterTitle} ${index + 1}`,
+        componentFields,
+        itemData,
         formSubmissionMessage,
         translator
       )
+    )
 
-      // Store with a unique key for this component within the repeater
-      componentMap.set(`${key}__${componentName}`, questionLines)
-    }
+    // Store the whole repeater under a single key, separate from its CSV link
+    componentMap.set(repeaterAnswersKey(key), questionLines)
   }
 }
 

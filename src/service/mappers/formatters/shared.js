@@ -15,6 +15,16 @@ export function findRepeaterPageByKey(key, formDefinition) {
 }
 
 /**
+ * Builds the component map key holding the answers of a repeater page.
+ * The repeater name on its own is reserved for the repeater's CSV download link.
+ * @param {string} repeaterName - the repeat.options.name of the repeater page
+ * @returns {string}
+ */
+export function repeaterAnswersKey(repeaterName) {
+  return `${repeaterName}__answers`
+}
+
+/**
  * Format multiline text field
  * @param {string} answer
  * @param {Component} _field

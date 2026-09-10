@@ -18,7 +18,10 @@ import {
   processRepeaterEntries,
   processRepeaterFiles
 } from '~/src/service/mappers/formatters/human/v2-repeater.js'
-import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
+import {
+  extractPaymentDetails,
+  repeaterAnswersKey
+} from '~/src/service/mappers/formatters/shared.js'
 
 const designerUrl = config.get('designerUrl')
 
@@ -242,12 +245,10 @@ function calculateOrder(formDefinition, formSubmissionMessage) {
   return formDefinition.pages.flatMap((page) => {
     if (hasComponents(page)) {
       if (hasRepeater(page)) {
-        // For repeaters, return a key for each component within the repeater
+        // For repeaters, return the key holding every item's answers
         // along with the repeater itself
         const repeaterName = page.repeat.options.name
-        return page.components
-          .map((component) => `${repeaterName}__${component.name}`)
-          .concat([repeaterName])
+        return [repeaterAnswersKey(repeaterName), repeaterName]
       }
       return page.components.map((component) => component.name)
     }
