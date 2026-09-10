@@ -39,9 +39,7 @@ export function processRepeaterFiles(
 
     questionLines.push(`# ${label} responses\n`)
 
-    const repeaterFilename = escapeFileLabel(
-      `Download ${label} responses (CSV)`
-    )
+    const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
     questionLines.push(
       `[${repeaterFilename}](${designerUrl}/file-download/${fileId})\n`
     )

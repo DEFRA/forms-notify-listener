@@ -205,7 +205,7 @@ describe('Page controller helpers', () => {
       pos = stringExistsFromPosition(
         output,
         pos,
-        '[Download&nbsp;Team&nbsp;Member&nbsp;responses&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
+        '[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)'
       )
       pos = stringExistsFromPosition(
         output,

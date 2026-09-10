@@ -92,12 +92,12 @@ describe('v2-repeater', () => {
       expect([...componentMap.keys()]).toEqual(['repeaterOptionName', 'gAZbPt'])
       expect(componentMap.get('repeaterOptionName')).toEqual([
         '# Team Member responses\n',
-        '[Download&nbsp;Team&nbsp;Member&nbsp;responses&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)\n',
+        '[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)\n',
         '---\n'
       ])
       expect(componentMap.get('gAZbPt')).toEqual([
         '# Sites responses\n',
-        '[Download&nbsp;Sites&nbsp;responses&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)\n',
+        '[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)\n',
         '\n[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)\n',
         '---\n'
       ])
@@ -127,7 +127,7 @@ describe('v2-repeater', () => {
       expect([...componentMap.keys()]).toEqual(['repeaterOptionName'])
       expect(componentMap.get('repeaterOptionName')).toEqual([
         '# Team Member responses\n',
-        '[Download&nbsp;Team&nbsp;Member&nbsp;responses&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)\n',
+        '[Download&nbsp;Team&nbsp;Member&nbsp;(CSV)](http://designer/file-download/e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9)\n',
         '---\n'
       ])
     })
@@ -155,7 +155,7 @@ describe('v2-repeater', () => {
 
       expect(componentMap.get('gAZbPt')).toEqual([
         '# Sites responses\n',
-        '[Download&nbsp;Sites&nbsp;responses&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)\n',
+        '[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)\n',
         '---\n'
       ])
     })
@@ -185,7 +185,7 @@ describe('v2-repeater', () => {
 
       expect(componentMap.get('gAZbPt')).toEqual([
         '# Sites responses\n',
-        '[Download&nbsp;Sites&nbsp;responses&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)\n',
+        '[Download&nbsp;Sites&nbsp;(CSV)](http://designer/file-download/d24a5133-a4cc-4a9a-8453-0a51e123dcd4)\n',
         '---\n'
       ])
     })
