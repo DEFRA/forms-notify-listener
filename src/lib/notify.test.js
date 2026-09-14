@@ -1,11 +1,21 @@
 import { postJson } from '~/src/lib/fetch.js'
 import {
+  MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES,
   escapeContent,
   escapeFileLabel,
+  putNotificationOnQueue,
   sendNotification
 } from '~/src/lib/notify.js'
+import { putMessageOnQueue } from '~/src/messaging/publish.js'
+import { Reasons, Sources } from '~/src/service/constants.js'
 
 jest.mock('~/src/lib/fetch.js')
+jest.mock('~/src/messaging/publish.js')
+jest.mock('~/src/helpers/logging/logger.js', () => ({
+  logger: {
+    info: jest.fn()
+  }
+}))
 
 describe('Utils: Notify', () => {
   const templateId = 'example-template-id'
@@ -39,6 +49,120 @@ describe('Utils: Notify', () => {
           }
         }
       )
+    })
+  })
+
+  describe('putNotificationOnQueue', () => {
+    const meta = {
+      source: Sources.NotifyListener,
+      reason: Reasons.SubmissionEmail,
+      formId: 'form-id',
+      referenceNumber: 'ABC-123-DEF'
+    }
+
+    /**
+     * Builds a body so the serialised queue message is exactly the requested size in bytes
+     * @param {number} targetSizeBytes
+     */
+    function buildBodyForMessageSize(targetSizeBytes) {
+      const emptyMessageSize = Buffer.byteLength(
+        JSON.stringify({
+          templateId,
+          emailAddress,
+          personalisation: { subject: personalisation.subject, body: '' },
+          ...meta
+        }),
+        'utf8'
+      )
+
+      return 'a'.repeat(targetSizeBytes - emptyMessageSize)
+    }
+
+    beforeEach(() => {
+      jest.clearAllMocks()
+    })
+
+    it('puts the email on the queue when it is within the size limit', async () => {
+      const args = {
+        templateId,
+        emailAddress,
+        personalisation: {
+          subject: personalisation.subject,
+          body: buildBodyForMessageSize(MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES)
+        }
+      }
+
+      await putNotificationOnQueue(meta, args)
+
+      expect(putMessageOnQueue).toHaveBeenCalledWith(
+        { ...args, ...meta },
+        expect.any(String)
+      )
+      expect(postJson).not.toHaveBeenCalled()
+    })
+
+    it('sends the email directly to Notify when it exceeds the size limit', async () => {
+      const args = {
+        templateId,
+        emailAddress,
+        personalisation: {
+          subject: personalisation.subject,
+          body: buildBodyForMessageSize(MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES + 1)
+        },
+        notifyReplyToId: 'reply-to-id'
+      }
+
+      await putNotificationOnQueue(meta, args)
+
+      expect(putMessageOnQueue).not.toHaveBeenCalled()
+      expect(postJson).toHaveBeenCalledWith(expect.any(URL), {
+        payload: {
+          template_id: templateId,
+          email_address: emailAddress,
+          personalisation: args.personalisation,
+          email_reply_to_id: 'reply-to-id'
+        },
+        headers: {
+          Authorization: expect.stringMatching(/^Bearer /)
+        }
+      })
+    })
+
+    it('measures the size in bytes rather than characters', async () => {
+      // Each '£' is 2 bytes in UTF-8, so this body is within the limit in characters but over it in bytes
+      const args = {
+        templateId,
+        emailAddress,
+        personalisation: {
+          subject: personalisation.subject,
+          body: '£'.repeat(MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES / 2 + 1)
+        }
+      }
+
+      await putNotificationOnQueue(meta, args)
+
+      expect(putMessageOnQueue).not.toHaveBeenCalled()
+      expect(postJson).toHaveBeenCalledTimes(1)
+    })
+
+    it('raises the error when sending directly to Notify fails', async () => {
+      const error = new Error('Notify unavailable')
+      jest.mocked(postJson).mockRejectedValueOnce(error)
+
+      await expect(
+        putNotificationOnQueue(meta, {
+          templateId,
+          emailAddress,
+          personalisation: {
+            subject: personalisation.subject,
+            body: buildBodyForMessageSize(
+              MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES + 1
+            )
+          }
+        })
+      ).rejects.toThrow(error)
+
+      expect(putMessageOnQueue).not.toHaveBeenCalled()
     })
   })
 

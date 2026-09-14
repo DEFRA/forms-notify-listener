@@ -1,12 +1,16 @@
 import { token } from '@hapi/jwt'
 
 import { config } from '~/src/config/index.js'
+import { logger } from '~/src/helpers/logging/logger.js'
 import validation from '~/src/helpers/validation/basic-validators.js'
 import { postJson } from '~/src/lib/fetch.js'
 import { putMessageOnQueue } from '~/src/messaging/publish.js'
 
 const notifyAPIKey = config.get('notifyAPIKey')
 const sqsEmailsQueueUrl = config.get('sqsEmailsQueueUrl')
+
+// SQS rejects messages over 256 KB. Setting a slightly smaller 250 KB limit so that any email larger than this is sent directly to Notify
+export const MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES = 250 * 1024
 
 const API_KEY_SUBSTRING_REDUCTION = 36
 const SERVICE_ID_SUBSTRING_REDUCTION = 73
@@ -158,6 +162,9 @@ const NOTIFICATIONS_URL = new URL(
  * Put an email payload on the queue so the email listener can pick this up and
  * make the call to GOV Notify. This would then handle individual failed emails
  * being auto-retried, and eventually going to the DLQ if necessary.
+ *
+ * If the message is too large for SQS, the email is sent directly to GOV Notify instead,
+ * so any failure is raised to the caller rather than being retried by the email queue.
  * @param {NotificationMetadata} meta
  * @param {SendNotificationArgs} args
  */
@@ -166,6 +173,18 @@ export async function putNotificationOnQueue(meta, args) {
     ...args,
     ...meta
   })
+
+  const messageSizeBytes = Buffer.byteLength(JSON.stringify(message), 'utf8')
+
+  if (messageSizeBytes > MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES) {
+    logger.info(
+      `Email for source ${meta.source} reason ${meta.reason} is ${messageSizeBytes} bytes, which exceeds the queue limit of ${MAX_EMAIL_QUEUE_MESSAGE_SIZE_BYTES} bytes. Sending directly to Notify. Reference number: ${meta.referenceNumber}`
+    )
+
+    await sendNotification(args)
+
+    return
+  }
 
   await putMessageOnQueue(message, sqsEmailsQueueUrl)
 }
