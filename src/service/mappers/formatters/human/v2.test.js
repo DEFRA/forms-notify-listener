@@ -175,25 +175,33 @@ describe('Page controller helpers', () => {
       pos = stringExistsFromPosition(output, pos, '1 January 2000')
       pos = stringExistsFromPosition(output, pos, '## What month is it?')
       pos = stringExistsFromPosition(output, pos, 'August 2025')
+      pos = stringExistsFromPosition(output, pos, '# Team Member 1')
       pos = stringExistsFromPosition(
         output,
         pos,
-        "# What is the team member\\'s name?"
+        "## What is the team member\\'s name?"
       )
-      pos = stringExistsFromPosition(output, pos, '## Team Member 1')
       pos = stringExistsFromPosition(output, pos, 'Frodo')
-      pos = stringExistsFromPosition(output, pos, '## Team Member 2')
+      pos = stringExistsFromPosition(
+        output,
+        pos,
+        "## What is the team member\\'s date of birth?"
+      )
+      pos = stringExistsFromPosition(output, pos, '1 January 2000')
+      pos = stringExistsFromPosition(output, pos, '# Team Member 2')
+      pos = stringExistsFromPosition(
+        output,
+        pos,
+        "## What is the team member\\'s name?"
+      )
       pos = stringExistsFromPosition(output, pos, 'Gandalf')
       pos = stringExistsFromPosition(
         output,
         pos,
-        "# What is the team member\\'s date of birth?"
+        "## What is the team member\\'s date of birth?"
       )
-      pos = stringExistsFromPosition(output, pos, '## Team Member 1')
-      pos = stringExistsFromPosition(output, pos, '1 January 2000')
-      pos = stringExistsFromPosition(output, pos, '## Team Member 2')
       pos = stringExistsFromPosition(output, pos, '1 January 2020')
-      pos = stringExistsFromPosition(output, pos, '## Team Member')
+      pos = stringExistsFromPosition(output, pos, '# Team Member')
       pos = stringExistsFromPosition(
         output,
         pos,
@@ -222,7 +230,7 @@ describe('Page controller helpers', () => {
         pos,
         '## Geospatial features of the site'
       )
-      pos = stringExistsFromPosition(output, pos, '## Sites')
+      pos = stringExistsFromPosition(output, pos, '# Sites')
       stringExistsFromPosition(
         output,
         pos,

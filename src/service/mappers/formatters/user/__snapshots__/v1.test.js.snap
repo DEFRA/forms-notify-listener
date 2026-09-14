@@ -1,23 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`User answers formatter v1 formatter should match snapshot for pizza form 1`] = `
-"# Toppings
+"# Pizza 1
 
-## Pizza 1
+## Toppings
 
 Ham
 
-## Pizza 2
-
-Pepperoni
-
-# Quantity
-
-## Pizza 1
+## Quantity
 
 2
 
-## Pizza 2
+# Pizza 2
+
+## Toppings
+
+Pepperoni
+
+## Quantity
 
 1
 
@@ -60,23 +60,23 @@ AN1 2WH
 
 August 2025
 
-# What is the team member\\'s name?
+# Team Member 1
 
-## Team Member 1
+## What is the team member\\'s name?
 
 Frodo
 
-## Team Member 2
-
-Gandalf
-
-# What is the team member\\'s date of birth?
-
-## Team Member 1
+## What is the team member\\'s date of birth?
 
 1 January 2000
 
-## Team Member 2
+# Team Member 2
+
+## What is the team member\\'s name?
+
+Gandalf
+
+## What is the team member\\'s date of birth?
 
 1 January 2020
 
@@ -113,9 +113,9 @@ TQ 28521 79799
 -0.14007559375386336, 51.501691503585704
 -0.1408908761094949, 51.50022866765107
 
-# Geospatial features of the site
+# Sites 1
 
-## Sites 1
+## Geospatial features of the site
 
 Added 1 location:
 
@@ -141,33 +141,31 @@ John
 
 Doe
 
-# First name
+# person 1
 
-## person 1
+## First name
 
 Jane
 
-## person 2
-
-Janet
-
-# Last name
-
-## person 1
+## Last name
 
 Doe
 
-## person 2
-
-Doe
-
-# When did they leave the UK?
-
-## person 1
+## When did they leave the UK?
 
 January 2000
 
-## person 2
+# person 2
+
+## First name
+
+Janet
+
+## Last name
+
+Doe
+
+## When did they leave the UK?
 
 January 2000
 
