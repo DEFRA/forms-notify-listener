@@ -37,7 +37,7 @@ export function processRepeaterFiles(
     const componentKey = repeaterPage.repeat.options.name
     const questionLines = /** @type {string[]} */ ([])
 
-    questionLines.push(`# ${label} responses\n`)
+    questionLines.push(`# ${label}\n`)
 
     const repeaterFilename = escapeFileLabel(`Download ${label} (CSV)`)
     questionLines.push(
