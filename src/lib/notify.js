@@ -172,10 +172,10 @@ export async function putNotificationOnQueue(meta, args) {
     await putMessageOnQueue(message, sqsEmailsQueueUrl)
   } catch (err) {
     const error = /** @type {{ message?: string, name?: string }} */ (err)
-    const message = error.message ?? ''
+    const errMessage = error.message ?? ''
     if (
       error.name === 'InvalidParameterValue' &&
-      message.includes('Message must be shorter')
+      errMessage.includes('Message must be shorter')
     ) {
       logger.info(
         `Email for source ${meta.source} reason ${meta.reason} was too large for the queue. Sending directly to Notify. Reference number: ${meta.referenceNumber}`
