@@ -1,11 +1,23 @@
+import {
+  SQSClient,
+  SQSServiceException,
+  SendMessageCommand
+} from '@aws-sdk/client-sqs'
+import { mockClient } from 'aws-sdk-client-mock'
+
 import { postJson } from '~/src/lib/fetch.js'
 import {
   escapeContent,
   escapeFileLabel,
+  putNotificationOnQueue,
   sendNotification
 } from '~/src/lib/notify.js'
+import { buildMessageStub } from '~/src/service/__stubs__/event-builders.js'
+import { Reasons, Sources } from '~/src/service/constants.js'
+import { handleEmailEvents } from '~/src/service/email-events.js'
 
 jest.mock('~/src/lib/fetch.js')
+jest.mock('~/src/messaging/event.js')
 
 describe('Utils: Notify', () => {
   const templateId = 'example-template-id'
@@ -299,6 +311,149 @@ describe('Utils: Notify', () => {
     it('should escape indented numbered list across multiple lines', () => {
       expect(escapeContent('  1. first\n  2. second')).toBe(
         '  1\\. first\n  2\\. second'
+      )
+    })
+  })
+
+  describe('putNotificationOnQueue', () => {
+    const sqsMock = mockClient(SQSClient)
+
+    afterEach(() => {
+      sqsMock.reset()
+    })
+
+    const meta = {
+      source: Sources.SubmissionApi,
+      reason: Reasons.SubmissionEmail,
+      formId: 'my-form-id',
+      referenceNumber: 'ABC-DEF-GHI'
+    }
+    const args = {
+      templateId: 'template-id',
+      emailAddress: 'test@domain.com',
+      personalisation: {
+        subject: 'Form submitted: \\"Test\\" – it\\\'s done',
+        body: '\\# Answers\n\n\\- £100 & <b>\n[file&nbsp;name.pdf] (https://example.com/file.pdf)'
+      },
+      notifyReplyToId: 'reply-to-id'
+    }
+    const notificationsUrl = new URL(
+      '/v2/notifications/email',
+      'https://api.notifications.service.gov.uk'
+    )
+    const expectedNotifyRequest = {
+      payload: {
+        template_id: args.templateId,
+        email_address: args.emailAddress,
+        personalisation: args.personalisation,
+        email_reply_to_id: args.notifyReplyToId
+      },
+      headers: {
+        Authorization: expect.stringMatching(/^Bearer /)
+      }
+    }
+
+    const messageTooLarge =
+      'One or more parameters are invalid. Reason: Message must be shorter than 262144 bytes.'
+
+    /**
+     * SQS error as the SQS client throws it for an error code with no typed
+     * exception class, named after the query error code
+     * @param {string} name
+     * @param {string} message
+     */
+    function buildSqsError(name, message) {
+      return new SQSServiceException({
+        name,
+        message,
+        $fault: 'client',
+        $metadata: { httpStatusCode: 400 }
+      })
+    }
+
+    /**
+     * Message bodies sent to the queue, in order
+     */
+    function getQueuedMessageBodies() {
+      return sqsMock
+        .commandCalls(SendMessageCommand)
+        .map((call) => call.args[0].input.MessageBody)
+    }
+
+    it('should put the email on the queue without calling Notify', async () => {
+      sqsMock.on(SendMessageCommand).resolves({
+        MessageId: '00000000-0000-0000-0000-000000000000'
+      })
+
+      await putNotificationOnQueue(meta, args)
+
+      expect(getQueuedMessageBodies()).toEqual([
+        JSON.stringify({ ...args, ...meta })
+      ])
+      expect(postJson).not.toHaveBeenCalled()
+    })
+
+    it('should send directly to Notify if the message is too large for the queue', async () => {
+      sqsMock
+        .on(SendMessageCommand)
+        .rejects(buildSqsError('InvalidParameterValue', messageTooLarge))
+
+      await putNotificationOnQueue(meta, args)
+
+      expect(getQueuedMessageBodies()).toHaveLength(1)
+      expect(postJson).toHaveBeenCalledTimes(1)
+      expect(postJson).toHaveBeenCalledWith(
+        notificationsUrl,
+        expectedNotifyRequest
+      )
+    })
+
+    it.each([
+      { name: 'InvalidParameterValue', message: 'Some other error' },
+      { name: 'InvalidMessageContents', message: messageTooLarge }
+    ])(
+      'should rethrow a $name error without calling Notify: $message',
+      async ({ name, message }) => {
+        sqsMock.on(SendMessageCommand).rejects(buildSqsError(name, message))
+
+        await expect(putNotificationOnQueue(meta, args)).rejects.toMatchObject({
+          name,
+          message
+        })
+
+        expect(postJson).not.toHaveBeenCalled()
+      }
+    )
+
+    it('should send the same Notify request whether routed via the queue or directly', async () => {
+      sqsMock
+        .on(SendMessageCommand)
+        .resolvesOnce({ MessageId: '00000000-0000-0000-0000-000000000000' })
+        .rejectsOnce(buildSqsError('InvalidParameterValue', messageTooLarge))
+
+      // Queue route: the email listener consumes the queued message body
+      await putNotificationOnQueue(meta, args)
+      const [messageBody = ''] = getQueuedMessageBodies()
+
+      const { failed } = await handleEmailEvents([
+        buildMessageStub(JSON.parse(messageBody))
+      ])
+      expect(failed).toEqual([])
+
+      // Direct route: the message is too large for the queue
+      await putNotificationOnQueue(meta, args)
+
+      expect(getQueuedMessageBodies()).toHaveLength(2)
+      expect(postJson).toHaveBeenCalledTimes(2)
+      expect(postJson).toHaveBeenNthCalledWith(
+        1,
+        notificationsUrl,
+        expectedNotifyRequest
+      )
+      expect(postJson).toHaveBeenNthCalledWith(
+        2,
+        notificationsUrl,
+        expectedNotifyRequest
       )
     })
   })
