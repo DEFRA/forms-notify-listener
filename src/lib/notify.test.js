@@ -2,10 +2,13 @@ import { postJson } from '~/src/lib/fetch.js'
 import {
   escapeContent,
   escapeFileLabel,
+  putNotificationOnQueue,
   sendNotification
 } from '~/src/lib/notify.js'
+import { putMessageOnQueue } from '~/src/messaging/publish.js'
 
 jest.mock('~/src/lib/fetch.js')
+jest.mock('~/src/messaging/publish.js')
 
 describe('Utils: Notify', () => {
   const templateId = 'example-template-id'
@@ -300,6 +303,45 @@ describe('Utils: Notify', () => {
       expect(escapeContent('  1. first\n  2. second')).toBe(
         '  1\\. first\n  2\\. second'
       )
+    })
+  })
+
+  describe('putNotificationOnQueue', () => {
+    beforeEach(() => {
+      jest.clearAllMocks()
+      jest.mocked(sendNotification)
+    })
+
+    const meta = {
+      source: 'test',
+      reason: 'submission-email',
+      formId: 'my-form-id',
+      referenceNumber: 'ABC-DEF-GHI'
+    }
+    const args = {
+      templateId: 'template-id',
+      emailAddress: 'test@domain.com',
+      personalisation: {
+        subject: 'Test submission email',
+        body: 'Body text'
+      }
+    }
+
+    it('should handle without error', () => {
+      expect(() => putNotificationOnQueue(meta, args)).not.toThrow()
+      expect(postJson).not.toHaveBeenCalled()
+    })
+
+    it('should throw if message too large', () => {
+      const error = new Error(
+        'One or more parameters are invalid. Reason: Message must be shorter than 262144 bytes.'
+      )
+      error.name = 'InvalidParameterValue'
+      jest.mocked(putMessageOnQueue).mockImplementationOnce(() => {
+        throw error
+      })
+      expect(() => putNotificationOnQueue(meta, args)).not.toThrow()
+      expect(postJson).toHaveBeenCalled()
     })
   })
 })
