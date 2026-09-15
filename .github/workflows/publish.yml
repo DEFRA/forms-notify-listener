@@ -8,8 +8,6 @@ on:
     paths:
       - '.browserslistrc'
       - 'babel.config.*'
-      - 'postcss.config.*'
-      - 'webpack.config.*'
       - 'Dockerfile'
       - 'src/**'
       - '!**/*.test.*'
