@@ -332,7 +332,7 @@ describe('Utils: Notify', () => {
       expect(postJson).not.toHaveBeenCalled()
     })
 
-    it('should throw if message too large', () => {
+    it('should send directly to Notify if message too large', () => {
       const error = new Error(
         'One or more parameters are invalid. Reason: Message must be shorter than 262144 bytes.'
       )
@@ -342,6 +342,17 @@ describe('Utils: Notify', () => {
       })
       expect(() => putNotificationOnQueue(meta, args)).not.toThrow()
       expect(postJson).toHaveBeenCalled()
+    })
+
+    it('should throw if other error', async () => {
+      const error = new Error('Some other error')
+      error.name = 'InvalidParameterValue'
+      jest.mocked(putMessageOnQueue).mockImplementationOnce(() => {
+        throw error
+      })
+      await expect(() => putNotificationOnQueue(meta, args)).rejects.toThrow(
+        'Some other error'
+      )
     })
   })
 })
