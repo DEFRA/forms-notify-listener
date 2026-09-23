@@ -1,5 +1,6 @@
 import {
   DeleteMessageCommand,
+  GetQueueAttributesCommand,
   ReceiveMessageCommand,
   SQSClient,
   SendMessageCommand,
@@ -12,6 +13,7 @@ import {
   deleteDlqMessage,
   deleteEventMessage,
   getDeadLetterQueueUrl,
+  getDlqMessageCount,
   receiveDlqMessages,
   receiveEventMessages,
   redriveDlqMessages,
@@ -84,6 +86,30 @@ describe('event', () => {
         VisibilityTimeout: 3,
         WaitTimeSeconds: 3
       })
+    })
+  })
+
+  describe('getDlqMessageCount', () => {
+    it('should sum visible and in-flight messages', async () => {
+      snsMock.on(GetQueueAttributesCommand).resolves({
+        Attributes: {
+          ApproximateNumberOfMessages: '4',
+          ApproximateNumberOfMessagesNotVisible: '3'
+        }
+      })
+      await expect(getDlqMessageCount('emails')).resolves.toBe(7)
+      expect(snsMock).toHaveReceivedCommandWith(GetQueueAttributesCommand, {
+        QueueUrl: expect.any(String),
+        AttributeNames: [
+          'ApproximateNumberOfMessages',
+          'ApproximateNumberOfMessagesNotVisible'
+        ]
+      })
+    })
+
+    it('should default missing attributes to zero', async () => {
+      snsMock.on(GetQueueAttributesCommand).resolves({})
+      await expect(getDlqMessageCount('submissions')).resolves.toBe(0)
     })
   })
 
