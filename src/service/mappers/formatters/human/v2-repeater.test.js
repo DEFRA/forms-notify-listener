@@ -253,7 +253,7 @@ describe('v2-repeater', () => {
       expect(lines?.[0]).toBe('# Sites 1\n')
       expect(lines?.[1]).toBe('## Geospatial features of the site\n')
       expect(lines?.[2]).toContain(
-        'Point:\nSD 57403 26671\n-2.6471947, 53.7346808'
+        'Point:\nSD 57403 26671\n53.7346808, -2.6471947'
       )
       expect(lines?.[2]).toContain(
         '[View map](http://designer/submission/874-C7C-D60/map-review/e9016eb6-8436-428b-b5ad-cd5fd8e563c3/8ea12a71-83d0-43d9-9761-dcb3208a30d1)'
