@@ -158,7 +158,9 @@ export function formatGeospatialField(answer, _field, richFormValue) {
           ? centroidGridReference
           : coordinateGridReference
 
-      return `${description}:\n${gridReference}\n${points.join('\n')}\n`
+      const coordinatesHeading = 'Latitude, Longitude'
+
+      return `${description}:\n${gridReference}\n${coordinatesHeading}\n${points.join('\n')}\n`
     })
     .join('\n')
 
