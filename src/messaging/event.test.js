@@ -51,6 +51,14 @@ describe('event', () => {
         receivedMessage
       )
     })
+
+    it('should request the message attributes', async () => {
+      snsMock.on(ReceiveMessageCommand).resolves({ Messages: [messageStub] })
+      await receiveEventMessages(queueUrl)
+      expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
+        MessageAttributeNames: ['All']
+      })
+    })
   })
 
   describe('deleteEventMessage', () => {

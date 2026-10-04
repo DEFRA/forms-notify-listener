@@ -1,3 +1,4 @@
+import { runWithMessageLogContext } from '@defra/forms-common'
 import { getErrorMessage } from '@defra/forms-model'
 import Joi from 'joi'
 
@@ -88,7 +89,11 @@ export async function handleEmailEvents(messages) {
     }
   }
 
-  const results = await Promise.allSettled(messages.map(handleSingleEmailEvent))
+  const results = await Promise.allSettled(
+    messages.map((message) =>
+      runWithMessageLogContext(message, () => handleSingleEmailEvent(message))
+    )
+  )
 
   const saved = results
     .filter((result) => result.status === 'fulfilled')
