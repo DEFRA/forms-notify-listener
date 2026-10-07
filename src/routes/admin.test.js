@@ -2,6 +2,7 @@ import { createServer } from '~/src/api/server.js'
 import {
   deleteDlqMessage,
   getDlqMessage,
+  getDlqMessageCount,
   receiveDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
@@ -41,6 +42,21 @@ describe('Admin routes', () => {
       expect(response.statusCode).toEqual(okStatusCode)
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ messages: [{ MessageId: 'message1' }] })
+    })
+
+    test('/admin/dead-letter/emails/count route returns 200', async () => {
+      jest.mocked(getDlqMessageCount).mockResolvedValue(7)
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/admin/deadletter/emails/count',
+        auth
+      })
+
+      expect(response.statusCode).toEqual(okStatusCode)
+      expect(response.headers['content-type']).toContain(jsonContentType)
+      expect(response.result).toEqual({ count: 7 })
+      expect(getDlqMessageCount).toHaveBeenCalledWith('emails')
     })
 
     test('/admin/dead-letter/emails/view/message-id route returns 200', async () => {
