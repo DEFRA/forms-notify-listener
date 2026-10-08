@@ -190,6 +190,10 @@ export function formatter(
     lines.push(`This form was submitted in Welsh.\n`)
   }
 
+  lines.push(
+    'Do not reply to this email. Your reply will go to the Defra Forms team, not the person who submitted the form.\n'
+  )
+
   lines.push('---\n')
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
