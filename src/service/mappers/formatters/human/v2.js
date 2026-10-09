@@ -191,10 +191,9 @@ export function formatter(
   }
 
   lines.push(
-    'Do not reply to this email. Your reply will go to the Defra Forms team, not the person who submitted the form.\n'
+    'Do not reply to this email. Your reply will go to the Defra Forms team, not the person who submitted the form.\n',
+    '---\n'
   )
-
-  lines.push('---\n')
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
 
