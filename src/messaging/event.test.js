@@ -14,6 +14,7 @@ import {
   deleteEventMessage,
   getDeadLetterQueueUrl,
   getDlqMessageCount,
+  receiveAllDlqMessages,
   receiveDlqMessages,
   receiveEventMessages,
   redriveDlqMessages,
@@ -110,6 +111,94 @@ describe('event', () => {
     it('should default missing attributes to zero', async () => {
       snsMock.on(GetQueueAttributesCommand).resolves({})
       await expect(getDlqMessageCount('submissions')).resolves.toBe(0)
+    })
+  })
+
+  describe('receiveAllDlqMessages', () => {
+    const message1 = { ...messageStub, MessageId: 'message-1' }
+    const message2 = { ...messageStub, MessageId: 'message-2' }
+
+    /**
+     * @param {number} count
+     */
+    function mockCount(count) {
+      snsMock.on(GetQueueAttributesCommand).resolves({
+        Attributes: {
+          ApproximateNumberOfMessages: String(count),
+          ApproximateNumberOfMessagesNotVisible: '0'
+        }
+      })
+    }
+
+    it('should keep receiving until every counted message is collected', async () => {
+      mockCount(2)
+      snsMock
+        .on(ReceiveMessageCommand)
+        .resolvesOnce({ Messages: [message1] })
+        .resolvesOnce({ Messages: [message2] })
+
+      await expect(receiveAllDlqMessages('emails')).resolves.toEqual([
+        message1,
+        message2
+      ])
+      expect(snsMock).toHaveReceivedCommandTimes(ReceiveMessageCommand, 2)
+      expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
+        QueueUrl: expect.any(String),
+        MaxNumberOfMessages: 10,
+        VisibilityTimeout: 3,
+        WaitTimeSeconds: 3
+      })
+    })
+
+    it('should not receive at all when the queue is empty', async () => {
+      mockCount(0)
+
+      await expect(receiveAllDlqMessages('emails')).resolves.toEqual([])
+      expect(snsMock).toHaveReceivedCommandTimes(ReceiveMessageCommand, 0)
+    })
+
+    it('should stop when a receive returns nothing', async () => {
+      mockCount(3)
+      snsMock
+        .on(ReceiveMessageCommand)
+        .resolvesOnce({ Messages: [message1] })
+        .resolvesOnce({})
+
+      await expect(receiveAllDlqMessages('emails')).resolves.toEqual([message1])
+      expect(snsMock).toHaveReceivedCommandTimes(ReceiveMessageCommand, 2)
+    })
+
+    it('should de-duplicate messages received more than once', async () => {
+      mockCount(2)
+      snsMock
+        .on(ReceiveMessageCommand)
+        .resolvesOnce({ Messages: [message1] })
+        .resolvesOnce({ Messages: [message1] })
+        .resolvesOnce({ Messages: [message2] })
+
+      await expect(receiveAllDlqMessages('emails')).resolves.toEqual([
+        message1,
+        message2
+      ])
+    })
+
+    it('should give up after the maximum number of receives', async () => {
+      mockCount(50)
+      snsMock.on(ReceiveMessageCommand).resolves({ Messages: [message1] })
+
+      await expect(receiveAllDlqMessages('emails')).resolves.toEqual([message1])
+      expect(snsMock).toHaveReceivedCommandTimes(ReceiveMessageCommand, 10)
+    })
+
+    it('should pass through visibility timeout and wait time', async () => {
+      mockCount(1)
+      snsMock.on(ReceiveMessageCommand).resolves({ Messages: [message1] })
+
+      await receiveAllDlqMessages('submissions', 5, 1)
+      expect(snsMock).toHaveReceivedCommandWith(ReceiveMessageCommand, {
+        VisibilityTimeout: 5,
+        WaitTimeSeconds: 1
+      })
     })
   })
 

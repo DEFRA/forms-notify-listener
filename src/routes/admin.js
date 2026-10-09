@@ -6,7 +6,7 @@ import {
   deleteDlqMessage,
   getDlqMessage,
   getDlqMessageCount,
-  receiveDlqMessages,
+  receiveAllDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
 } from '~/src/messaging/event.js'
@@ -36,12 +36,12 @@ export default [
     async handler(request, h) {
       const { params, query } = request
       const { visibilityTimeout, waitTimeSeconds } = query
-      const messages = await receiveDlqMessages(
+      const messages = await receiveAllDlqMessages(
         params.dlq,
         visibilityTimeout,
         waitTimeSeconds
       )
-      return h.response({ messages: messages.Messages ?? [] }).code(OK_RESPONSE)
+      return h.response({ messages }).code(OK_RESPONSE)
     },
     options: {
       auth: {
