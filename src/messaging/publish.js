@@ -1,4 +1,5 @@
 import { SendMessageCommand } from '@aws-sdk/client-sqs'
+import { getMessageAttributes } from '@defra/forms-common'
 
 import { logger } from '~/src/helpers/logging/logger.js'
 import { getSQSClient } from '~/src/messaging/sqs.js'
@@ -26,7 +27,8 @@ const sqsClient = getSQSClient()
 export async function putMessageOnQueue(message, queueUrl) {
   const command = new SendMessageCommand({
     QueueUrl: queueUrl,
-    MessageBody: JSON.stringify(message)
+    MessageBody: JSON.stringify(message),
+    MessageAttributes: getMessageAttributes()
   })
 
   const result = await sqsClient.send(command)

@@ -5,6 +5,7 @@ import {
   SendMessageCommand,
   StartMessageMoveTaskCommand
 } from '@aws-sdk/client-sqs'
+import { getMessageAttributes } from '@defra/forms-common'
 
 import { config } from '~/src/config/index.js'
 import { logger } from '~/src/helpers/logging/logger.js'
@@ -48,7 +49,8 @@ export function receiveEventMessages(queueUrl) {
   const input = {
     QueueUrl: queueUrl,
     MaxNumberOfMessages: maxNumberOfMessages,
-    VisibilityTimeout: pollingVisibilityTimeout
+    VisibilityTimeout: pollingVisibilityTimeout,
+    MessageAttributeNames: ['All']
   }
 
   const command = new ReceiveMessageCommand(input)
@@ -180,7 +182,8 @@ export async function resubmitDlqMessage(dlq, messageId, messageJson) {
 
     const command = new SendMessageCommand({
       QueueUrl: getQueueUrl(dlq),
-      MessageBody: messageJson
+      MessageBody: messageJson,
+      MessageAttributes: getMessageAttributes()
     })
     const sendResult = await sqsClient.send(command)
     logger.info(

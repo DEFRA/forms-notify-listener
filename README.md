@@ -64,7 +64,7 @@ ENVIRONMENT=local
 SERVICE_VERSION=''
 PORT=3006
 
-TRACING_HEADER=x-trace-id
+TRACING_HEADER=x-cdp-request-id
 LOG_ENABLED=true
 LOG_FORMAT=pino-pretty
 LOG_LEVEL=info
