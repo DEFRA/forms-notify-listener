@@ -3,7 +3,7 @@ import {
   deleteDlqMessage,
   getDlqMessage,
   getDlqMessageCount,
-  receiveDlqMessages,
+  receiveAllDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
 } from '~/src/messaging/event.js'
@@ -30,8 +30,8 @@ describe('Admin routes', () => {
   describe('GET', () => {
     test('/admin/dead-letter/emails/view route returns 200', async () => {
       jest
-        .mocked(receiveDlqMessages)
-        .mockResolvedValue({ Messages: [{ MessageId: 'message1' }] })
+        .mocked(receiveAllDlqMessages)
+        .mockResolvedValue([{ MessageId: 'message1' }])
 
       const response = await server.inject({
         method: 'GET',
@@ -42,6 +42,11 @@ describe('Admin routes', () => {
       expect(response.statusCode).toEqual(okStatusCode)
       expect(response.headers['content-type']).toContain(jsonContentType)
       expect(response.result).toEqual({ messages: [{ MessageId: 'message1' }] })
+      expect(receiveAllDlqMessages).toHaveBeenCalledWith(
+        'emails',
+        undefined,
+        undefined
+      )
     })
 
     test('/admin/dead-letter/emails/count route returns 200', async () => {

@@ -19,6 +19,7 @@ const MAX_RETRIES = 7
 const RETRY_WAIT_BETWEEN_TRIES_IN_SECS = 1
 const DEFAULT_VISIBILITY_TIMEOUT = 3
 const DEFAULT_WAIT_TIME_IN_SECS = 3
+const MAX_RECEIVES_FOR_VIEW = 10
 
 /**
  * @param {NotifyDlq} dlqName
@@ -98,6 +99,47 @@ export async function getDlqMessageCount(dlq) {
     Attributes?.ApproximateNumberOfMessagesNotVisible ?? 0
   )
   return visible + notVisible
+}
+
+/**
+ * Receive all messages in the dead-letter queue, up to MAX_RECEIVES_FOR_VIEW batches.
+ * A single ReceiveMessage can return fewer messages than are available, so keep
+ * receiving until the queue's count is reached. Messages already received stay
+ * hidden for the visibility timeout, so each call returns different ones.
+ * @param {NotifyDlq} dlq
+ * @param {number} [visibilityTimeout]
+ * @param {number} [waitTimeSeconds]
+ * @returns {Promise<Message[]>}
+ */
+export async function receiveAllDlqMessages(
+  dlq,
+  visibilityTimeout = DEFAULT_VISIBILITY_TIMEOUT,
+  waitTimeSeconds = DEFAULT_WAIT_TIME_IN_SECS
+) {
+  const expectedCount = await getDlqMessageCount(dlq)
+
+  /** @type {Map<string | undefined, Message>} */
+  const messages = new Map()
+  let receives = 0
+
+  while (messages.size < expectedCount && receives < MAX_RECEIVES_FOR_VIEW) {
+    receives++
+    const { Messages: batch = [] } = await receiveDlqMessages(
+      dlq,
+      visibilityTimeout,
+      waitTimeSeconds
+    )
+
+    if (!batch.length) {
+      break
+    }
+
+    for (const message of batch) {
+      messages.set(message.MessageId, message)
+    }
+  }
+
+  return Array.from(messages.values())
 }
 
 /**
