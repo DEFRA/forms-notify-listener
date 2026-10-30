@@ -1,6 +1,9 @@
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
-import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
+import {
+  detailsIfCopyAction,
+  extractPaymentDetails
+} from '~/src/service/mappers/formatters/shared.js'
 import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
 
 /**
@@ -31,6 +34,25 @@ ${paymentDetails.amount}
 ${escapeContent(paymentDetails.dateOfPayment)}
 ---
 `
+}
+
+/**
+ * Generates the action details section for the form filler email
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
+ * @returns {string}
+ */
+function getActionDetails(formDefinition, formSubmissionMessage, translator) {
+  const { t } = translator
+  const { isCopy, actionReferenceNumber } = detailsIfCopyAction(
+    formDefinition,
+    formSubmissionMessage
+  )
+  if (isCopy) {
+    return `${t('confirmationEmail.copyAction', { actionReferenceNumber })}\n\n`
+  }
+  return ''
 }
 
 /**
@@ -82,6 +104,12 @@ ${formattedAnswers}
 `
   }
 
+  const actionDetails = getActionDetails(
+    formDefinition,
+    formSubmissionMessage,
+    translator
+  )
+
   // Generate payment section if payment exists
   const paymentSection = getPaymentSection(formSubmissionMessage, translator)
 
@@ -94,7 +122,7 @@ ${formattedAnswers}
 
   return `
 # ${t('confirmationEmail.heading')}
-${referenceNumber}${t('confirmationEmail.receivedAt', { formName: escapeContent(formName), submissionDateTime: formattedSubmissionDate })}
+${referenceNumber}${t('confirmationEmail.receivedAt', { formName: escapeContent(formName), submissionDateTime: formattedSubmissionDate })}${actionDetails}
 ${paymentSection}
 # ${t('confirmationEmail.whatHappensNext')}
 ${submissionGuidanceText ?? submissionGuidancePlaceholderText}

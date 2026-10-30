@@ -5,6 +5,7 @@
     "heading": "Ffurflen wedi'i chyflwyno",
     "receivedAt": "Gwnaethom dderbyn eich ffurflen ar gyfer &lsquo;[[formName]]&rsquo; am [[submissionDateTime]].",
     "referenceNumber": "^ Eich cyfeirnod: [[referenceNumber]]",
+    "copyAction": "Gwnaethoch gyflwyno'r ffurflen hon gan ddefnyddio copi o'r atebion o gyflwyniad blaenorol (cyfeirnod [[actionReferenceNumber]]). Mae hwn yn gyflwyniad newydd ac nid yw'n disodli'r un blaenorol.",
     "whatHappensNext": "Beth sy'n digwydd nesaf",
     "whatHappensNextPlaceholder": "Diffiniwch y testun hwn yn adran 'Beth sy'n digwydd nesaf' o drosolwg y ffurflen",
     "getHelp": "Cael cymorth",

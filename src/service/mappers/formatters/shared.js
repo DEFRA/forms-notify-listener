@@ -179,6 +179,31 @@ export function generateGeospatialMapLink(
 }
 
 /**
+ *
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @returns {{ isCopy: boolean, actionReferenceNumber: string | undefined }}
+ */
+export function detailsIfCopyAction(formDefinition, formSubmissionMessage) {
+  if (
+    formDefinition.metadata?.copyEnabled &&
+    formSubmissionMessage.meta.custom?.actionName === 'copy'
+  ) {
+    const actionReferenceNumber = /** @type {string} */ (
+      formSubmissionMessage.meta.custom.actionReferenceNumber
+    )
+    return {
+      isCopy: true,
+      actionReferenceNumber
+    }
+  }
+  return {
+    isCopy: false,
+    actionReferenceNumber: undefined
+  }
+}
+
+/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, GeospatialState, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'

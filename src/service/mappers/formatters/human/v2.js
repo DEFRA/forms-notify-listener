@@ -19,6 +19,7 @@ import {
   processRepeaterFiles
 } from '~/src/service/mappers/formatters/human/v2-repeater.js'
 import {
+  detailsIfCopyAction,
   extractPaymentDetails,
   repeaterAnswersKey
 } from '~/src/service/mappers/formatters/shared.js'
@@ -35,6 +36,24 @@ const fileExpiryInMonths = config.get('fileExpiryInMonths')
 export function handleReferenceNumber(definition, message, lines) {
   if (definition.options?.showReferenceNumber) {
     lines.push(`^ Reference number: ${message.meta.referenceNumber}\n`)
+  }
+}
+
+/**
+ * @param {FormDefinition} definition
+ * @param {FormAdapterSubmissionMessage} message
+ * @param {string[]} lines
+ */
+export function handleFormAction(definition, message, lines) {
+  // Copy (also known as 'reuse previous answers')
+  const { isCopy, actionReferenceNumber } = detailsIfCopyAction(
+    definition,
+    message
+  )
+  if (isCopy) {
+    lines.push(
+      `This form was submitted using a copy of the answers from a previous submission (reference ${actionReferenceNumber}). This is a new submission and does not replace the previous one.\n`
+    )
   }
 }
 
@@ -193,6 +212,8 @@ export function formatter(
   lines.push('---\n')
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
+
+  handleFormAction(formDefinition, formSubmissionMessage, lines)
 
   processMainEntries(formSubmissionMessage, formModel, componentMap, translator)
   processRepeaterEntries(
