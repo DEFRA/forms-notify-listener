@@ -72,7 +72,8 @@ export function receiveDlqMessages(
     QueueUrl: queueUrl,
     MaxNumberOfMessages: 10,
     VisibilityTimeout: visibilityTimeout,
-    WaitTimeSeconds: waitTimeSeconds
+    WaitTimeSeconds: waitTimeSeconds,
+    MessageAttributeNames: ['All']
   })
   return sqsClient.send(command)
 }
@@ -169,7 +170,9 @@ export function redriveDlqMessages(dlq) {
 }
 
 /**
- * Submit the specified message to the main queue
+ * Submit the specified message to the main queue. The new message keeps the
+ * message attributes (including the log context) of the dead-letter queue
+ * message, or takes the current log context when that message is not found.
  * @param {NotifyDlq} dlq - the SQS deadletter queue identifier
  * @param {string} messageId
  * @param {string} messageJson
@@ -180,10 +183,14 @@ export async function resubmitDlqMessage(dlq, messageId, messageJson) {
       `[DLQ] Submitting new message in place of message id ${messageId}`
     )
 
+    // A visibility timeout of 0 leaves the message visible, ready to be deleted
+    const originalMessage = await getDlqMessage(dlq, messageId, 0)
+
     const command = new SendMessageCommand({
       QueueUrl: getQueueUrl(dlq),
       MessageBody: messageJson,
-      MessageAttributes: getMessageAttributes()
+      MessageAttributes:
+        originalMessage?.MessageAttributes ?? getMessageAttributes()
     })
     const sendResult = await sqsClient.send(command)
     logger.info(
