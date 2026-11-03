@@ -179,6 +179,24 @@ export function generateGeospatialMapLink(
 }
 
 /**
+ * Checks whether the form allows answers to be reused from a previous
+ * submission, as set by the metadata.options.allowCopy flag. forms-model does
+ * not define metadata.options, so its type is checked here
+ * @param {FormDefinition} formDefinition
+ * @returns {boolean}
+ */
+export function isAllowCopyEnabled(formDefinition) {
+  const options = formDefinition.metadata?.options
+
+  return (
+    typeof options === 'object' &&
+    options !== null &&
+    'allowCopy' in options &&
+    options.allowCopy === true
+  )
+}
+
+/**
  *
  * @param {FormDefinition} formDefinition
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -186,7 +204,7 @@ export function generateGeospatialMapLink(
  */
 export function detailsIfCopyAction(formDefinition, formSubmissionMessage) {
   if (
-    formDefinition.metadata?.copyEnabled &&
+    isAllowCopyEnabled(formDefinition) &&
     formSubmissionMessage.meta.custom?.actionName === 'copy'
   ) {
     const actionReferenceNumber = /** @type {string} */ (
@@ -201,6 +219,26 @@ export function detailsIfCopyAction(formDefinition, formSubmissionMessage) {
     isCopy: false,
     actionReferenceNumber: undefined
   }
+}
+
+/**
+ * Retrieves the action details of the form submission, if any.
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {FormDefinition} formDefinition
+ * @returns
+ */
+export function getFormAction(formSubmissionMessage, formDefinition) {
+  const { isCopy, actionReferenceNumber } = detailsIfCopyAction(
+    formDefinition,
+    formSubmissionMessage
+  )
+  if (isCopy) {
+    return {
+      name: 'copy',
+      referenceNumber: actionReferenceNumber
+    }
+  }
+  return undefined
 }
 
 /**

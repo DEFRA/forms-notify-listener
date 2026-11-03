@@ -1,5 +1,7 @@
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 
+import { getFormAction } from '~/src/service/mappers/formatters/shared.js'
+
 /**
  * Machine readable notify formatter v1
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -13,13 +15,16 @@ export function formatter(
   schemaVersion,
   _translator
 ) {
+  const action = getFormAction(formSubmissionMessage, formDefinition)
+
   const machineReadable = {
     meta: {
       schemaVersion,
       timestamp: new Date().toISOString(),
       referenceNumber: formSubmissionMessage.meta.referenceNumber,
       definition: formDefinition,
-      language: formSubmissionMessage.meta.language
+      language: formSubmissionMessage.meta.language,
+      ...(action ? { action } : undefined)
     },
     data: formatData(formSubmissionMessage, formDefinition)
   }
