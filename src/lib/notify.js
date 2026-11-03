@@ -1,6 +1,7 @@
 import { token } from '@hapi/jwt'
 
 import { config } from '~/src/config/index.js'
+import { logger } from '~/src/helpers/logging/logger.js'
 import validation from '~/src/helpers/validation/basic-validators.js'
 import { postJson } from '~/src/lib/fetch.js'
 import { putMessageOnQueue } from '~/src/messaging/publish.js'
@@ -167,7 +168,23 @@ export async function putNotificationOnQueue(meta, args) {
     ...meta
   })
 
-  await putMessageOnQueue(message, sqsEmailsQueueUrl)
+  try {
+    await putMessageOnQueue(message, sqsEmailsQueueUrl)
+  } catch (err) {
+    const error = /** @type {{ message?: string, name?: string }} */ (err)
+    const errMessage = error.message ?? ''
+    if (
+      error.name === 'InvalidParameterValue' &&
+      errMessage.includes('Message must be shorter')
+    ) {
+      logger.info(
+        `Email for source ${meta.source} reason ${meta.reason} was too large for the queue. Sending directly to Notify. Reference number: ${meta.referenceNumber}`
+      )
+      await sendNotification(args)
+    } else {
+      throw err
+    }
+  }
 }
 
 /**

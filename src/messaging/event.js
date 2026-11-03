@@ -1,9 +1,11 @@
 import {
   DeleteMessageCommand,
+  GetQueueAttributesCommand,
   ReceiveMessageCommand,
   SendMessageCommand,
   StartMessageMoveTaskCommand
 } from '@aws-sdk/client-sqs'
+import { getMessageAttributes } from '@defra/forms-common'
 
 import { config } from '~/src/config/index.js'
 import { logger } from '~/src/helpers/logging/logger.js'
@@ -47,7 +49,8 @@ export function receiveEventMessages(queueUrl) {
   const input = {
     QueueUrl: queueUrl,
     MaxNumberOfMessages: maxNumberOfMessages,
-    VisibilityTimeout: pollingVisibilityTimeout
+    VisibilityTimeout: pollingVisibilityTimeout,
+    MessageAttributeNames: ['All']
   }
 
   const command = new ReceiveMessageCommand(input)
@@ -72,6 +75,31 @@ export function receiveDlqMessages(
     WaitTimeSeconds: waitTimeSeconds
   })
   return sqsClient.send(command)
+}
+
+/**
+ * Get the true depth of the dead-letter queue.
+ * Uses queue attributes rather than ReceiveMessage, which short-poll samples only
+ * a subset of backing servers and is capped at 10 messages per call - both of which
+ * make it an unreliable way to count messages.
+ * @param {NotifyDlq} dlq
+ * @returns {Promise<number>}
+ */
+export async function getDlqMessageCount(dlq) {
+  const queueUrl = getDeadLetterQueueUrl(dlq)
+  const command = new GetQueueAttributesCommand({
+    QueueUrl: queueUrl,
+    AttributeNames: [
+      'ApproximateNumberOfMessages',
+      'ApproximateNumberOfMessagesNotVisible'
+    ]
+  })
+  const { Attributes } = await sqsClient.send(command)
+  const visible = Number(Attributes?.ApproximateNumberOfMessages ?? 0)
+  const notVisible = Number(
+    Attributes?.ApproximateNumberOfMessagesNotVisible ?? 0
+  )
+  return visible + notVisible
 }
 
 /**
@@ -154,7 +182,8 @@ export async function resubmitDlqMessage(dlq, messageId, messageJson) {
 
     const command = new SendMessageCommand({
       QueueUrl: getQueueUrl(dlq),
-      MessageBody: messageJson
+      MessageBody: messageJson,
+      MessageAttributes: getMessageAttributes()
     })
     const sendResult = await sqsClient.send(command)
     logger.info(

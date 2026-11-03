@@ -1,3 +1,4 @@
+import { getCorrelationId } from '@defra/forms-common'
 import { FormAdapterSubmissionSchemaVersion } from '@defra/forms-engine-plugin/engine/types/enums.js'
 import { FormStatus } from '@defra/forms-model'
 import { ValidationError } from 'joi'
@@ -243,6 +244,37 @@ describe('submission events', () => {
         saved: expectedResults,
         failed: []
       })
+    })
+
+    it('should handle each event in the log context of its message', async () => {
+      /** @type {(string | undefined)[]} */
+      const correlationIds = []
+
+      handleFormSubmissionMock.mockImplementation(() => {
+        correlationIds.push(getCorrelationId())
+        return Promise.resolve()
+      })
+
+      await handleSubmissionEvents(
+        [
+          {
+            ...message1,
+            MessageAttributes: {
+              correlationId: {
+                DataType: 'String',
+                StringValue: 'correlation-id'
+              }
+            }
+          },
+          message2
+        ],
+        formSubmissionService
+      )
+
+      expect(correlationIds).toEqual([
+        'correlation-id',
+        expect.stringMatching(/^[0-9a-f-]{36}$/)
+      ])
     })
 
     it('should handle errors softly', async () => {

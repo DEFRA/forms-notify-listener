@@ -144,7 +144,12 @@ export function formatGeospatialField(answer, _field, richFormValue) {
 
       const points = []
       for (let i = 0; i < flattened.length; i += 2) {
-        points.push(flattened.slice(i, i + 2).join(', '))
+        points.push(
+          flattened
+            .slice(i, i + 2)
+            .reverse()
+            .join(', ')
+        )
       }
 
       // For polygons use the grid reference of the centroid
@@ -153,7 +158,9 @@ export function formatGeospatialField(answer, _field, richFormValue) {
           ? centroidGridReference
           : coordinateGridReference
 
-      return `${description}:\n${gridReference}\n${points.join('\n')}\n`
+      const coordinatesHeading = 'Latitude, Longitude'
+
+      return `${description}:\n${gridReference}\n${coordinatesHeading}\n${points.join('\n')}\n`
     })
     .join('\n')
 

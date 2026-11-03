@@ -5,6 +5,7 @@ import { logger } from '~/src/helpers/logging/logger.js'
 import {
   deleteDlqMessage,
   getDlqMessage,
+  getDlqMessageCount,
   receiveDlqMessages,
   redriveDlqMessages,
   resubmitDlqMessage
@@ -53,6 +54,31 @@ export default [
           })
           .label('deadLetterQueueParams'),
         query: timeoutQuerySchema
+      }
+    }
+  }),
+
+  /**
+   * @satisfies {ServerRoute< { Params: { dlq: NotifyDlq } } >}
+   */
+  ({
+    method: 'GET',
+    path: '/admin/deadletter/{dlq}/count',
+    async handler(request, h) {
+      const { params } = request
+      const count = await getDlqMessageCount(params.dlq)
+      return h.response({ count }).code(OK_RESPONSE)
+    },
+    options: {
+      auth: {
+        scope: [`+${Scopes.DeadLetterQueues}`]
+      },
+      validate: {
+        params: Joi.object()
+          .keys({
+            dlq: dlqSchema.required()
+          })
+          .label('deadLetterQueueParams')
       }
     }
   }),
