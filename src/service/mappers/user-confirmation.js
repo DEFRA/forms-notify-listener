@@ -49,7 +49,7 @@ function getActionDetails(formDefinition, formSubmissionMessage, translator) {
     formDefinition
   )
   if (actionDetails?.name === FORM_ACTION_COPY) {
-    return `${t('confirmationEmail.copyAction', { referenceNumber: actionDetails.referenceNumber })}\n\n`
+    return `${t('confirmationEmail.copyAction', { actionReferenceNumber: actionDetails.referenceNumber })}\n\n`
   }
   return ''
 }
