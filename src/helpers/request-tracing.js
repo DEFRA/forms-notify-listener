@@ -21,16 +21,16 @@ export function applyTraceHeaders(headers) {
 }
 
 /**
- * Gets the origins of the forms services the listener calls. The session ID
- * and form reference number are only sent to these, never to a service
- * outside forms, such as GOV.UK Notify.
- * @returns {string[]}
+ * The origins of the forms services the listener calls. The session ID and
+ * form reference number are only sent to these, never to a service outside
+ * forms, such as GOV.UK Notify.
+ * @type {Set<string>}
  */
-function getFormsServiceOrigins() {
-  return [config.get('managerUrl'), config.get('entitlementUrl')]
+const formsServiceOrigins = new Set(
+  [config.get('managerUrl'), config.get('entitlementUrl')]
     .filter((serviceUrl) => serviceUrl && URL.canParse(serviceUrl))
     .map((serviceUrl) => new URL(serviceUrl).origin)
-}
+)
 
 /**
  * Adds the session ID and form reference number of the current log context to
@@ -42,7 +42,7 @@ function getFormsServiceOrigins() {
  * @returns {Headers | undefined}
  */
 export function applyLogContextHeaders(url, headers) {
-  if (!getFormsServiceOrigins().includes(url.origin)) {
+  if (!formsServiceOrigins.has(url.origin)) {
     return headers
   }
 
