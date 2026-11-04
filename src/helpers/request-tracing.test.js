@@ -1,6 +1,10 @@
 import {
+  REFERENCE_NUMBER_HEADER,
+  SESSION_ID_HEADER,
   createLogContext,
   getCorrelationId,
+  getReferenceNumber,
+  getSessionId,
   getUserId,
   runWithLogContext
 } from '@defra/forms-common'
@@ -8,6 +12,7 @@ import { getTraceId } from '@defra/hapi-tracing'
 import hapi from '@hapi/hapi'
 
 import {
+  applyLogContextHeaders,
   applyTraceHeaders,
   getRequestUserId,
   requestTracing
@@ -17,6 +22,8 @@ describe('request-tracing', () => {
   const tracingHeader = 'x-cdp-request-id'
   const correlationId = '1066e8cc-8e1e-4671-8ad7-b4cd9c95bb94'
   const userId = '86758ba9-92e7-4287-9751-7705e449f0a5'
+  const sessionId = 'c3a2e5f4-2b8e-4e1f-9a8d-3f6b7c1d2e9a'
+  const referenceNumber = 'ABC-123-DEF'
 
   describe('plugin', () => {
     /** @type {Server} */
@@ -45,7 +52,9 @@ describe('request-tracing', () => {
       const handler = () => ({
         correlationId: getCorrelationId(),
         traceId: getTraceId(),
-        userId: getUserId()
+        userId: getUserId(),
+        sessionId: getSessionId(),
+        referenceNumber: getReferenceNumber()
       })
 
       server.route([
@@ -81,7 +90,9 @@ describe('request-tracing', () => {
       expect(result).toEqual({
         correlationId,
         traceId: correlationId,
-        userId: undefined
+        userId: undefined,
+        sessionId: undefined,
+        referenceNumber: undefined
       })
       expect(responseContext).toEqual({ correlationId, userId: undefined })
     })
@@ -96,9 +107,31 @@ describe('request-tracing', () => {
       expect(result).toEqual({
         correlationId,
         traceId: correlationId,
-        userId
+        userId,
+        sessionId: undefined,
+        referenceNumber: undefined
       })
       expect(responseContext).toEqual({ correlationId, userId })
+    })
+
+    it('should read the session ID and reference number headers', async () => {
+      const { result } = await server.inject({
+        method: 'GET',
+        url: '/open',
+        headers: {
+          [tracingHeader]: correlationId,
+          [SESSION_ID_HEADER]: sessionId,
+          [REFERENCE_NUMBER_HEADER]: referenceNumber
+        }
+      })
+
+      expect(result).toEqual({
+        correlationId,
+        traceId: correlationId,
+        userId: undefined,
+        sessionId,
+        referenceNumber
+      })
     })
   })
 
@@ -155,6 +188,39 @@ describe('request-tracing', () => {
         expect(applyTraceHeaders(undefined)).toEqual({
           [tracingHeader]: correlationId
         })
+      })
+    })
+  })
+
+  describe('applyLogContextHeaders', () => {
+    const headers = { accept: 'application/json' }
+    const context = createLogContext({
+      correlationId,
+      sessionId,
+      referenceNumber
+    })
+
+    it.each(['http://manager/forms/123', 'http://entitlements/users/123'])(
+      'should add the log context headers for forms service %s',
+      (url) => {
+        runWithLogContext(context, () => {
+          expect(applyLogContextHeaders(new URL(url), headers)).toEqual({
+            accept: 'application/json',
+            [SESSION_ID_HEADER]: sessionId,
+            [REFERENCE_NUMBER_HEADER]: referenceNumber
+          })
+        })
+      }
+    )
+
+    it('should return the headers unchanged for a service outside forms', () => {
+      runWithLogContext(context, () => {
+        expect(
+          applyLogContextHeaders(
+            new URL('https://api.notifications.service.gov.uk/v2'),
+            headers
+          )
+        ).toBe(headers)
       })
     })
   })
