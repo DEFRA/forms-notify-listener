@@ -1,4 +1,4 @@
-import { getFormAction } from '~/src/service/mappers/formatters/shared.js'
+import { getFormAction } from '@defra/forms-model'
 
 /**
  * Machine readable notify formatter v2
@@ -26,7 +26,7 @@ export function formatter(
     main
   }
 
-  const action = getFormAction(formSubmissionMessage, formDefinition)
+  const action = getFormAction(formSubmissionMessage.meta, formDefinition)
 
   const machineReadable = {
     meta: {

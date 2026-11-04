@@ -1,6 +1,5 @@
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
-
-import { getFormAction } from '~/src/service/mappers/formatters/shared.js'
+import { getFormAction } from '@defra/forms-model'
 
 /**
  * Machine readable notify formatter v1
@@ -15,7 +14,7 @@ export function formatter(
   schemaVersion,
   _translator
 ) {
-  const action = getFormAction(formSubmissionMessage, formDefinition)
+  const action = getFormAction(formSubmissionMessage.meta, formDefinition)
 
   const machineReadable = {
     meta: {

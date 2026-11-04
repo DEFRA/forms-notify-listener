@@ -1,9 +1,8 @@
+import { FORM_ACTION_COPY, getFormAction } from '@defra/forms-model'
+
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
-import {
-  detailsIfCopyAction,
-  extractPaymentDetails
-} from '~/src/service/mappers/formatters/shared.js'
+import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
 import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
 
 /**
@@ -45,12 +44,12 @@ ${escapeContent(paymentDetails.dateOfPayment)}
  */
 function getActionDetails(formDefinition, formSubmissionMessage, translator) {
   const { t } = translator
-  const { isCopy, actionReferenceNumber } = detailsIfCopyAction(
-    formDefinition,
-    formSubmissionMessage
+  const actionDetails = getFormAction(
+    formSubmissionMessage.meta,
+    formDefinition
   )
-  if (isCopy) {
-    return `${t('confirmationEmail.copyAction', { actionReferenceNumber })}\n\n`
+  if (actionDetails?.name === FORM_ACTION_COPY) {
+    return `${t('confirmationEmail.copyAction', { referenceNumber: actionDetails.referenceNumber })}\n\n`
   }
   return ''
 }

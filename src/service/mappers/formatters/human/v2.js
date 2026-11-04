@@ -6,7 +6,13 @@ import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
+import {
+  Engine,
+  FORM_ACTION_COPY,
+  getFormAction,
+  hasComponents,
+  hasRepeater
+} from '@defra/forms-model'
 import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -19,7 +25,6 @@ import {
   processRepeaterFiles
 } from '~/src/service/mappers/formatters/human/v2-repeater.js'
 import {
-  detailsIfCopyAction,
   extractPaymentDetails,
   repeaterAnswersKey
 } from '~/src/service/mappers/formatters/shared.js'
@@ -45,14 +50,11 @@ export function handleReferenceNumber(definition, message, lines) {
  * @param {string[]} lines
  */
 export function handleFormAction(definition, message, lines) {
+  const actionDetails = getFormAction(message.meta, definition)
   // Copy (also known as 'reuse previous answers')
-  const { isCopy, actionReferenceNumber } = detailsIfCopyAction(
-    definition,
-    message
-  )
-  if (isCopy) {
+  if (actionDetails?.name === FORM_ACTION_COPY) {
     lines.push(
-      `This form was submitted using a copy of the answers from a previous submission (reference ${actionReferenceNumber}). This is a new submission and does not replace the previous one.\n`
+      `This form was submitted using a copy of the answers from a previous submission (reference ${actionDetails.referenceNumber}). This is a new submission and does not replace the previous one.\n`
     )
   }
 }

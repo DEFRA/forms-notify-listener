@@ -186,69 +186,6 @@ export function generateGeospatialMapLink(
 }
 
 /**
- * Checks whether the form allows answers to be reused from a previous
- * submission, as set by the metadata.options.allowCopy flag. forms-model does
- * not define metadata.options, so its type is checked here
- * @param {FormDefinition} formDefinition
- * @returns {boolean}
- */
-export function isAllowCopyEnabled(formDefinition) {
-  const options = formDefinition.metadata?.options
-
-  return (
-    typeof options === 'object' &&
-    options !== null &&
-    'allowCopy' in options &&
-    options.allowCopy === true
-  )
-}
-
-/**
- *
- * @param {FormDefinition} formDefinition
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @returns {{ isCopy: boolean, actionReferenceNumber: string | undefined }}
- */
-export function detailsIfCopyAction(formDefinition, formSubmissionMessage) {
-  if (
-    isAllowCopyEnabled(formDefinition) &&
-    formSubmissionMessage.meta.custom?.actionName === 'copy'
-  ) {
-    const actionReferenceNumber = /** @type {string} */ (
-      formSubmissionMessage.meta.custom.actionReferenceNumber
-    )
-    return {
-      isCopy: true,
-      actionReferenceNumber
-    }
-  }
-  return {
-    isCopy: false,
-    actionReferenceNumber: undefined
-  }
-}
-
-/**
- * Retrieves the action details of the form submission, if any.
- * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @param {FormDefinition} formDefinition
- * @returns
- */
-export function getFormAction(formSubmissionMessage, formDefinition) {
-  const { isCopy, actionReferenceNumber } = detailsIfCopyAction(
-    formDefinition,
-    formSubmissionMessage
-  )
-  if (isCopy) {
-    return {
-      name: 'copy',
-      referenceNumber: actionReferenceNumber
-    }
-  }
-  return undefined
-}
-
-/**
  * @import { Component } from '@defra/forms-engine-plugin/engine/components/helpers/components.js'
  * @import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
  * @import { FormAdapterSubmissionMessage, GeospatialState, RichFormValue } from '@defra/forms-engine-plugin/engine/types.js'

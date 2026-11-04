@@ -3,12 +3,7 @@ import { buildDefinition } from '@defra/forms-model/stubs'
 
 import { EN_GB } from '~/src/i18n/translations-helper.js'
 import { buildFormAdapterSubmissionMessage } from '~/src/service/__stubs__/event-builders.js'
-import {
-  detailsIfCopyAction,
-  extractPaymentDetails,
-  getFormAction,
-  isAllowCopyEnabled
-} from '~/src/service/mappers/formatters/shared.js'
+import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
 import { createAndPopulatei18nInstance } from '~/src/service/notify.js'
 
 const i18Instance = createAndPopulatei18nInstance(
@@ -26,129 +21,6 @@ const i18Instance = createAndPopulatei18nInstance(
 )
 const translator = createTranslator(i18Instance, EN_GB)
 const welshTranslator = createTranslator(i18Instance, 'cy')
-
-describe('isAllowCopyEnabled', () => {
-  /**
-   * @param {unknown} options
-   */
-  const buildFormDefinitionWithOptions = (options) => {
-    const formDefinition = buildDefinition()
-    Object.assign(formDefinition, { metadata: { options } })
-    return formDefinition
-  }
-
-  it('should return true when copying answers is enabled', () => {
-    expect(
-      isAllowCopyEnabled(buildFormDefinitionWithOptions({ allowCopy: true }))
-    ).toBe(true)
-  })
-
-  it.each([
-    undefined,
-    null,
-    'invalid',
-    {},
-    { allowCopy: false },
-    { allowCopy: 'true' }
-  ])('should return false when copy is not enabled (%p)', (options) => {
-    expect(isAllowCopyEnabled(buildFormDefinitionWithOptions(options))).toBe(
-      false
-    )
-  })
-
-  it('should return false when options are absent', () => {
-    expect(isAllowCopyEnabled(buildDefinition())).toBe(false)
-  })
-})
-
-describe('detailsIfCopyAction', () => {
-  const formDefinition = buildDefinition()
-  Object.assign(formDefinition, {
-    metadata: { options: { allowCopy: true } }
-  })
-
-  /**
-   * @param {string} actionName
-   * @param {string} actionReferenceNumber
-   */
-  const buildMessageWithAction = (actionName, actionReferenceNumber) => {
-    const message = buildFormAdapterSubmissionMessage()
-    Object.assign(message.meta, {
-      custom: { actionName, actionReferenceNumber }
-    })
-    return message
-  }
-
-  it('should return copy details when copying is enabled', () => {
-    expect(
-      detailsIfCopyAction(
-        formDefinition,
-        buildMessageWithAction('copy', '123-456-789')
-      )
-    ).toEqual({
-      isCopy: true,
-      actionReferenceNumber: '123-456-789'
-    })
-  })
-
-  it('should not return copy details when copying is disabled', () => {
-    const disabledFormDefinition = buildDefinition()
-    const message = buildMessageWithAction('copy', '123-456-789')
-
-    expect(detailsIfCopyAction(disabledFormDefinition, message)).toEqual({
-      isCopy: false,
-      actionReferenceNumber: undefined
-    })
-  })
-
-  it('should not return copy details for a different action', () => {
-    expect(
-      detailsIfCopyAction(
-        formDefinition,
-        buildMessageWithAction('another-action', '123-456-789')
-      )
-    ).toEqual({
-      isCopy: false,
-      actionReferenceNumber: undefined
-    })
-  })
-
-  it('should not return copy details when the message has no custom action', () => {
-    expect(
-      detailsIfCopyAction(formDefinition, buildFormAdapterSubmissionMessage())
-    ).toEqual({
-      isCopy: false,
-      actionReferenceNumber: undefined
-    })
-  })
-})
-
-describe('getFormAction', () => {
-  it('should return the copy action when copying is enabled', () => {
-    const formDefinition = buildDefinition()
-    Object.assign(formDefinition, {
-      metadata: { options: { allowCopy: true } }
-    })
-    const message = buildFormAdapterSubmissionMessage()
-    Object.assign(message.meta, {
-      custom: {
-        actionName: 'copy',
-        actionReferenceNumber: '123-456-789'
-      }
-    })
-
-    expect(getFormAction(message, formDefinition)).toEqual({
-      name: 'copy',
-      referenceNumber: '123-456-789'
-    })
-  })
-
-  it('should return undefined when the message is not a copy action', () => {
-    expect(
-      getFormAction(buildFormAdapterSubmissionMessage(), buildDefinition())
-    ).toBeUndefined()
-  })
-})
 
 describe('extractPaymentDetails', () => {
   const baseMessage = buildFormAdapterSubmissionMessage(
