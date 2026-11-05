@@ -6,7 +6,13 @@ import {
   FileStatus,
   UploadStatus
 } from '@defra/forms-engine-plugin/engine/types/enums.js'
-import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
+import {
+  Engine,
+  FORM_ACTION_COPY,
+  getFormAction,
+  hasComponents,
+  hasRepeater
+} from '@defra/forms-model'
 import { addMonths } from 'date-fns'
 
 import { config } from '~/src/config/index.js'
@@ -35,6 +41,21 @@ const fileExpiryInMonths = config.get('fileExpiryInMonths')
 export function handleReferenceNumber(definition, message, lines) {
   if (definition.options?.showReferenceNumber) {
     lines.push(`^ Reference number: ${message.meta.referenceNumber}\n`)
+  }
+}
+
+/**
+ * @param {FormDefinition} definition
+ * @param {FormAdapterSubmissionMessage} message
+ * @param {string[]} lines
+ */
+export function handleFormAction(definition, message, lines) {
+  const actionDetails = getFormAction(message.meta, definition)
+  // Copy (also known as 'reuse previous answers')
+  if (actionDetails?.name === FORM_ACTION_COPY) {
+    lines.push(
+      `This form was submitted using a copy of the answers from a previous submission (reference ${actionDetails.referenceNumber}). This is a new submission and does not replace the previous one.\n`
+    )
   }
 }
 
@@ -196,6 +217,8 @@ export function formatter(
   )
 
   handleReferenceNumber(formDefinition, formSubmissionMessage, lines)
+
+  handleFormAction(formDefinition, formSubmissionMessage, lines)
 
   processMainEntries(formSubmissionMessage, formModel, componentMap, translator)
   processRepeaterEntries(

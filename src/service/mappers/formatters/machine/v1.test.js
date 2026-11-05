@@ -101,4 +101,35 @@ describe('Page controller helpers', () => {
       }
     })
   })
+
+  it('should include copy-action details in the metadata', () => {
+    const definition = buildDefinition({
+      ...exampleNotifyFormDefinition,
+      output: {
+        audience: 'machine',
+        version: '1'
+      }
+    })
+    Object.assign(definition, {
+      metadata: {
+        ...(definition.metadata ?? {}),
+        options: { allowCopy: true }
+      }
+    })
+    const message = structuredClone(exampleNotifyFormMessage)
+    Object.assign(message.meta, {
+      custom: {
+        actionName: 'copy',
+        actionReferenceNumber: '123-456-789'
+      }
+    })
+
+    const formatter = getFormatter('machine', '1')
+    const formatted = JSON.parse(formatter(message, definition, '1'))
+
+    expect(formatted.meta.action).toEqual({
+      name: 'copy',
+      referenceNumber: '123-456-789'
+    })
+  })
 })

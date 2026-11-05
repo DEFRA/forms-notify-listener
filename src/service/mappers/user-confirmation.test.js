@@ -50,6 +50,41 @@ describe('user-confirmation', () => {
     ]
   })
 
+  test('should include copy-action details in the confirmation email', () => {
+    const metadata = buildMetaData({
+      submissionGuidance: 'Some submission guidance'
+    })
+    const definition = structuredClone(formDefinition)
+    Object.assign(definition, {
+      metadata: {
+        ...(definition.metadata ?? {}),
+        options: { allowCopy: true }
+      }
+    })
+    const message = structuredClone(formSubmissionMessage)
+    Object.assign(message.meta, {
+      custom: {
+        actionName: 'copy',
+        actionReferenceNumber: '123-456-789'
+      }
+    })
+
+    const i18Instance = createAndPopulatei18nInstance(metadata, definition)
+    const translator = createTranslator(i18Instance, EN_GB)
+    const result = getUserConfirmationEmailBody(
+      'My Form Name',
+      new Date('2025-11-04T14:21:35+00:00'),
+      metadata,
+      message,
+      definition,
+      translator
+    )
+
+    expect(result).toContain(
+      'You submitted this form using a copy of the answers from a previous submission (reference 123-456-789). This is a new submission and does not replace the previous one.'
+    )
+  })
+
   test('should handle general email content', () => {
     const formName = 'My Form Name'
     const submissionDate = new Date('2025-11-04T14:21:35+00:00')
