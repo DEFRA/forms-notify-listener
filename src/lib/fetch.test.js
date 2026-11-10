@@ -1,4 +1,9 @@
-import { createLogContext, runWithLogContext } from '@defra/forms-common'
+import {
+  REFERENCE_NUMBER_HEADER,
+  SESSION_ID_HEADER,
+  createLogContext,
+  runWithLogContext
+} from '@defra/forms-common'
 import Boom from '@hapi/boom'
 import Wreck from '@hapi/wreck'
 
@@ -56,6 +61,43 @@ describe('fetch utilities', () => {
         }
       )
     })
+
+    it.each([
+      {
+        url: 'http://manager/forms/123',
+        logContextHeaders: {
+          [SESSION_ID_HEADER]: 'session-id',
+          [REFERENCE_NUMBER_HEADER]: 'reference-number'
+        }
+      },
+      {
+        url: 'https://api.notifications.service.gov.uk/v2',
+        logContextHeaders: {}
+      }
+    ])(
+      'should send the session ID and reference number only to forms services ($url)',
+      async ({ url, logContextHeaders }) => {
+        /** @type {any} */
+        const mockResponse = { statusCode: 200, headers: {} }
+        const context = createLogContext({
+          correlationId: 'correlation-id',
+          sessionId: 'session-id',
+          referenceNumber: 'reference-number'
+        })
+
+        jest.mocked(Wreck.request).mockResolvedValue(mockResponse)
+        jest.mocked(Wreck.read).mockResolvedValue({})
+
+        await runWithLogContext(context, () => request('get', new URL(url), {}))
+
+        expect(jest.mocked(Wreck.request)).toHaveBeenCalledWith('get', url, {
+          headers: {
+            'x-cdp-request-id': 'correlation-id',
+            ...logContextHeaders
+          }
+        })
+      }
+    )
 
     it('should throw Boom error for non-200 status with message in body', async () => {
       /** @type {any} */
