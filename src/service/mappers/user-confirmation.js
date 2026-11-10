@@ -1,3 +1,5 @@
+import { FORM_ACTION_COPY, getFormAction } from '@defra/forms-model'
+
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
 import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
@@ -31,6 +33,25 @@ ${paymentDetails.amount}
 ${escapeContent(paymentDetails.dateOfPayment)}
 ---
 `
+}
+
+/**
+ * Generates the action details section for the form filler email
+ * @param {FormDefinition} formDefinition
+ * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} translator
+ * @returns {string}
+ */
+function getActionDetails(formDefinition, formSubmissionMessage, translator) {
+  const { t } = translator
+  const actionDetails = getFormAction(
+    formSubmissionMessage.meta,
+    formDefinition
+  )
+  if (actionDetails?.name === FORM_ACTION_COPY) {
+    return `${t('confirmationEmail.copyAction', { actionReferenceNumber: actionDetails.referenceNumber })}\n\n`
+  }
+  return ''
 }
 
 /**
@@ -82,6 +103,12 @@ ${formattedAnswers}
 `
   }
 
+  const actionDetails = getActionDetails(
+    formDefinition,
+    formSubmissionMessage,
+    translator
+  )
+
   // Generate payment section if payment exists
   const paymentSection = getPaymentSection(formSubmissionMessage, translator)
 
@@ -94,7 +121,7 @@ ${formattedAnswers}
 
   return `
 # ${t('confirmationEmail.heading')}
-${referenceNumber}${t('confirmationEmail.receivedAt', { formName: escapeContent(formName), submissionDateTime: formattedSubmissionDate })}
+${referenceNumber}${t('confirmationEmail.receivedAt', { formName: escapeContent(formName), submissionDateTime: formattedSubmissionDate })}${actionDetails}
 ${paymentSection}
 # ${t('confirmationEmail.whatHappensNext')}
 ${submissionGuidanceText ?? submissionGuidancePlaceholderText}

@@ -239,6 +239,39 @@ describe('Page controller helpers', () => {
       expect(output).toMatchSnapshot()
     })
 
+    it('should include copy-action details when answers were copied', () => {
+      const definition = buildDefinition({
+        ...exampleNotifyFormDefinition,
+        output: {
+          audience: 'human',
+          version: '2'
+        }
+      })
+      Object.assign(definition, {
+        metadata: {
+          ...(definition.metadata ?? {}),
+          options: { allowCopy: true }
+        }
+      })
+
+      const message = structuredClone(exampleNotifyFormMessage)
+      Object.assign(message.meta, {
+        custom: {
+          actionName: 'copy',
+          actionReferenceNumber: '123-456-789'
+        }
+      })
+
+      const i18Instance = createAndPopulatei18nInstance(undefined, definition)
+      const translator = createTranslator(i18Instance, EN_GB)
+      const formatter = getFormatter('human', '2')
+      const output = formatter(message, definition, '2', translator)
+
+      expect(output).toContain(
+        'This form was submitted using a copy of the answers from a previous submission (reference 123-456-789). This is a new submission and does not replace the previous one.'
+      )
+    })
+
     it('should return a valid human readable v2 response in preview mode', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,

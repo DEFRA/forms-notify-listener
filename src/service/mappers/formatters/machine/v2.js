@@ -1,3 +1,5 @@
+import { getFormAction } from '@defra/forms-model'
+
 /**
  * Machine readable notify formatter v2
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
@@ -24,13 +26,16 @@ export function formatter(
     main
   }
 
+  const action = getFormAction(formSubmissionMessage.meta, formDefinition)
+
   const machineReadable = {
     meta: {
       schemaVersion,
       timestamp: new Date().toISOString(),
       referenceNumber: formSubmissionMessage.meta.referenceNumber,
       definition: formDefinition,
-      language: formSubmissionMessage.meta.language
+      language: formSubmissionMessage.meta.language,
+      ...(action ? { action } : undefined)
     },
     data
   }
