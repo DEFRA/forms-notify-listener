@@ -76,6 +76,7 @@ NOTIFY_REPLY_TO_ID=c0428382-7df0-4e57-89fa-20bb69e9e755
 
 MANAGER_URL=http://localhost:3001
 DESIGNER_URL=http://localhost:3000
+RUNNER_URL=http://localhost:3009
 ENTITLEMENT_URL=http://localhost:3004
 
 OIDC_JWKS_URI=http://localhost:5556/.well-known/openid-configuration/jwks

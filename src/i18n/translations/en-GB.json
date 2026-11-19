@@ -6,6 +6,7 @@
     "receivedAt": "We received your form submission for &lsquo;[[formName]]&rsquo; at [[submissionDateTime]].",
     "referenceNumber": "^ Your reference number: [[referenceNumber]]",
     "copyAction": "You submitted this form using a copy of the answers from a previous submission (reference [[actionReferenceNumber]]). This is a new submission and does not replace the previous one.",
+    "copyActionLink": "^ [Sign in]([[href]]) to use your answers in a new submission.",
     "whatHappensNext": "What happens next",
     "whatHappensNextPlaceholder": "Define this text in the 'What happens next' section of the form overview",
     "getHelp": "Get help",

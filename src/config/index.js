@@ -163,6 +163,13 @@ export const config = convict({
     default: null,
     env: 'MANAGER_URL'
   },
+  /**@type {SchemaObj<string>} */
+  runnerUrl: {
+    doc: 'URL for a user to access the runner',
+    format: String,
+    default: null,
+    env: 'RUNNER_URL'
+  },
   /**@type {SchemaObj<Boolean>} */
   isSecureContextEnabled: {
     doc: 'Enable Secure Context',

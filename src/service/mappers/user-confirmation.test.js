@@ -1,4 +1,5 @@
 import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
+import { FormStatus } from '@defra/forms-model'
 import {
   buildDeclarationFieldComponent,
   buildDefinition,
@@ -83,6 +84,88 @@ describe('user-confirmation', () => {
     expect(result).toContain(
       'You submitted this form using a copy of the answers from a previous submission (reference 123-456-789). This is a new submission and does not replace the previous one.'
     )
+  })
+
+  test.each([
+    {
+      description: 'live',
+      isPreview: false,
+      status: FormStatus.Live,
+      language: EN_GB,
+      link: '^ [Sign in](http://runner/homepage/order-a-pizza) to use your answers in a new submission.'
+    },
+    {
+      description: 'draft preview',
+      isPreview: true,
+      status: FormStatus.Draft,
+      language: EN_GB,
+      link: '^ [Sign in](http://runner/homepage/preview/draft/order-a-pizza) to use your answers in a new submission.'
+    },
+    {
+      description: 'Welsh',
+      isPreview: false,
+      status: FormStatus.Live,
+      language: 'cy',
+      link: '^ [Mewngofnodwch](http://runner/homepage/order-a-pizza) i ddefnyddio eich atebion mewn cyflwyniad newydd.'
+    }
+  ])(
+    'should include the sign-in link for a $description copy submission',
+    ({ isPreview, status, language, link }) => {
+      const metadata = buildMetaData()
+      const definition = structuredClone(formDefinition)
+      definition.metadata = {
+        ...definition.metadata,
+        options: { allowCopy: true }
+      }
+      const message = structuredClone(formSubmissionMessage)
+      Object.assign(message.meta, {
+        isPreview,
+        status,
+        custom: {
+          actionName: 'copy',
+          actionReferenceNumber: '123-456-789'
+        }
+      })
+      const translator = createTranslator(
+        createAndPopulatei18nInstance(metadata, definition),
+        language
+      )
+
+      const result = getUserConfirmationEmailBody(
+        'My Form Name',
+        new Date('2025-11-04T14:21:35+00:00'),
+        metadata,
+        message,
+        definition,
+        translator
+      )
+
+      expect(result).toContain(link)
+    }
+  )
+
+  test('should not include a sign-in link for a submission without a copy action', () => {
+    const metadata = buildMetaData()
+    const definition = structuredClone(formDefinition)
+    definition.metadata = {
+      ...definition.metadata,
+      options: { allowCopy: true }
+    }
+    const translator = createTranslator(
+      createAndPopulatei18nInstance(metadata, definition),
+      EN_GB
+    )
+
+    const result = getUserConfirmationEmailBody(
+      'My Form Name',
+      new Date('2025-11-04T14:21:35+00:00'),
+      metadata,
+      formSubmissionMessage,
+      definition,
+      translator
+    )
+
+    expect(result).not.toContain('[Sign in]')
   })
 
   test('should handle general email content', () => {
