@@ -504,6 +504,36 @@ describe('notify', () => {
       })
     })
 
+    it('should queue the sign-in link in the user confirmation email for a copy submission', async () => {
+      const definition = structuredClone(baseDefinition)
+      definition.metadata = {
+        ...definition.metadata,
+        options: { allowCopy: true }
+      }
+      jest.mocked(getFormDefinition).mockResolvedValueOnce(definition)
+      jest.mocked(getFormMetadata).mockResolvedValueOnce(buildMetaData())
+      const message = structuredClone(formAdapterSubmissionMessage)
+      message.meta.custom = {
+        userConfirmationEmail: 'my-email@test.com',
+        actionName: 'copy',
+        actionReferenceNumber: '123-456-789'
+      }
+
+      await sendUserConfirmationEmail(message)
+
+      expect(putNotificationOnQueue).toHaveBeenCalledWith(
+        expect.objectContaining({ reason: 'confirmation-email' }),
+        expect.objectContaining({
+          emailAddress: 'my-email@test.com',
+          personalisation: expect.objectContaining({
+            body: expect.stringContaining(
+              '^ [Sign in](mock-value/homepage/machine-readable-form) to use your answers in a new submission.'
+            )
+          })
+        })
+      )
+    })
+
     it('confirmation email should handle and throw errors', async () => {
       const err = new Error('Upstream failure')
       jest.mocked(getFormDefinition).mockResolvedValueOnce(baseDefinition)
