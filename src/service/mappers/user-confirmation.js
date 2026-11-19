@@ -1,9 +1,12 @@
 import { FORM_ACTION_COPY, getFormAction } from '@defra/forms-model'
 
+import { config } from '~/src/config/index.js'
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
 import { extractPaymentDetails } from '~/src/service/mappers/formatters/shared.js'
 import { formatter as userAnswersFormatter } from '~/src/service/mappers/formatters/user/v1.js'
+
+const runnerUrl = config.get('runnerUrl')
 
 /**
  * Generates the payment success section for the form filler email
@@ -40,18 +43,32 @@ ${escapeContent(paymentDetails.dateOfPayment)}
  * @param {FormDefinition} formDefinition
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
  * @param {Translator} translator
- * @returns {string}
+ * @returns {{ actionDetails: string, signInLink: string }}
  */
-function getActionDetails(formDefinition, formSubmissionMessage, translator) {
+function getActionAndLinkDetails(
+  formDefinition,
+  formSubmissionMessage,
+  translator
+) {
   const { t } = translator
   const actionDetails = getFormAction(
     formSubmissionMessage.meta,
     formDefinition
   )
   if (actionDetails?.name === FORM_ACTION_COPY) {
-    return `${t('confirmationEmail.copyAction', { actionReferenceNumber: actionDetails.referenceNumber })}\n\n`
+    const { isPreview, status, formSlug } = formSubmissionMessage.meta
+    const href = isPreview
+      ? `${runnerUrl}/homepage/preview/${status}/${formSlug}`
+      : `${runnerUrl}/homepage/${formSlug}`
+    return {
+      actionDetails: `\n\n${t('confirmationEmail.copyAction', { actionReferenceNumber: actionDetails.referenceNumber })}\n\n`,
+      signInLink: `${t('confirmationEmail.copyActionLink', { href })}\n\n`
+    }
   }
-  return ''
+  return {
+    actionDetails: '',
+    signInLink: ''
+  }
 }
 
 /**
@@ -103,7 +120,7 @@ ${formattedAnswers}
 `
   }
 
-  const actionDetails = getActionDetails(
+  const { actionDetails, signInLink } = getActionAndLinkDetails(
     formDefinition,
     formSubmissionMessage,
     translator
@@ -132,7 +149,7 @@ ${contactDetails}
 # ${t('confirmationEmail.yourAnswers')}
 ${t('confirmationEmail.answersFooter')}
 
-${t('confirmationEmail.doNotReply')}
+${signInLink}${t('confirmationEmail.doNotReply')}
 
 ${t('confirmationEmail.from', { organisation: escapeContent(organisation) })}
 ${answersSection}
