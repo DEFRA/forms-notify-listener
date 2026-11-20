@@ -120,11 +120,11 @@ export function extractPaymentDetails(formSubmissionMessage, translator) {
 /**
  * Format geospatial field
  * @param {string} answer
- * @param {Component} field
+ * @param {Component} _field
  * @param {RichFormValue} richFormValue
  * @returns {string}
  */
-export function formatGeospatialField(answer, field, richFormValue) {
+export function formatGeospatialField(answer, _field, richFormValue) {
   const features = /** @type {GeospatialState} */ (richFormValue)
 
   let answerEscaped = `${escapeContent(answer)}:\n\n`

@@ -129,9 +129,7 @@ function processMainEntries(
     questionLines.push(`## ${label}\n`)
 
     const answerText =
-      richFormValue !== null || stringHasNonEmptyValue(answer)
-        ? answer
-        : ''
+      richFormValue !== null || stringHasNonEmptyValue(answer) ? answer : ''
     const answerLine = generateFieldLine(
       answerText,
       field,

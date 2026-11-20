@@ -148,13 +148,7 @@ function formatGeospatialField(
   formSubmissionMessage,
   _translator
 ) {
-  let answerLine = sharedFormatGeospatialField(
-    answer,
-    field,
-    richFormValue,
-    formSubmissionMessage,
-    _translator
-  )
+  let answerLine = sharedFormatGeospatialField(answer, field, richFormValue)
 
   const pageId = field.page?.id
   const componentId = field.id

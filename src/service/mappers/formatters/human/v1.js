@@ -369,17 +369,15 @@ function formatListFormComponent(answer, field, richFormValue) {
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
- * @param {Translator} translator
  * @returns {string}
  */
 function formatGeospatialField(
   answer,
   field,
   richFormValue,
-  formSubmissionMessage,
-  translator
+  formSubmissionMessage
 ) {
-  let answerLine = sharedFormatGeospatialField(answer, field, richFormValue, formSubmissionMessage, translator)
+  let answerLine = sharedFormatGeospatialField(answer, field, richFormValue)
 
   const pageId = field.page?.id
   const componentId = field.id
