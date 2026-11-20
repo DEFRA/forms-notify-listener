@@ -1,4 +1,7 @@
 {
+  "common": {
+    "notProvided": "Not provided"
+  },
   "confirmationEmail": {
     "subject": "Form submitted to [[organisation]]",
     "subjectTestMode": "TEST FORM CONFIRMATION: [[organisation]]",

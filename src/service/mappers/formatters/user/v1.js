@@ -1,4 +1,3 @@
-import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
@@ -15,30 +14,6 @@ import {
   formatUkAddressField,
   repeaterAnswersKey
 } from '~/src/service/mappers/formatters/shared.js'
-
-/**
- * Check if an optional field should be skipped (no value provided)
- * @param {Component} field
- * @param {RichFormValue | null} richFormValue
- * @returns {boolean}
- */
-function shouldSkipOptionalField(field, richFormValue) {
-  const isRequired = field.options?.required ?? true
-
-  if (isRequired) {
-    return false // Never skip a required field
-  }
-
-  const hasNoValue = richFormValue === null || richFormValue === undefined
-
-  // For file uploads, check if array is empty
-  const isEmptyFileUpload =
-    field instanceof FileUploadField &&
-    Array.isArray(richFormValue) &&
-    richFormValue.length === 0
-
-  return hasNoValue || isEmptyFileUpload
-}
 
 /**
  * Process main form entries (non-repeater fields)
@@ -64,24 +39,10 @@ function processMainEntries(formSubmissionMessage, formModel, translator) {
       continue
     }
 
-    if (
-      shouldSkipOptionalField(
-        field,
-        /** @type {RichFormValue | null} */ (richFormValue)
-      )
-    ) {
-      continue
-    }
-
     const answer = field.getDisplayStringFromFormValue(
       /** @type {any} */ (richFormValue),
       translator
     )
-
-    // Also skip if optional and the display string is empty
-    if (!field.options.required && answer === '') {
-      continue
-    }
 
     const questionLines = /** @type {string[]} */ ([])
     const label = escapeContent(
@@ -121,15 +82,6 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
   for (const componentField of componentFields) {
     const componentValue = itemData[componentField.name]
 
-    // Skip if no value
-    if (
-      componentValue === null ||
-      componentValue === undefined ||
-      componentValue === ''
-    ) {
-      continue
-    }
-
     const componentLabel = escapeContent(
       tComponent(/** @type {ComponentDef} */ (componentField), 'title')
     )
@@ -144,7 +96,7 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
       generateFieldLine(
         componentAnswer,
         /** @type {Component} */ (/** @type {unknown} */ (componentField)),
-        componentValue,
+        /** @type {RichFormValue} */ (/** @type {unknown} */ (componentValue)),
         translator
       )
     )
@@ -283,16 +235,18 @@ export function formatter(formSubmissionMessage, formDefinition, translator) {
  * @param {string} answer
  * @param {Component} _field
  * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-function formatFileUploadField(answer, _field, richFormValue) {
+function formatFileUploadField(answer, _field, richFormValue, _formSubmissionMessage, translator) {
   const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
     /** @type {unknown} */ (richFormValue)
   )
 
-  // Skip empty files
+  // Not provided
   if (!formAdapterFiles.length) {
-    return `${escapeContent(answer)}\n`
+    return `${translator.t('common.notProvided')}\n`
   }
 
   // Single file: no bullet point
@@ -329,9 +283,9 @@ function formatListFormComponent(_answer, field, richFormValue, translator) {
     values.has(value)
   )
 
-  // Skip empty values
+  // Not provided
   if (!items.length) {
-    return ''
+    return translator.t('common.notProvided') + '\n'
   }
 
   // Single answer: no bullet point
@@ -389,6 +343,10 @@ function generateFieldLine(answer, field, richFormValue, translator) {
         translator
       )
     }
+  }
+
+  if (!answer && !field.options?.required) {
+    return `${translator.t('common.notProvided')}\n`
   }
 
   // Default handler for all other field types

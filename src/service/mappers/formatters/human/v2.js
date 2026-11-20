@@ -128,18 +128,19 @@ function processMainEntries(
     const label = escapeContent(field.title)
     questionLines.push(`## ${label}\n`)
 
-    if (richFormValue !== null || stringHasNonEmptyValue(answer)) {
-      const answerLine = generateFieldLine(
-        answer,
-        field,
-        /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
-        formSubmissionMessage,
-        translator
-      )
-      questionLines.push(answerLine)
-    }
+    const answerText =
+      richFormValue !== null || stringHasNonEmptyValue(answer)
+        ? answer
+        : ''
+    const answerLine = generateFieldLine(
+      answerText,
+      field,
+      /** @type {RichFormValue} */ (/** @type {unknown} */ (richFormValue)),
+      formSubmissionMessage,
+      translator
+    )
+    questionLines.push(answerLine, '---\n')
 
-    questionLines.push('---\n')
     componentMap.set(key, questionLines)
   }
 }

@@ -1,10 +1,12 @@
 import { randomUUID } from 'node:crypto'
 
+import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
 import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
 import {
   buildDefinition,
   buildFileUploadComponent,
   buildFileUploadPage,
+  buildMetaData,
   buildQuestionPage,
   buildSummaryPage,
   buildTextFieldComponent
@@ -29,6 +31,7 @@ import {
   yesNoMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
 import { formatter } from '~/src/service/mappers/formatters/user/v1.js'
+import { createAndPopulatei18nInstance } from '~/src/service/notify.js'
 
 jest.mock('nunjucks', () => {
   const environment = {
@@ -40,12 +43,25 @@ jest.mock('nunjucks', () => {
   }
 })
 
+/**
+ * Creates a test translator for the given form metadata and definition in the specified language.
+ * @param {FormMetadata} formMetadata
+ * @param {FormDefinition} formDefinition
+ * @param {string} language
+ * @returns {Translator}
+ */
+function createTestTranslator(formMetadata, formDefinition, language) {
+  const i18nInstance = createAndPopulatei18nInstance(formMetadata, formDefinition)
+  return createTranslator(i18nInstance, language)
+}
+
+const testFormMetadata = buildMetaData({})
+
 describe('User answers formatter v1', () => {
   describe('formatter', () => {
     it('should return questions with heading level 1', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Questions should use heading level 1 (#)
@@ -57,8 +73,7 @@ describe('User answers formatter v1', () => {
 
     it('should include answers below questions', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toContain('# What is your name?\n\nSomeone')
@@ -68,8 +83,7 @@ describe('User answers formatter v1', () => {
 
     it('should use bullet points for checkbox answers', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Checkboxes should have bullet points
@@ -79,8 +93,7 @@ describe('User answers formatter v1', () => {
 
     it('should not use bullet points for single radio answer', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       // Radio buttons with single selection should NOT have bullet points
@@ -88,15 +101,15 @@ describe('User answers formatter v1', () => {
       expect(output).not.toContain('* Delivery')
     })
 
-    it('should skip optional questions with no answer', () => {
+    it('should show Not provided for optional questions with no answer', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // The "Additional details" field is optional and has null value
-      // It should NOT appear in the output
-      expect(output).not.toContain('# Additional details')
+      // It should appear in the output but with 'Not provided'
+      expect(output).toContain('# Additional details')
+      expect(output).toContain('Not provided')
     })
 
     it('should include optional questions that have been answered', () => {
@@ -112,8 +125,7 @@ describe('User answers formatter v1', () => {
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(
         messageWithOptionalAnswer,
         definition,
@@ -127,8 +139,7 @@ describe('User answers formatter v1', () => {
 
     it('should show only file names for uploaded files (no links)', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // File uploads should show file names (no bullet for single file, bullets for multiple)
@@ -140,8 +151,7 @@ describe('User answers formatter v1', () => {
 
     it('should format repeater items with heading level 1 for the item label', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater items should be heading level 1
@@ -151,8 +161,7 @@ describe('User answers formatter v1', () => {
 
     it('should format repeater questions with heading level 2 beneath each item', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Every question of an item is grouped beneath that item's heading
@@ -171,8 +180,7 @@ Frodo
 
     it('should include repeater item answers', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Repeater answers should be included
@@ -184,8 +192,7 @@ Frodo
 
     it('should not generate CSV download links for repeaters', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Should NOT contain CSV download links
@@ -195,8 +202,7 @@ Frodo
 
     it('should format UK addresses correctly', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toContain('1 Anywhere Street')
@@ -207,8 +213,7 @@ Frodo
 
     it('should preserve multiline text field formatting', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       // Multiline text should preserve line breaks
@@ -217,8 +222,7 @@ Frodo
 
     it('should handle multiline text with triple backticks', () => {
       const definition = buildDefinition(pizzaFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(pizzaMessage, definition, translator)
 
       // Multiline text with triple backticks should have them escaped to prevent Notify markdown interpretation
@@ -227,8 +231,7 @@ Frodo
 
     it('should handle yes/no field formatting', () => {
       const definition = buildDefinition(yesNoFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(yesNoMessage, definition, translator)
 
       // Multiline text should preserve line breaks
@@ -237,8 +240,7 @@ Frodo
 
     it('should maintain component order from form definition', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Check that questions appear in the correct order
@@ -258,8 +260,7 @@ Frodo
 
     it('should not include internal email elements', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       // Should NOT contain elements from internal email
@@ -281,8 +282,7 @@ Frodo
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(emptyMessage, definition, translator)
 
       // Should return empty or minimal output
@@ -291,8 +291,7 @@ Frodo
 
     it('should match snapshot for standard form', () => {
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(exampleNotifyFormMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
@@ -315,7 +314,7 @@ Frodo
       expect(output).toMatchSnapshot()
     })
 
-    it('should skip optional fields with undefined value', () => {
+    it('should show optional fields with undefined value using text "Not provided"', () => {
       const messageWithUndefined = buildFormAdapterSubmissionMessage({
         ...exampleNotifyFormMessage,
         data: {
@@ -328,14 +327,13 @@ Frodo
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(messageWithUndefined, definition, translator)
 
-      expect(output).not.toContain('# Additional details')
+      expect(output).toContain('# Additional details\n\nNot provided')
     })
 
-    it('should skip optional fields whose display string is empty', () => {
+    it('should show optional fields with "Not provided"whose display string is empty', () => {
       // An empty string survives the null/undefined check, so the field is only
       // dropped once its display string turns out to be empty too
       const messageWithEmptyString = buildFormAdapterSubmissionMessage({
@@ -350,16 +348,15 @@ Frodo
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(messageWithEmptyString, definition, translator)
 
-      expect(output).not.toContain('# Additional details')
+      expect(output).toContain('# Additional details\n\nNot provided')
       // The rest of the form is unaffected
       expect(output).toContain('# What is your name?')
     })
 
-    it('should skip optional file upload fields with empty array', () => {
+    it('should show optional file upload fields with empty array, but with "Not provided"', () => {
       const definitionWithOptionalFile = buildDefinition({
         ...exampleNotifyFormDefinition,
         pages: [
@@ -405,10 +402,7 @@ Frodo
         }
       })
 
-      const formModel = new FormModel(definitionWithOptionalFile, {
-        basePath: '/'
-      })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definitionWithOptionalFile, EN_GB)
       const output = formatter(
         messageWithEmptyFile,
         definitionWithOptionalFile,
@@ -417,7 +411,7 @@ Frodo
 
       expect(output).toContain('# Your name')
       expect(output).toContain('Test User')
-      expect(output).not.toContain('# Optional document')
+      expect(output).toContain('# Optional document\n\nNot provided')
     })
 
     it('should skip repeater items with null or empty values', () => {
@@ -446,8 +440,7 @@ Frodo
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(
         messageWithNullRepeaterValue,
         definition,
@@ -478,8 +471,7 @@ Frodo
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(messageWithUnknownKey, definition, translator)
 
       // Should not include unknown component
@@ -503,8 +495,7 @@ Frodo
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(
         messageWithUnknownRepeater,
         definition,
@@ -584,10 +575,7 @@ Frodo
         }
       })
 
-      const formModel = new FormModel(definitionWithRepeaterGuidance, {
-        basePath: '/'
-      })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definitionWithRepeaterGuidance, EN_GB)
       const output = formatter(
         messageWithRepeaterGuidance,
         definitionWithRepeaterGuidance,
@@ -608,8 +596,7 @@ Frodo
 
     it('should handle geospatial fields', () => {
       const definition = geospatialFormDefinition
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(geospatialMessage, definition, translator)
 
       expect(output).toBe(`# Geospatial features of the site
@@ -642,8 +629,7 @@ Latitude, Longitude
 
     it('should handle declaration fields -  english accepted', () => {
       const definition = declarationFormDefinition
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(declarationMessage, definition, translator)
 
       expect(output).toBe(`# Declaration
@@ -653,8 +639,7 @@ I understand and agree`)
 
     it('should handle declaration fields -  english not provided', () => {
       const definition = declarationFormDefinition
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const declarationMessageLocal = structuredClone(declarationMessage)
       declarationMessageLocal.data.main.DeclarationField = 'false'
       const output = formatter(declarationMessageLocal, definition, translator)
@@ -686,8 +671,7 @@ Not provided`)
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(messageWithEmptyItem, definition, translator)
 
       // The first item holds nothing, so its heading is dropped entirely
@@ -747,10 +731,7 @@ Not provided`)
         }
       })
 
-      const formModel = new FormModel(definitionWithoutComponents, {
-        basePath: '/'
-      })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definitionWithoutComponents, EN_GB)
       const output = formatter(message, definitionWithoutComponents, translator)
 
       expect(output).toBe('')
@@ -816,8 +797,7 @@ Not provided`)
         }
       })
 
-      const formModel = new FormModel(definitionWithDetails, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definitionWithDetails, EN_GB)
       const output = formatter(message, definitionWithDetails, translator)
 
       expect(output).toContain('# Team member 1')
@@ -838,12 +818,11 @@ Not provided`)
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(messageWithNoFiles, definition, translator)
 
       // The question is still listed because it is required, but has no answer
-      expect(output).toContain('# Please add supporting evidence\n\n\n')
+      expect(output).toContain('# Please add supporting evidence\n\nNot provided')
       expect(output).not.toContain('supporting_evidence.pdf')
     })
 
@@ -872,8 +851,7 @@ Not provided`)
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(messageWithTwoFiles, definition, translator)
 
       expect(output).toContain('* supporting_evidence.pdf')
@@ -895,8 +873,7 @@ Not provided`)
       })
 
       const definition = buildDefinition(exampleNotifyFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(
         messageWithUnknownListValue,
         definition,
@@ -921,8 +898,7 @@ Not provided`)
           })
         }
       })
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include main form fields
@@ -936,8 +912,7 @@ Not provided`)
 
     it('should handle legacy V1 form repeaters', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include repeater data
@@ -949,8 +924,7 @@ Not provided`)
 
     it('should handle legacy V1 form file uploads', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include file upload without links
@@ -960,8 +934,7 @@ Not provided`)
 
     it('should handle legacy V1 form radio selections', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       // Should include radio selection
@@ -971,11 +944,15 @@ Not provided`)
 
     it('should match snapshot for legacy V1 form', () => {
       const definition = buildDefinition(legacyGraphFormDefinition)
-      const formModel = new FormModel(definition, { basePath: '/' })
-      const translator = formModel.createTranslator(EN_GB)
+      const translator = createTestTranslator(testFormMetadata, definition, EN_GB)
       const output = formatter(legacyGraphFormMessage, definition, translator)
 
       expect(output).toMatchSnapshot()
     })
   })
 })
+
+/**
+ * @import { FormDefinition, FormMetadata } from '@defra/forms-model'
+ * @import { Translator } from '@defra/forms-engine-plugin/types'
+ */

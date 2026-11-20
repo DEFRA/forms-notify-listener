@@ -27,11 +27,17 @@ export function repeaterAnswersKey(repeaterName) {
 /**
  * Format multiline text field
  * @param {string} answer
- * @param {Component} _field
+ * @param {Component} field
  * @param {RichFormValue} _richFormValue
+ * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-export function formatMultilineTextField(answer, _field, _richFormValue) {
+export function formatMultilineTextField(answer, field, _richFormValue, _formSubmissionMessage, translator) {
+  if (!answer && !field.options?.required) {
+    return translator.t('common.notProvided') + '\n'
+  }
+
   // Preserve Multiline text new lines
   return answer
     .split(/(?:\r?\n)+/)
@@ -45,12 +51,18 @@ export function formatMultilineTextField(answer, _field, _richFormValue) {
  * @param {string} _answer
  * @param {Component} field
  * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-export function formatUkAddressField(_answer, field, richFormValue) {
+export function formatUkAddressField(_answer, field, richFormValue, _formSubmissionMessage, translator) {
   // Format UK addresses into new lines
   const formField = /** @type {FormComponent} */ (field)
   const contextValue = formField.getContextValueFromFormValue(richFormValue)
+  const optional = !field.options?.required
+  if (optional && !contextValue) {
+    return translator.t('common.notProvided') + '\n'
+  }
   return [contextValue ?? []]
     .flat()
     .map((v) => escapeContent(String(v)))
@@ -79,6 +91,10 @@ export function formatLocationField(
     richFormValue,
     translator
   )
+  const optional = !field.options?.required
+  if (optional && contextValue === '') {
+    return translator.t('common.notProvided') + '\n'
+  }
   return contextValue ? `${contextValue}\n` : ''
 }
 
@@ -120,16 +136,20 @@ export function extractPaymentDetails(formSubmissionMessage, translator) {
 /**
  * Format geospatial field
  * @param {string} answer
- * @param {Component} _field
+ * @param {Component} field
  * @param {RichFormValue} richFormValue
+ * @param { FormAdapterSubmissionMessage | undefined } _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-export function formatGeospatialField(answer, _field, richFormValue) {
+export function formatGeospatialField(answer, field, richFormValue, _formSubmissionMessage, translator) {
   const features = /** @type {GeospatialState} */ (richFormValue)
 
-  // Skip empty
-  if (!features.length) {
-    return `${escapeContent(answer)}\n`
+  const optional = !field.options?.required
+
+  // Not provided
+  if (!features.length && optional) {
+    return translator.t('common.notProvided') + '\n'
   }
 
   let answerEscaped = `${escapeContent(answer)}:\n\n`

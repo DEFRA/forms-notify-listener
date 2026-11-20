@@ -93,11 +93,6 @@ function processRepeaterItem(
   for (const componentField of componentFields) {
     const componentValue = itemData[componentField.name]
 
-    // Skip if no value
-    if (componentValue === undefined || componentValue === '') {
-      continue
-    }
-
     const formField = /** @type {FormComponent} */ (componentField)
     const componentAnswer = formField.getDisplayStringFromFormValue(
       componentValue,
