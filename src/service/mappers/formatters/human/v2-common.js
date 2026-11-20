@@ -43,9 +43,19 @@ export function generateFieldLine(
   formSubmissionMessage,
   translator
 ) {
+  if (richFormValue == null || !answer) {
+    return `${translator.t('common.notProvided')}\n`
+  }
+
   // Check list component first (special case with multiple inheriance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent(answer, field, richFormValue, formSubmissionMessage, translator)
+    return formatListFormComponent(
+      answer,
+      field,
+      richFormValue,
+      formSubmissionMessage,
+      translator
+    )
   }
 
   // Iterate through registered handlers
@@ -61,10 +71,6 @@ export function generateFieldLine(
     }
   }
 
-  if (!answer) {
-    return `${translator.t('common.notProvided')}\n`
-  }
-
   // Default handler for all other field types
   return `${escapeContent(answer)}\n`
 }
@@ -78,7 +84,13 @@ export function generateFieldLine(
  * @param {Translator} translator
  * @returns {string}
  */
-function formatListFormComponent(answer, field, richFormValue, _formSubmissionMessage, translator) {
+function formatListFormComponent(
+  answer,
+  field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const values = new Set(
     [field.getContextValueFromFormValue(richFormValue)].flat()
   )
@@ -135,7 +147,13 @@ function formatGeospatialField(
   formSubmissionMessage,
   _translator
 ) {
-  let answerLine = sharedFormatGeospatialField(answer, field, richFormValue, formSubmissionMessage, _translator)
+  let answerLine = sharedFormatGeospatialField(
+    answer,
+    field,
+    richFormValue,
+    formSubmissionMessage,
+    _translator
+  )
 
   const pageId = field.page?.id
   const componentId = field.id
@@ -163,7 +181,13 @@ function formatGeospatialField(
  * @param {Translator} translator
  * @returns {string}
  */
-function formatFileUploadField(answer, _field, richFormValue, _formSubmissionMessage, translator) {
+function formatFileUploadField(
+  answer,
+  _field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
     /** @type {unknown} */ (richFormValue)
   )

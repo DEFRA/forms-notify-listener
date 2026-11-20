@@ -79,6 +79,14 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
   const { tComponent } = translator
   const answerLines = /** @type {string[]} */ ([])
 
+  const hasAnyValue = componentFields.some(({ name }) =>
+    hasRepeaterValue(itemData[name])
+  )
+
+  if (!hasAnyValue) {
+    return []
+  }
+
   for (const componentField of componentFields) {
     const componentValue = itemData[componentField.name]
 
@@ -109,6 +117,31 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
 
   // Repeater item label uses heading level 1 (#)
   return [`# ${escapeContent(itemLabel)}\n`, ...answerLines]
+}
+
+/**
+ * Check whether a repeater value contains an answer
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function hasRepeaterValue(value) {
+  if (value === null || value === undefined) {
+    return false
+  }
+
+  if (typeof value === 'string') {
+    return value.length > 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(hasRepeaterValue)
+  }
+
+  if (typeof value === 'object') {
+    return Object.values(value).some(hasRepeaterValue)
+  }
+
+  return true
 }
 
 /**
@@ -239,7 +272,13 @@ export function formatter(formSubmissionMessage, formDefinition, translator) {
  * @param {Translator} translator
  * @returns {string}
  */
-function formatFileUploadField(answer, _field, richFormValue, _formSubmissionMessage, translator) {
+function formatFileUploadField(
+  answer,
+  _field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
     /** @type {unknown} */ (richFormValue)
   )
@@ -326,6 +365,10 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  * @returns {string}
  */
 function generateFieldLine(answer, field, richFormValue, translator) {
+  if ((richFormValue == null || !answer) && !field.options?.required) {
+    return `${translator.t('common.notProvided')}\n`
+  }
+
   // Check list component first (special case with multiple inheritance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
     return formatListFormComponent(answer, field, richFormValue, translator)
@@ -343,10 +386,6 @@ function generateFieldLine(answer, field, richFormValue, translator) {
         translator
       )
     }
-  }
-
-  if (!answer && !field.options?.required) {
-    return `${translator.t('common.notProvided')}\n`
   }
 
   // Default handler for all other field types
