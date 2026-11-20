@@ -8,3 +8,5 @@ export const Reasons = {
   SubmissionEmail: 'submission-email',
   SaveAndExit: 'save-and-exit'
 }
+
+export const NOT_PROVIDED_TRANSLATION_KEY = 'common.notProvided'
