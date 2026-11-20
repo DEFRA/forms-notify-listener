@@ -5,6 +5,7 @@ import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+import { NOT_PROVIDED_TRANSLATION_KEY } from '~/src/service/constants.js'
 import { getRelevantPagesForLegacy } from '~/src/service/mappers/formatters/human/v1.js'
 import {
   findRepeaterPageByKey,
@@ -265,7 +266,7 @@ export function formatter(formSubmissionMessage, formDefinition, translator) {
 
 /**
  * Format file upload field - shows only file names (no links for user emails)
- * @param {string} answer
+ * @param {string} _answer
  * @param {Component} _field
  * @param {RichFormValue} richFormValue
  * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
@@ -273,7 +274,7 @@ export function formatter(formSubmissionMessage, formDefinition, translator) {
  * @returns {string}
  */
 function formatFileUploadField(
-  answer,
+  _answer,
   _field,
   richFormValue,
   _formSubmissionMessage,
@@ -285,7 +286,7 @@ function formatFileUploadField(
 
   // Not provided
   if (!formAdapterFiles.length) {
-    return `${translator.t('common.notProvided')}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Single file: no bullet point
@@ -324,7 +325,7 @@ function formatListFormComponent(_answer, field, richFormValue, translator) {
 
   // Not provided
   if (!items.length) {
-    return translator.t('common.notProvided') + '\n'
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Single answer: no bullet point
@@ -366,7 +367,7 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  */
 function generateFieldLine(answer, field, richFormValue, translator) {
   if ((richFormValue == null || !answer) && !field.options?.required) {
-    return `${translator.t('common.notProvided')}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Check list component first (special case with multiple inheritance)

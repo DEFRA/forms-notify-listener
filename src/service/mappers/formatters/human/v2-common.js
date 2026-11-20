@@ -4,6 +4,7 @@ import * as Components from '@defra/forms-engine-plugin/engine/components/index.
 
 import { config } from '~/src/config/index.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+import { NOT_PROVIDED_TRANSLATION_KEY } from '~/src/service/constants.js'
 import {
   formatGeospatialField as sharedFormatGeospatialField,
   formatLocationField,
@@ -44,7 +45,7 @@ export function generateFieldLine(
   translator
 ) {
   if (richFormValue == null || !answer) {
-    return `${translator.t('common.notProvided')}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Check list component first (special case with multiple inheriance)
@@ -100,7 +101,7 @@ function formatListFormComponent(
 
   // Abort early for empty values
   if (!items.length) {
-    return `${translator.t('common.notProvided')}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Yes/No field is treated differently since the item.value static text values will be 'components.yesNoField.yes'
@@ -194,7 +195,7 @@ function formatFileUploadField(
 
   // Skip empty files
   if (!formAdapterFiles.length) {
-    return `${translator.t('common.notProvided')}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   let answerEscaped = `${escapeContent(answer)}:\n\n`

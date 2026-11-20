@@ -2,6 +2,7 @@ import { hasRepeater } from '@defra/forms-model'
 
 import { format as dateFormat } from '~/src/helpers/date.js'
 import { escapeContent } from '~/src/lib/notify.js'
+import { NOT_PROVIDED_TRANSLATION_KEY } from '~/src/service/constants.js'
 
 /**
  * Finds a repeater page by its key (repeat.options.name)
@@ -33,9 +34,15 @@ export function repeaterAnswersKey(repeaterName) {
  * @param {Translator} translator
  * @returns {string}
  */
-export function formatMultilineTextField(answer, field, _richFormValue, _formSubmissionMessage, translator) {
+export function formatMultilineTextField(
+  answer,
+  field,
+  _richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   if (!answer && !field.options?.required) {
-    return translator.t('common.notProvided') + '\n'
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Preserve Multiline text new lines
@@ -55,13 +62,19 @@ export function formatMultilineTextField(answer, field, _richFormValue, _formSub
  * @param {Translator} translator
  * @returns {string}
  */
-export function formatUkAddressField(_answer, field, richFormValue, _formSubmissionMessage, translator) {
+export function formatUkAddressField(
+  _answer,
+  field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   // Format UK addresses into new lines
   const formField = /** @type {FormComponent} */ (field)
   const contextValue = formField.getContextValueFromFormValue(richFormValue)
   const optional = !field.options?.required
   if (optional && !contextValue) {
-    return translator.t('common.notProvided') + '\n'
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
   return [contextValue ?? []]
     .flat()
@@ -93,7 +106,7 @@ export function formatLocationField(
   )
   const optional = !field.options?.required
   if (optional && contextValue === '') {
-    return translator.t('common.notProvided') + '\n'
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
   return contextValue ? `${contextValue}\n` : ''
 }
@@ -142,14 +155,20 @@ export function extractPaymentDetails(formSubmissionMessage, translator) {
  * @param {Translator} translator
  * @returns {string}
  */
-export function formatGeospatialField(answer, field, richFormValue, _formSubmissionMessage, translator) {
+export function formatGeospatialField(
+  answer,
+  field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const features = /** @type {GeospatialState} */ (richFormValue)
 
   const optional = !field.options?.required
 
   // Not provided
   if (!features.length && optional) {
-    return translator.t('common.notProvided') + '\n'
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   let answerEscaped = `${escapeContent(answer)}:\n\n`
