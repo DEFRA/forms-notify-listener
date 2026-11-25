@@ -169,6 +169,36 @@ describe('Page controller helpers', () => {
     })
   })
 
+  it('should handle optional repeater fields with null values', () => {
+    const definition = buildDefinition({
+      ...exampleNotifyFormDefinition,
+      output: {
+        audience: 'machine',
+        version: '2'
+      }
+    })
+    const message = structuredClone(exampleNotifyFormMessage)
+    message.data.repeaters.repeaterOptionName = [
+      {
+        repeaterComponentName: 'Frodo',
+        // @ts-expect-error: repeaterComponentDate can be null for testing purposes
+        repeaterComponentDate: null
+      }
+    ]
+
+    const formatter = getFormatter('machine', '2')
+    const formatted = JSON.parse(formatter(message, definition, '2'))
+
+    // Null values are only filtered from 'main' - repeater items are passed through as-is
+    expect(formatted.data.repeaters.repeaterOptionName).toEqual([
+      {
+        repeaterComponentName: 'Frodo',
+        repeaterComponentDate: null
+      }
+    ])
+    expect(formatted.data.main).not.toHaveProperty('ADDDTS')
+  })
+
   it('should include copy-action details in the metadata', () => {
     const definition = buildDefinition({
       ...exampleNotifyFormDefinition,
