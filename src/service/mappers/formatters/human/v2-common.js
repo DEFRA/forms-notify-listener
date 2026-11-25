@@ -4,6 +4,7 @@ import * as Components from '@defra/forms-engine-plugin/engine/components/index.
 
 import { config } from '~/src/config/index.js'
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+import { NOT_PROVIDED_TRANSLATION_KEY } from '~/src/service/constants.js'
 import {
   formatGeospatialField as sharedFormatGeospatialField,
   formatLocationField,
@@ -43,9 +44,19 @@ export function generateFieldLine(
   formSubmissionMessage,
   translator
 ) {
+  if (richFormValue == null || !answer) {
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
+  }
+
   // Check list component first (special case with multiple inheriance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
-    return formatListFormComponent(answer, field, richFormValue)
+    return formatListFormComponent(
+      answer,
+      field,
+      richFormValue,
+      formSubmissionMessage,
+      translator
+    )
   }
 
   // Iterate through registered handlers
@@ -70,9 +81,17 @@ export function generateFieldLine(
  * @param {string} answer
  * @param {ListFormComponent} field
  * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-function formatListFormComponent(answer, field, richFormValue) {
+function formatListFormComponent(
+  answer,
+  field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const values = new Set(
     [field.getContextValueFromFormValue(richFormValue)].flat()
   )
@@ -80,9 +99,9 @@ function formatListFormComponent(answer, field, richFormValue) {
     values.has(value)
   )
 
-  // Skip empty values
+  // Abort early for empty values
   if (!items.length) {
-    return `${escapeContent(answer)}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Yes/No field is treated differently since the item.value static text values will be 'components.yesNoField.yes'
@@ -119,13 +138,15 @@ function formatListFormComponent(answer, field, richFormValue) {
  * @param {Component} field
  * @param {RichFormValue} richFormValue
  * @param {FormAdapterSubmissionMessage} formSubmissionMessage
+ * @param {Translator} _translator
  * @returns {string}
  */
 function formatGeospatialField(
   answer,
   field,
   richFormValue,
-  formSubmissionMessage
+  formSubmissionMessage,
+  _translator
 ) {
   let answerLine = sharedFormatGeospatialField(answer, field, richFormValue)
 
@@ -151,16 +172,24 @@ function formatGeospatialField(
  * @param {string} answer
  * @param {Component} _field
  * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-function formatFileUploadField(answer, _field, richFormValue) {
+function formatFileUploadField(
+  answer,
+  _field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
     /** @type {unknown} */ (richFormValue)
   )
 
   // Skip empty files
   if (!formAdapterFiles.length) {
-    return `${escapeContent(answer)}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   let answerEscaped = `${escapeContent(answer)}:\n\n`

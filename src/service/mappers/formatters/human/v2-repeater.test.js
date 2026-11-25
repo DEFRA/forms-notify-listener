@@ -260,7 +260,7 @@ describe('v2-repeater', () => {
       )
     })
 
-    it('should skip components with an undefined or empty value', () => {
+    it('should show "Not provided" for components with an undefined or empty value', () => {
       const { formModel, translator } = buildModelAndTranslator(
         exampleNotifyFormDefinition
       )
@@ -290,13 +290,17 @@ describe('v2-repeater', () => {
         '# Team Member 1\n',
         "## What is the team member\\'s name?\n",
         'Frodo\n',
+        "## What is the team member\\'s date of birth?\n",
+        'Not provided\n',
         '# Team Member 2\n',
+        "## What is the team member\\'s name?\n",
+        'Not provided\n',
         "## What is the team member\\'s date of birth?\n",
         '1 January 2020\n'
       ])
     })
 
-    it('should drop repeater items holding no answers', () => {
+    it('should still show repeater items holding no answers', () => {
       const { formModel, translator } = buildModelAndTranslator(
         exampleNotifyFormDefinition
       )
@@ -323,9 +327,16 @@ describe('v2-repeater', () => {
       )
 
       expect(componentMap.get('repeaterOptionName__answers')).toEqual([
+        '# Team Member 1\n',
+        "## What is the team member\\'s name?\n",
+        'Not provided\n',
+        "## What is the team member\\'s date of birth?\n",
+        'Not provided\n',
         '# Team Member 2\n',
         "## What is the team member\\'s name?\n",
-        'Gandalf\n'
+        'Gandalf\n',
+        "## What is the team member\\'s date of birth?\n",
+        'Not provided\n'
       ])
     })
 

@@ -1,4 +1,3 @@
-import { FileUploadField } from '@defra/forms-engine-plugin/engine/components/FileUploadField.js'
 import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { ListFormComponent } from '@defra/forms-engine-plugin/engine/components/ListFormComponent.js'
 import * as Components from '@defra/forms-engine-plugin/engine/components/index.js'
@@ -6,6 +5,7 @@ import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js
 import { Engine, hasComponents, hasRepeater } from '@defra/forms-model'
 
 import { escapeContent, escapeFileLabel } from '~/src/lib/notify.js'
+import { NOT_PROVIDED_TRANSLATION_KEY } from '~/src/service/constants.js'
 import { getRelevantPagesForLegacy } from '~/src/service/mappers/formatters/human/v1.js'
 import {
   findRepeaterPageByKey,
@@ -15,30 +15,6 @@ import {
   formatUkAddressField,
   repeaterAnswersKey
 } from '~/src/service/mappers/formatters/shared.js'
-
-/**
- * Check if an optional field should be skipped (no value provided)
- * @param {Component} field
- * @param {RichFormValue | null} richFormValue
- * @returns {boolean}
- */
-function shouldSkipOptionalField(field, richFormValue) {
-  const isRequired = field.options?.required ?? true
-
-  if (isRequired) {
-    return false // Never skip a required field
-  }
-
-  const hasNoValue = richFormValue === null || richFormValue === undefined
-
-  // For file uploads, check if array is empty
-  const isEmptyFileUpload =
-    field instanceof FileUploadField &&
-    Array.isArray(richFormValue) &&
-    richFormValue.length === 0
-
-  return hasNoValue || isEmptyFileUpload
-}
 
 /**
  * Process main form entries (non-repeater fields)
@@ -64,24 +40,10 @@ function processMainEntries(formSubmissionMessage, formModel, translator) {
       continue
     }
 
-    if (
-      shouldSkipOptionalField(
-        field,
-        /** @type {RichFormValue | null} */ (richFormValue)
-      )
-    ) {
-      continue
-    }
-
     const answer = field.getDisplayStringFromFormValue(
       /** @type {any} */ (richFormValue),
       translator
     )
-
-    // Also skip if optional and the display string is empty
-    if (!field.options.required && answer === '') {
-      continue
-    }
 
     const questionLines = /** @type {string[]} */ ([])
     const label = escapeContent(
@@ -118,17 +80,16 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
   const { tComponent } = translator
   const answerLines = /** @type {string[]} */ ([])
 
+  const hasAnyValue = componentFields.some(({ name }) =>
+    hasRepeaterValue(itemData[name])
+  )
+
+  if (!hasAnyValue) {
+    return []
+  }
+
   for (const componentField of componentFields) {
     const componentValue = itemData[componentField.name]
-
-    // Skip if no value
-    if (
-      componentValue === null ||
-      componentValue === undefined ||
-      componentValue === ''
-    ) {
-      continue
-    }
 
     const componentLabel = escapeContent(
       tComponent(/** @type {ComponentDef} */ (componentField), 'title')
@@ -144,7 +105,7 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
       generateFieldLine(
         componentAnswer,
         /** @type {Component} */ (/** @type {unknown} */ (componentField)),
-        componentValue,
+        /** @type {RichFormValue} */ (/** @type {unknown} */ (componentValue)),
         translator
       )
     )
@@ -157,6 +118,31 @@ function processRepeaterItem(itemLabel, componentFields, itemData, translator) {
 
   // Repeater item label uses heading level 1 (#)
   return [`# ${escapeContent(itemLabel)}\n`, ...answerLines]
+}
+
+/**
+ * Check whether a repeater value contains an answer
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function hasRepeaterValue(value) {
+  if (value === null || value === undefined) {
+    return false
+  }
+
+  if (typeof value === 'string') {
+    return value.length > 0
+  }
+
+  if (Array.isArray(value)) {
+    return value.some(hasRepeaterValue)
+  }
+
+  if (typeof value === 'object') {
+    return Object.values(value).some(hasRepeaterValue)
+  }
+
+  return true
 }
 
 /**
@@ -280,19 +266,27 @@ export function formatter(formSubmissionMessage, formDefinition, translator) {
 
 /**
  * Format file upload field - shows only file names (no links for user emails)
- * @param {string} answer
+ * @param {string} _answer
  * @param {Component} _field
  * @param {RichFormValue} richFormValue
+ * @param {FormAdapterSubmissionMessage} _formSubmissionMessage
+ * @param {Translator} translator
  * @returns {string}
  */
-function formatFileUploadField(answer, _field, richFormValue) {
+function formatFileUploadField(
+  _answer,
+  _field,
+  richFormValue,
+  _formSubmissionMessage,
+  translator
+) {
   const formAdapterFiles = /** @type {FormAdapterFile[]} */ (
     /** @type {unknown} */ (richFormValue)
   )
 
-  // Skip empty files
+  // Not provided
   if (!formAdapterFiles.length) {
-    return `${escapeContent(answer)}\n`
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Single file: no bullet point
@@ -329,9 +323,9 @@ function formatListFormComponent(_answer, field, richFormValue, translator) {
     values.has(value)
   )
 
-  // Skip empty values
+  // Not provided
   if (!items.length) {
-    return ''
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
   }
 
   // Single answer: no bullet point
@@ -372,6 +366,10 @@ fieldHandlers.set(Components.GeospatialField, formatGeospatialField)
  * @returns {string}
  */
 function generateFieldLine(answer, field, richFormValue, translator) {
+  if ((richFormValue == null || !answer) && !field.options?.required) {
+    return `${translator.t(NOT_PROVIDED_TRANSLATION_KEY)}\n`
+  }
+
   // Check list component first (special case with multiple inheritance)
   if (field instanceof ListFormComponent && field instanceof FormComponent) {
     return formatListFormComponent(answer, field, richFormValue, translator)

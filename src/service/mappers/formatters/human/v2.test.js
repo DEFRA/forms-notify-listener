@@ -1,6 +1,26 @@
+import { randomUUID } from 'node:crypto'
+
+import { FormComponent } from '@defra/forms-engine-plugin/engine/components/FormComponent.js'
 import { createTranslator } from '@defra/forms-engine-plugin/engine/i18n/createTranslator.js'
-import { FormStatus } from '@defra/forms-model'
-import { buildDefinition } from '@defra/forms-model/stubs'
+import { FormModel } from '@defra/forms-engine-plugin/engine/models/FormModel.js'
+import { ComponentType, FormStatus } from '@defra/forms-model'
+import {
+  buildAutoCompleteComponent,
+  buildCheckboxComponent,
+  buildDefinition,
+  buildEastingNorthingFieldComponent,
+  buildFileUploadComponent,
+  buildGeospatialFieldComponent,
+  buildLatLongFieldComponent,
+  buildList,
+  buildMultilineTextFieldComponent,
+  buildQuestionPage,
+  buildRadioComponent,
+  buildRepeaterPage,
+  buildSelectFieldComponent,
+  buildTextFieldComponent,
+  buildUkAddressFieldComponent
+} from '@defra/forms-model/stubs'
 
 import { stringExistsFromPosition } from '~/src/helpers/string-utils.js'
 import { EN_GB } from '~/src/i18n/translations-helper.js'
@@ -22,6 +42,7 @@ import {
   yesNoFormDefinition,
   yesNoMessage
 } from '~/src/service/mappers/formatters/__stubs__/notify.js'
+import { generateFieldLine } from '~/src/service/mappers/formatters/human/v2-common.js'
 import {
   getRelevantPagesForLegacy,
   mapValueToState
@@ -130,6 +151,161 @@ describe('Page controller helpers', () => {
   })
 
   describe('format', () => {
+    describe('optional unanswered fields', () => {
+      const options = { required: false }
+      const list = 'answers'
+      const cases = [
+        { component: buildTextFieldComponent({ options }), value: '' },
+        { component: buildMultilineTextFieldComponent({ options }), value: '' },
+        {
+          component: buildUkAddressFieldComponent({ options }),
+          value: undefined
+        },
+        {
+          component: buildEastingNorthingFieldComponent({
+            id: randomUUID(),
+            options
+          }),
+          value: undefined
+        },
+        {
+          component: buildLatLongFieldComponent({ id: randomUUID(), options }),
+          value: undefined
+        },
+        { component: buildGeospatialFieldComponent({ options }), value: [] },
+        { component: buildFileUploadComponent({ options }), value: [] },
+        { component: buildCheckboxComponent({ list, options }), value: [] },
+        { component: buildRadioComponent({ list, options }), value: undefined },
+        {
+          component: buildSelectFieldComponent({
+            name: 'select',
+            title: 'Select',
+            list,
+            options
+          }),
+          value: undefined
+        },
+        {
+          component: buildAutoCompleteComponent({ list, options }),
+          value: undefined
+        }
+      ]
+
+      it.each(cases)(
+        'formats an empty optional $component.type in the main answers',
+        ({ component, value }) => {
+          const definition = buildDefinition({
+            pages: [
+              buildQuestionPage({ components: [structuredClone(component)] })
+            ],
+            lists: [buildList({ name: list })]
+          })
+          const isFile = component.type === ComponentType.FileUploadField
+          const message = buildFormAdapterSubmissionMessage({
+            data: {
+              main: isFile ? {} : { [component.name]: value },
+              repeaters: {},
+              files: isFile ? { [component.name]: [] } : {}
+            }
+          })
+          const translator = createTranslator(
+            createAndPopulatei18nInstance(undefined, definition),
+            EN_GB
+          )
+
+          const output = getFormatter('human', '2')(
+            message,
+            definition,
+            '2',
+            translator
+          )
+
+          expect(output).toContain(
+            `## ${component.title}\n\nNot provided\n\n---`
+          )
+          expect(output).not.toContain('[View map]')
+        }
+      )
+
+      it.each(cases)(
+        'formats an empty optional $component.type in a repeater',
+        ({ component, value }) => {
+          const definition = buildDefinition({
+            pages: [
+              buildRepeaterPage({
+                components: [
+                  buildTextFieldComponent({
+                    id: randomUUID(),
+                    name: 'answered',
+                    title: 'Answered',
+                    options: { required: true }
+                  }),
+                  structuredClone(component)
+                ]
+              })
+            ],
+            lists: [buildList({ name: list })]
+          })
+          const message = buildFormAdapterSubmissionMessage({
+            data: {
+              main: {},
+              repeaters: {
+                fawfed: [{ answered: 'Present', [component.name]: value }]
+              },
+              files: {}
+            }
+          })
+          const translator = createTranslator(
+            createAndPopulatei18nInstance(undefined, definition),
+            'cy'
+          )
+
+          const output = getFormatter('human', '2')(
+            message,
+            definition,
+            '2',
+            translator
+          )
+
+          expect(output).toContain('## Answered\n\nPresent')
+          expect(output).toContain(`## ${component.title}\n\nHeb ei ddarparu`)
+          expect(output).not.toContain('[View map]')
+        }
+      )
+
+      it.each([
+        buildFileUploadComponent({ options }),
+        buildCheckboxComponent({ list, options })
+      ])(
+        'returns Not provided for an empty $type even with display text',
+        (component) => {
+          const definition = buildDefinition({
+            pages: [buildQuestionPage({ components: [component] })],
+            lists: [buildList({ name: list })]
+          })
+          const model = new FormModel(definition, { basePath: '' })
+          const field = model.componentMap.get(component.name)
+          if (!(field instanceof FormComponent)) {
+            throw new Error(`Missing form component ${component.name}`)
+          }
+          const translator = createTranslator(
+            createAndPopulatei18nInstance(undefined, definition),
+            EN_GB
+          )
+
+          expect(
+            generateFieldLine(
+              'Display text',
+              field,
+              [],
+              buildFormAdapterSubmissionMessage(),
+              translator
+            )
+          ).toBe('Not provided\n')
+        }
+      )
+    })
+
     it('should return a valid human readable v2 response', () => {
       const definition = buildDefinition({
         ...exampleNotifyFormDefinition,

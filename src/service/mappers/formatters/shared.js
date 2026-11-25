@@ -127,11 +127,6 @@ export function extractPaymentDetails(formSubmissionMessage, translator) {
 export function formatGeospatialField(answer, _field, richFormValue) {
   const features = /** @type {GeospatialState} */ (richFormValue)
 
-  // Skip empty
-  if (!features.length) {
-    return `${escapeContent(answer)}\n`
-  }
-
   let answerEscaped = `${escapeContent(answer)}:\n\n`
 
   const value = features

@@ -1,4 +1,7 @@
 {
+  "common": {
+    "notProvided": "Heb ei ddarparu"
+  },
   "confirmationEmail": {
     "subject": "Ffurflen wedi'i chyflwyno i [[organisation]]",
     "subjectTestMode": "CADARNHAU FFURFLEN BRAWF: [[organisation]]",
