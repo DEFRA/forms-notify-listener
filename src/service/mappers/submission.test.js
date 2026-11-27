@@ -51,7 +51,8 @@ describe('events', () => {
       repeaters: {},
       files: {}
     }),
-    result: buildFormAdapterSubmissionMessageResult()
+    result: buildFormAdapterSubmissionMessageResult(),
+    publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
   }
 
   describe('mapSubmissionEvents', () => {
@@ -110,7 +111,8 @@ describe('events', () => {
           formId: undefined
         }),
         data: buildFormAdapterSubmissionMessageData(),
-        result: buildFormAdapterSubmissionMessageResult()
+        result: buildFormAdapterSubmissionMessageResult(),
+        publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
       })
 
       expect(() => mapSubmissionEvent(auditEventMessage)).toThrow(

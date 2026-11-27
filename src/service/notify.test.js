@@ -165,7 +165,8 @@ describe('notify', () => {
         },
         data: {
           ...formSubmissionData
-        }
+        },
+        publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
       })
     })
 
@@ -203,7 +204,8 @@ describe('notify', () => {
           referenceNumber,
           definition: baseDefinition
         },
-        data: formSubmissionData
+        data: formSubmissionData,
+        publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
       })
     })
 
@@ -500,7 +502,8 @@ describe('notify', () => {
           referenceNumber,
           definition: baseDefinition
         },
-        data: formSubmissionData
+        data: formSubmissionData,
+        publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
       })
     })
 

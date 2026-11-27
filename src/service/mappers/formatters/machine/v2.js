@@ -37,7 +37,8 @@ export function formatter(
       language: formSubmissionMessage.meta.language,
       ...(action ? { action } : undefined)
     },
-    data
+    data,
+    publicRetrievalId: formSubmissionMessage.publicRetrievalId
   }
 
   return JSON.stringify(machineReadable)

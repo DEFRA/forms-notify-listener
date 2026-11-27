@@ -89,7 +89,8 @@ describe('submission events', () => {
           FqQrLz: 'e3005cd2-8b1c-4dc4-b2ac-bd1ff73666a9'
         }
       }
-    })
+    }),
+    publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
   }
   /**
    *
@@ -147,7 +148,8 @@ describe('submission events', () => {
           formId: undefined
         }),
         data: buildFormAdapterSubmissionMessageData(),
-        result: buildFormAdapterSubmissionMessageResult()
+        result: buildFormAdapterSubmissionMessageResult(),
+        publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
       })
 
       expect(() => mapFormAdapterSubmissionEvent(auditEventMessage)).toThrow(
@@ -186,7 +188,8 @@ describe('submission events', () => {
         meta: buildFormAdapterSubmissionMessageMetaStub(formSubmissionMetaBase),
         recordCreatedAt: expect.any(Date),
         messageId: messageId1,
-        result: buildFormAdapterSubmissionMessageResult()
+        result: buildFormAdapterSubmissionMessageResult(),
+        publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
       }
       const expectedMapped2 = {
         ...buildFormAdapterSubmissionMessagePayloadStub(),

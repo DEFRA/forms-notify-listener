@@ -16,6 +16,7 @@ import { FormStatus } from '@defra/forms-model'
  *   meta: FormAdapterSubmissionMessageMetaSerialised
  *   data: FormAdapterSubmissionMessageData
  *   result: FormAdapterSubmissionMessageResult
+ *   publicRetrievalId: string
  * }} FormAdapterSubmissionMessagePayloadSerialised
  */
 
@@ -129,6 +130,7 @@ export function buildFormAdapterSubmissionMessagePayloadStub(
     meta: buildFormAdapterSubmissionMessageMetaStub(),
     data: buildFormAdapterSubmissionMessageData(),
     result: buildFormAdapterSubmissionMessageResult(),
+    publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac',
     ...partialFormAdapterSubmissionMessagePayload
   }
 }
@@ -145,6 +147,7 @@ export function buildFormAdapterSubmissionMessagePayloadSerialisedStub(
     meta: buildFormAdapterSubmissionMessageMetaSerialised(),
     data: buildFormAdapterSubmissionMessageData(),
     result: buildFormAdapterSubmissionMessageResult(),
+    publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac',
     ...partialFormAdapterSubmissionMessagePayload
   }
 }
@@ -158,6 +161,7 @@ export function buildFormAdapterSubmissionMessage(
 ) {
   return {
     ...buildFormAdapterSubmissionMessagePayloadStub(),
+    publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac',
     messageId: '1668fba2-386c-4e2e-a348-a241e4193d08',
     recordCreatedAt: new Date('2025-08-26'),
     ...partialFormSubmissionMessage
