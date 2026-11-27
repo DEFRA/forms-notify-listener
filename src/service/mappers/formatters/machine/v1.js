@@ -25,7 +25,8 @@ export function formatter(
       language: formSubmissionMessage.meta.language,
       ...(action ? { action } : undefined)
     },
-    data: formatData(formSubmissionMessage, formDefinition)
+    data: formatData(formSubmissionMessage, formDefinition),
+    publicRetrievalId: formSubmissionMessage.publicRetrievalId
   }
   return JSON.stringify(machineReadable)
 }

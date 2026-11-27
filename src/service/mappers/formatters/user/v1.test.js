@@ -432,7 +432,6 @@ Frodo
                 repeaterComponentDate: { day: 1, month: 1, year: 2000 }
               },
               {
-                // @ts-expect-error - intentionally testing null handling
                 repeaterComponentName: null,
                 repeaterComponentDate: { day: 1, month: 1, year: 2020 }
               },
@@ -671,9 +670,7 @@ Not provided`)
           repeaters: {
             repeaterOptionName: [
               {
-                // @ts-expect-error - intentionally testing null handling
                 repeaterComponentName: null,
-                // @ts-expect-error - intentionally testing null handling
                 repeaterComponentDate: null
               },
               {

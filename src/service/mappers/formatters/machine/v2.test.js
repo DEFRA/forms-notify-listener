@@ -165,7 +165,8 @@ describe('Page controller helpers', () => {
             }
           ]
         }
-      }
+      },
+      publicRetrievalId: 'd653ed1e-c4be-4d76-bb5a-ad88de4cc4ac'
     })
   })
 

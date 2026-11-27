@@ -241,7 +241,7 @@ export function formatter(
   if (uploadedFiles.length) {
     const filesDownloadLabel = escapeFileLabel('Download all attached files')
     lines.push(
-      `[${filesDownloadLabel}](${designerUrl}/files-download/${meta.referenceNumber})\n`,
+      `[${filesDownloadLabel}](${designerUrl}/files-download/${formSubmissionMessage.publicRetrievalId})\n`,
       '---\n'
     )
   }
